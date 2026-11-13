@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-void: #050505;
+  --bg-elevated: #0B0B0D;
+  --bg-glass: rgba(8, 8, 10, 0.88);
+  --text-primary: #FFFFFF;
+  --text-secondary: #8A8A93;
+  --text-muted: #52525B;
+  --accent-starlight: #F4F1EA;
+  --border-hairline: rgba(255, 255, 255, 0.12);
+  --border-active: rgba(255, 255, 255, 0.45);
+  --orbital-line: rgba(255, 255, 255, 0.055);
+}
+
+*,
+*::before,
+*::after {
+  border-radius: 0px !important;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg-void);
+  color: var(--text-primary);
+}
+
+body {
+  background-color: var(--bg-void);
+  color: var(--text-primary);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: #FFFFFF;
+  color: #050505;
+}
+
+@layer utilities {
+  .heading-hero {
+    font-family: var(--font-display), sans-serif;
+    font-size: clamp(2.5rem, 6.5vw, 5.75rem);
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+
+  .heading-section {
+    font-family: var(--font-display), sans-serif;
+    font-size: clamp(1.85rem, 4.2vw, 3.75rem);
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+
+  .serif-accent {
+    font-family: var(--font-serif), serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--accent-starlight);
+    letter-spacing: -0.015em;
+    text-transform: none;
+  }
+
+  .telemetry-label {
+    font-family: var(--font-mono), monospace;
+    letter-spacing: 0.16em;
+    line-height: 1.6;
+    text-transform: uppercase;
+  }
+
+  .editorial-body {
+    font-family: var(--font-sans), sans-serif;
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  .perspective-1200 {
+    perspective: 1200px;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .animate-pulse-star {
+    animation: pulse-star 3.6s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse-star {
+  0%,
+  100% {
+    opacity: 0.82;
+    transform: scale(0.96);
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.45));
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+    filter: drop-shadow(0 0 22px rgba(255, 255, 255, 0.85));
+  }
+}
