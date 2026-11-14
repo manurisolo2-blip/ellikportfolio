@@ -22,6 +22,14 @@
   box-sizing: border-box;
 }
 
+@media (pointer: fine) {
+  *,
+  *::before,
+  *::after {
+    cursor: none !important;
+  }
+}
+
 html {
   scroll-behavior: smooth;
   background-color: var(--bg-void);
@@ -68,11 +76,14 @@ body {
     text-transform: none;
   }
 
-  .telemetry-label {
+  .telemetry-label,
+  .section-label {
     font-family: var(--font-mono), monospace;
-    letter-spacing: 0.16em;
+    font-size: 11px;
+    letter-spacing: 0.18em;
     line-height: 1.6;
     text-transform: uppercase;
+    color: #71717A;
   }
 
   .editorial-body {
@@ -85,8 +96,16 @@ body {
     perspective: 1200px;
   }
 
+  .perspective-1400 {
+    perspective: 1400px;
+  }
+
   .preserve-3d {
     transform-style: preserve-3d;
+  }
+
+  .cursor-ring-circle {
+    border-radius: 9999px !important;
   }
 
   .animate-pulse-star {

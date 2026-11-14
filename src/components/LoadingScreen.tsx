@@ -1,77 +1,57 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 
-const TOTAL_DURATION_MS = 1800;
-const RADIUS = 42;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-
-function computeOrganicProgress(t: number): number {
-  if (t <= 0) return 0;
-  if (t >= 1) return 100;
-
-  // Avance orgánico: sube fluido hasta ~82%, frena sutilmente cerca de 85% y remata rápido al 100%
-  if (t < 0.52) {
-    const k = t / 0.52;
-    const eased = 1 - Math.pow(1 - k, 2.2);
-    return eased * 82;
-  }
-  if (t < 0.84) {
-    const k = (t - 0.52) / 0.32;
-    return 82 + k * 6;
-  }
-  const k = (t - 0.84) / 0.16;
-  const snap = k * k * (3 - 2 * k);
-  return 88 + snap * 12;
-}
-
-function getTelemetryStatus(percent: number): string {
-  if (percent <= 35) return "ALINEANDO ÓRBITA";
-  if (percent <= 75) return "CARGANDO MISIONES";
-  return "SISTEMA ELLIK LISTO";
-}
+const TOTAL_DURATION_MS = 2300;
+const PROGRESS_RADIUS = 56;
+const PROGRESS_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RADIUS;
 
 export function LoadingScreen() {
   const [progress, setProgress] = useState<number>(0);
-  const [isFlashing, setIsFlashing] = useState<boolean>(false);
-  const [isVisible, setIsVisible] = useState<boolean>(true);
+  const [starFlashing, setStarFlashing] = useState<boolean>(false);
+  const [curtainsOpen, setCurtainsOpen] = useState<boolean>(false);
+  const [isDone, setIsDone] = useState<boolean>(false);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
-    if (isVisible) {
+    if (!isDone) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = previousOverflow;
     }
-
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [isVisible]);
+  }, [isDone]);
 
   useEffect(() => {
     let rafId = 0;
-    let holdTimer: ReturnType<typeof setTimeout> | null = null;
-    let exitTimer: ReturnType<typeof setTimeout> | null = null;
+    let flashTimer: ReturnType<typeof setTimeout> | null = null;
+    let curtainTimer: ReturnType<typeof setTimeout> | null = null;
+    let doneTimer: ReturnType<typeof setTimeout> | null = null;
     const startTime = performance.now();
 
     const tick = (now: number) => {
       const elapsed = now - startTime;
-      const ratio = Math.min(1, elapsed / TOTAL_DURATION_MS);
-      const nextProgress = Math.round(computeOrganicProgress(ratio));
-      setProgress(nextProgress);
+      const t = Math.min(1, elapsed / TOTAL_DURATION_MS);
+      const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      const pct = Math.min(100, Math.round(eased * 100));
+      setProgress(pct);
 
-      if (ratio < 1) {
+      if (t < 1) {
         rafId = window.requestAnimationFrame(tick);
       } else {
         setProgress(100);
-        holdTimer = setTimeout(() => {
-          setIsFlashing(true);
-          exitTimer = setTimeout(() => {
-            setIsVisible(false);
+        flashTimer = setTimeout(() => {
+          setStarFlashing(true);
+          curtainTimer = setTimeout(() => {
+            setCurtainsOpen(true);
+            doneTimer = setTimeout(() => {
+              setIsDone(true);
+            }, 780);
           }, 160);
-        }, 250);
+        }, 120);
       }
     };
 
@@ -79,113 +59,190 @@ export function LoadingScreen() {
 
     return () => {
       window.cancelAnimationFrame(rafId);
-      if (holdTimer) clearTimeout(holdTimer);
-      if (exitTimer) clearTimeout(exitTimer);
+      if (flashTimer) clearTimeout(flashTimer);
+      if (curtainTimer) clearTimeout(curtainTimer);
+      if (doneTimer) clearTimeout(doneTimer);
     };
   }, []);
 
-  const strokeDashoffset = CIRCUMFERENCE * (1 - progress / 100);
-  const starScale = 0.86 + (progress / 100) * 0.22;
-  const glowIntensity = (progress / 100) * 0.8;
-  const formattedPercent = `${String(progress).padStart(2, "0")}%`;
-  const statusLabel = getTelemetryStatus(progress);
+  if (isDone) return null;
+
+  // Fase 2 (51% a 100%): progreso circular sincronizado con el contador
+  const phaseTwoRatio =
+    progress <= 50 ? 0 : Math.min(1, (progress - 50) / 50);
+  const strokeDashoffset = PROGRESS_CIRCUMFERENCE * (1 - phaseTwoRatio);
+  const formattedCount = String(progress).padStart(2, "0");
 
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          key="ellik-loading-screen"
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          aria-live="polite"
-          aria-label="Cargando sistema ELLIK"
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#050505] select-none"
-        >
-          {/* Destello estelar de 12px en esquina superior izquierda rotando lentamente */}
+    <div
+      aria-live="polite"
+      aria-label="Cargando sitio ELLIK"
+      className="fixed inset-0 z-[100] select-none"
+    >
+      {/* Fase 3: Apertura de Obturador (dos paneles horizontales) */}
+      <motion.div
+        initial={{ y: "0%" }}
+        animate={{ y: curtainsOpen ? "-100%" : "0%" }}
+        transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1] }}
+        className="fixed top-0 left-0 right-0 h-1/2 bg-[#050505]"
+      />
+      <motion.div
+        initial={{ y: "0%" }}
+        animate={{ y: curtainsOpen ? "100%" : "0%" }}
+        transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1] }}
+        className="fixed bottom-0 left-0 right-0 h-1/2 bg-[#050505]"
+      />
+
+      {/* Contenido cinético central */}
+      <motion.div
+        animate={
+          starFlashing
+            ? { scale: 1.4, opacity: 0 }
+            : { scale: 1, opacity: 1 }
+        }
+        transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+        className="relative z-10 flex h-full w-full flex-col items-center justify-center px-6"
+      >
+        <div className="relative flex h-44 w-44 items-center justify-center">
+          {/* Halo radial suave */}
           <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
-            className="fixed top-6 left-6 lg:top-8 lg:left-10"
-            aria-hidden="true"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            className="pointer-events-none absolute inset-6"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 65%)",
+            }}
+          />
+
+          <svg
+            viewBox="0 0 180 180"
+            className="h-full w-full overflow-visible"
+            fill="none"
           >
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path
-                d="M6 0 C6.4 4.2 7.8 5.6 12 6 C7.8 6.4 6.4 7.8 6 12 C5.6 7.8 4.2 6.4 0 6 C4.2 5.6 5.6 4.2 6 0 Z"
-                fill="#FFFFFF"
-              />
-            </svg>
-          </motion.div>
+            {/* Cruz de alineación central ultrafina */}
+            <motion.line
+              x1="14"
+              y1="90"
+              x2="166"
+              y2="90"
+              stroke="rgba(255, 255, 255, 0.12)"
+              strokeWidth="1"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+            />
+            <motion.line
+              x1="90"
+              y1="14"
+              x2="90"
+              y2="166"
+              stroke="rgba(255, 255, 255, 0.12)"
+              strokeWidth="1"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.85, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+            />
 
-          {/* Centro Absoluto: Estrella de Carga de Ellik */}
-          <div className="flex flex-col items-center">
-            <motion.div
-              animate={
-                isFlashing
-                  ? { scale: 1.4, opacity: 0 }
-                  : { scale: 1, opacity: 1 }
-              }
-              transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-              className="relative h-24 w-24"
+            {/* Fase 1: Dos anillos orbitales finos trazados con pathLength girando en sentidos opuestos */}
+            <motion.g
+              animate={{ rotate: 360 }}
+              transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
+              style={{ transformOrigin: "90px 90px" }}
             >
-              <svg
-                width="96"
-                height="96"
-                viewBox="0 0 96 96"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                {/* Anillo orbital guía */}
-                <circle
-                  cx="48"
-                  cy="48"
-                  r={RADIUS}
-                  stroke="rgba(255, 255, 255, 0.12)"
-                  strokeWidth="1"
-                />
+              <motion.circle
+                cx="90"
+                cy="90"
+                r="76"
+                stroke="rgba(255, 255, 255, 0.14)"
+                strokeWidth="1"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
+              />
+            </motion.g>
 
-                {/* Anillo orbital de progreso */}
+            <motion.g
+              animate={{ rotate: -360 }}
+              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+              style={{ transformOrigin: "90px 90px" }}
+            >
+              <motion.circle
+                cx="90"
+                cy="90"
+                r="66"
+                stroke="rgba(255, 255, 255, 0.14)"
+                strokeWidth="1"
+                strokeDasharray="20 8"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.05, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              />
+            </motion.g>
+
+            {/* Fase 2: Anillo circular blanco de progreso (51% a 100%) */}
+            <circle
+              cx="90"
+              cy="90"
+              r={PROGRESS_RADIUS}
+              stroke="#FFFFFF"
+              strokeWidth="1.5"
+              strokeDasharray={PROGRESS_CIRCUMFERENCE}
+              strokeDashoffset={strokeDashoffset}
+              transform="rotate(-90 90 90)"
+            />
+
+            {/* Isotipo orbital ELLIK en el núcleo expandiéndose desde escala 0 */}
+            <motion.g
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              style={{ transformOrigin: "90px 90px" }}
+            >
+              <g transform="translate(58 58)">
                 <circle
-                  cx="48"
-                  cy="48"
-                  r={RADIUS}
+                  cx="33"
+                  cy="25"
+                  r="21"
                   stroke="#FFFFFF"
-                  strokeWidth="1.25"
-                  strokeDasharray={CIRCUMFERENCE}
-                  strokeDashoffset={strokeDashoffset}
-                  transform="rotate(-90 48 48)"
+                  strokeWidth="1.75"
+                  strokeOpacity="0.42"
                 />
+                <circle
+                  cx="30"
+                  cy="36"
+                  r="21"
+                  stroke="#FFFFFF"
+                  strokeWidth="2"
+                  strokeOpacity="0.95"
+                />
+                <circle
+                  cx="25.5"
+                  cy="38.5"
+                  r="12.5"
+                  stroke="#FFFFFF"
+                  strokeWidth="1.75"
+                  strokeOpacity="0.58"
+                />
+                <rect
+                  x="23.5"
+                  y="11.5"
+                  width="7.5"
+                  height="7.5"
+                  fill="#FFFFFF"
+                />
+                <circle cx="44.8" cy="21.2" r="3.2" fill="#FFFFFF" />
+              </g>
+            </motion.g>
+          </svg>
+        </div>
 
-                {/* Estrella ELLIK de 4 puntas afiladas en el núcleo */}
-                <g
-                  style={{
-                    transform: `scale(${starScale})`,
-                    transformOrigin: "48px 48px",
-                    filter: `drop-shadow(0 0 12px rgba(255, 255, 255, ${glowIntensity.toFixed(
-                      2
-                    )}))`,
-                  }}
-                >
-                  <path
-                    d="M48 22 C49.5 41 55 46.5 74 48 C55 49.5 49.5 55 48 74 C46.5 55 41 49.5 22 48 C41 46.5 46.5 41 48 22 Z"
-                    fill="#FFFFFF"
-                  />
-                </g>
-              </svg>
-            </motion.div>
-
-            {/* Telemetría debajo del SVG */}
-            <div className="mt-6 flex flex-col items-center gap-1.5 text-center">
-              <span className="font-mono text-[13px] italic tabular-nums text-[#FFFFFF]">
-                {formattedPercent}
-              </span>
-              <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#52525B]">
-                {statusLabel}
-              </span>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        {/* Contador grande limpio en Space Grotesk light (44px, tabular-nums), sin % ni texto técnico */}
+        <span className="mt-8 font-display text-[44px] font-light leading-none tabular-nums text-[#FFFFFF]">
+          {formattedCount}
+        </span>
+      </motion.div>
+    </div>
   );
 }

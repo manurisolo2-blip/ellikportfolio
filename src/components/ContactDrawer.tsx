@@ -120,15 +120,14 @@ export function ContactDrawer({
             <div>
               {/* Cabecera del drawer */}
               <div className="flex items-center justify-between border-b border-[var(--border-hairline)] pb-5">
-                <span className="telemetry-label text-[11px] text-[var(--text-secondary)]">
-                  TRANSMISIÓN DIRECTA // ELLIK
-                </span>
+                <span className="section-label">CONTACTO DIRECTO</span>
                 <button
                   type="button"
+                  data-cursor="action"
                   onClick={onClose}
-                  className="telemetry-label text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                  className="section-label hover:text-[var(--text-primary)] transition-colors px-2 py-1"
                 >
-                  [ ESC / CERRAR ]
+                  CERRAR ×
                 </button>
               </div>
 
@@ -238,6 +237,7 @@ export function ContactDrawer({
 
                 <button
                   type="submit"
+                  data-cursor="action"
                   className="w-full border border-[var(--text-primary)] bg-[var(--text-primary)] px-6 py-4 font-mono text-xs tracking-[0.16em] uppercase font-medium text-[#050505] transition-colors hover:bg-transparent hover:text-[var(--text-primary)]"
                 >
                   ENVIAR POR WHATSAPP ↗

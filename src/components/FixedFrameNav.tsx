@@ -12,37 +12,36 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
   const [activeId, setActiveId] = useState<string>(NAV_SECTIONS[0].id);
 
   useEffect(() => {
+    const updateActiveByPosition = () => {
+      if (window.scrollY < 80) {
+        setActiveId(NAV_SECTIONS[0].id);
+        return;
+      }
+
+      const triggerY = window.innerHeight * 0.38;
+      let currentId = NAV_SECTIONS[0].id;
+
+      for (const section of NAV_SECTIONS) {
+        const el = document.getElementById(section.id);
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= triggerY) {
+          currentId = section.id;
+        }
+      }
+
+      setActiveId(currentId);
+    };
+
     const sectionElements = NAV_SECTIONS.map((s) =>
       document.getElementById(s.id)
     ).filter((el): el is HTMLElement => el !== null);
 
     if (sectionElements.length === 0) return;
 
-    const visibilityMap = new Map<string, number>();
-
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          visibilityMap.set(
-            entry.target.id,
-            entry.isIntersecting ? entry.intersectionRatio : 0
-          );
-        });
-
-        let bestId: string | null = null;
-        let maxRatio = 0;
-
-        for (const section of NAV_SECTIONS) {
-          const ratio = visibilityMap.get(section.id) ?? 0;
-          if (ratio > maxRatio) {
-            maxRatio = ratio;
-            bestId = section.id;
-          }
-        }
-
-        if (bestId !== null) {
-          setActiveId(bestId);
-        }
+      () => {
+        updateActiveByPosition();
       },
       {
         rootMargin: "-20% 0px -45% 0px",
@@ -51,9 +50,12 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
     );
 
     sectionElements.forEach((el) => observer.observe(el));
+    window.addEventListener("scroll", updateActiveByPosition, { passive: true });
+    updateActiveByPosition();
 
     return () => {
       observer.disconnect();
+      window.removeEventListener("scroll", updateActiveByPosition);
     };
   }, []);
 
@@ -71,10 +73,11 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
     <>
       {/* Esquina Superior Izquierda: Logo ELLIK */}
       <a
-        href="#orbita"
+        href="#inicio"
+        data-cursor="action"
         onClick={(e) => {
           e.preventDefault();
-          scrollToSection("orbita");
+          scrollToSection("inicio");
         }}
         aria-label="ELLIK — Volver al inicio"
         className="fixed top-6 left-6 lg:top-8 lg:left-10 z-40 text-[var(--text-primary)] transition-opacity hover:opacity-80"
@@ -85,8 +88,9 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
       {/* Esquina Superior Derecha: Acción de contacto directa */}
       <button
         type="button"
+        data-cursor="action"
         onClick={() => onOpenDrawer()}
-        className="fixed top-6 right-6 lg:top-8 lg:right-10 z-40 telemetry-label text-[11px] sm:text-xs font-medium text-[var(--text-primary)] hover:text-[var(--accent-starlight)] transition-colors py-1"
+        className="fixed top-6 right-6 lg:top-8 lg:right-10 z-40 font-mono text-[11px] tracking-[0.18em] uppercase text-[var(--text-primary)] hover:text-[var(--accent-starlight)] transition-colors px-2 py-1"
       >
         INICIAR CONTACTO ↗
       </button>
@@ -103,23 +107,23 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
               key={section.id}
               type="button"
               onClick={() => scrollToSection(section.id)}
-              className="group flex items-center gap-3 text-left focus:outline-none"
+              className="group flex items-center gap-3 text-left focus:outline-none py-0.5"
             >
               <span
-                className={`block h-2 w-2 transition-all duration-200 ${
+                className={`block h-px transition-all duration-200 ${
                   isActive
-                    ? "bg-[var(--text-primary)] scale-100"
-                    : "bg-transparent border border-[var(--text-muted)] scale-75 opacity-60 group-hover:opacity-100 group-hover:border-[var(--text-secondary)]"
+                    ? "w-4 bg-[var(--text-primary)]"
+                    : "w-2 bg-[var(--text-muted)] opacity-50 group-hover:w-3 group-hover:bg-[var(--text-secondary)]"
                 }`}
               />
               <span
-                className={`font-mono text-[11px] tracking-[0.16em] uppercase transition-colors duration-200 ${
+                className={`font-mono text-[11px] tracking-[0.18em] uppercase transition-colors duration-200 ${
                   isActive
                     ? "text-[var(--text-primary)] font-medium"
                     : "text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]"
                 }`}
               >
-                {section.code} // {section.label}
+                {section.label}
               </span>
             </button>
           );
@@ -128,17 +132,14 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
 
       {/* Versión Móvil (< 1024px): Barra inferior minimalista fija */}
       <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-[#08080A]/90 backdrop-blur-md px-5 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <span className="h-2 w-2 bg-[var(--text-primary)] inline-block shrink-0" />
-          <span className="font-mono text-[11px] tracking-[0.16em] text-[var(--text-primary)] uppercase">
-            {activeSection.code} // {activeSection.label}
-          </span>
-        </div>
+        <span className="font-mono text-[11px] tracking-[0.18em] text-[var(--text-primary)] uppercase">
+          {activeSection.label}
+        </span>
 
         <button
           type="button"
           onClick={() => onOpenDrawer()}
-          className="font-mono text-[11px] tracking-[0.16em] uppercase text-[var(--text-primary)] border border-white/25 px-3.5 py-1.5 hover:bg-white hover:text-[#050505] transition-colors"
+          className="font-mono text-[11px] tracking-[0.18em] uppercase text-[var(--text-primary)] border border-white/25 px-3.5 py-1.5 hover:bg-white hover:text-[#050505] transition-colors"
         >
           CONSULTAR ↗
         </button>

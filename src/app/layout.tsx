@@ -5,11 +5,12 @@ import {
   JetBrains_Mono,
   Inter,
 } from "next/font/google";
+import { CustomCursor } from "@/components/CustomCursor";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
-  weight: ["600", "700"],
+  weight: ["300", "600", "700"],
   variable: "--font-display",
   display: "swap",
 });
@@ -22,9 +23,9 @@ const instrumentSerif = Instrument_Serif({
   display: "swap",
 });
 
+// Variable font (100..800) covers weights 400, 500, and 700 cleanly with .woff2
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
   variable: "--font-mono",
   display: "swap",
 });
@@ -99,6 +100,8 @@ export default function RootLayout({
             />
           </svg>
         </div>
+
+        <CustomCursor />
 
         {children}
       </body>

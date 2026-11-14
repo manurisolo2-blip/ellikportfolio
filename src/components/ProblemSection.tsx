@@ -10,7 +10,7 @@ export function ProblemSection() {
 
   return (
     <section
-      id="friccion"
+      id="problema"
       className="py-24 lg:py-36 border-t border-[var(--border-hairline)]"
     >
       <div ref={sectionRef} style={{ perspective: "1000px" }}>
@@ -18,9 +18,9 @@ export function ProblemSection() {
           initial={{ opacity: 0, x: -12 }}
           animate={isInView ? { opacity: 1, x: 0 } : {}}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="telemetry-label text-xs text-[var(--text-muted)]"
+          className="section-label"
         >
-          02 // DIAGNÓSTICO DE FRICCIÓN
+          EL PROBLEMA
         </motion.p>
 
         <motion.h2
@@ -38,13 +38,12 @@ export function ProblemSection() {
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ duration: 0.45, delay: 0.2 }}
-          className="telemetry-label mt-14 mb-6 text-xs text-[var(--text-secondary)]"
+          className="section-label mt-14 mb-6"
         >
           ¿TE PASA ESTO HOY EN TU NEGOCIO?
         </motion.p>
 
         <div className="relative">
-          {/* Línea superior autodibujada */}
           <motion.div
             initial={{ scaleX: 0 }}
             animate={isInView ? { scaleX: 1 } : {}}
@@ -69,28 +68,21 @@ export function ProblemSection() {
               }}
               className="group relative py-7 lg:py-8 transition-colors duration-200 hover:bg-white/[0.02]"
             >
-              {/* Barra lateral de intensidad al hacer hover */}
               <span
                 aria-hidden="true"
                 className="absolute left-0 top-0 bottom-0 w-[2px] origin-top scale-y-0 bg-[var(--accent-starlight)] transition-transform duration-200 group-hover:scale-y-100"
               />
 
-              <div className="flex flex-col md:flex-row md:items-baseline gap-3 md:gap-8 px-1 transition-transform duration-200 group-hover:translate-x-2">
-                <div className="flex items-center gap-4 shrink-0 md:w-64">
-                  <span className="font-mono text-xs tracking-[0.16em] text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-colors">
-                    [{point.code}]
-                  </span>
-                  <span className="font-mono text-[11px] tracking-[0.16em] uppercase text-[var(--text-muted)] group-hover:text-[var(--accent-starlight)] transition-colors">
-                    {point.signal}
-                  </span>
-                </div>
+              <div className="flex flex-col md:flex-row md:items-baseline gap-3 md:gap-10 px-1 transition-transform duration-200 group-hover:translate-x-2">
+                <span className="font-mono text-[11px] tracking-[0.18em] text-[#71717A] group-hover:text-[var(--text-primary)] transition-colors shrink-0 md:w-16">
+                  {point.code}
+                </span>
 
                 <p className="editorial-body text-base md:text-lg text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
                   {point.text}
                 </p>
               </div>
 
-              {/* Línea inferior autodibujada */}
               <motion.div
                 initial={{ scaleX: 0 }}
                 animate={isInView ? { scaleX: 1 } : {}}
