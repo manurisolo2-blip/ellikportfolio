@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { NAV_SECTIONS, type BusinessCategory } from "@/data/ellikData";
+import { MagneticButton } from "./AnimatedHeading";
 import { EllikLogo } from "./EllikLogo";
 
 interface FixedFrameNavProps {
@@ -85,15 +86,15 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
         <EllikLogo />
       </a>
 
-      {/* Esquina Superior Derecha: Acción de contacto directa */}
-      <button
-        type="button"
-        data-cursor="action"
-        onClick={() => onOpenDrawer()}
-        className="fixed top-6 right-6 lg:top-8 lg:right-10 z-40 font-mono text-[11px] tracking-[0.18em] uppercase text-[var(--text-primary)] hover:text-[var(--accent-starlight)] transition-colors px-2 py-1"
-      >
-        INICIAR CONTACTO ↗
-      </button>
+      {/* Esquina Superior Derecha: Acción magnética de contacto directo */}
+      <div className="fixed top-6 right-6 lg:top-8 lg:right-10 z-40">
+        <MagneticButton
+          onClick={() => onOpenDrawer()}
+          className="border border-[rgba(255,255,255,0.20)] bg-[#050505] px-4 py-2 font-mono text-[11px] tracking-[0.18em] uppercase text-[var(--text-primary)] transition-colors duration-200 hover:border-[#FFFFFF]"
+        >
+          INICIAR CONTACTO ↗
+        </MagneticButton>
+      </div>
 
       {/* Índice Lateral Izquierdo con Scroll-Spy (Desktop >= 1024px) */}
       <nav

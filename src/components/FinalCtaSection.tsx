@@ -3,6 +3,11 @@
 import React, { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { ELLIK_CONFIG, type BusinessCategory } from "@/data/ellikData";
+import {
+  AnimatedHeading,
+  HairlineRule,
+  MagneticButton,
+} from "./AnimatedHeading";
 
 interface FinalCtaSectionProps {
   onOpenDrawer: (preset?: { rubro?: BusinessCategory; plan?: string }) => void;
@@ -19,8 +24,10 @@ export function FinalCtaSection({ onOpenDrawer }: FinalCtaSectionProps) {
   return (
     <section
       id="contacto"
-      className="relative overflow-hidden pt-24 pb-12 lg:pt-36 lg:pb-14 border-t border-[var(--border-hairline)]"
+      className="relative overflow-hidden pt-24 pb-12 lg:pt-36 lg:pb-14"
     >
+      <HairlineRule className="absolute top-0 inset-x-0" />
+
       <div
         ref={sectionRef}
         className="relative z-10"
@@ -35,20 +42,11 @@ export function FinalCtaSection({ onOpenDrawer }: FinalCtaSectionProps) {
           CONTACTO
         </motion.p>
 
-        <motion.h2
-          initial={{ opacity: 0, y: 34, rotateX: -24 }}
-          animate={isInView ? { opacity: 1, y: 0, rotateX: 0 } : {}}
-          transition={{
-            duration: 0.65,
-            delay: 0.08,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-          style={{ transformOrigin: "bottom left" }}
+        <AnimatedHeading
+          prefix="¿LISTO PARA DEJAR DE PERDER"
+          accent="PEDIDOS?"
           className="heading-hero mt-8 max-w-5xl text-[var(--text-primary)]"
-        >
-          ¿LISTO PARA DEJAR DE PERDER{" "}
-          <span className="serif-accent">PEDIDOS?</span>
-        </motion.h2>
+        />
 
         <motion.p
           initial={{ opacity: 0, y: 18 }}
@@ -74,19 +72,22 @@ export function FinalCtaSection({ onOpenDrawer }: FinalCtaSectionProps) {
           }}
           className="mt-12"
         >
-          <button
-            type="button"
-            data-cursor="action"
+          <MagneticButton
             onClick={() => onOpenDrawer()}
-            className="border border-[rgba(255,255,255,0.35)] bg-[#050505] px-8 py-5 font-mono text-xs sm:text-sm tracking-[0.16em] uppercase text-[var(--text-primary)] transition-colors duration-200 hover:bg-[var(--text-primary)] hover:text-[#050505] hover:border-[var(--text-primary)]"
+            className="border border-[rgba(255,255,255,0.35)] bg-[#050505] px-8 py-5 font-mono text-xs sm:text-sm tracking-[0.16em] uppercase text-[var(--text-primary)] transition-colors duration-200 hover:border-[#FFFFFF]"
           >
             INICIAR DIAGNÓSTICO DE 10 MIN
-          </button>
+          </MagneticButton>
         </motion.div>
       </div>
 
-      {/* Footer minimalista */}
-      <footer className="relative z-10 mt-28 pt-8 border-t border-[var(--border-hairline)] flex flex-col md:flex-row md:items-center justify-between gap-6">
+      {/* Footer minimalista con hairline auto-dibujable */}
+      <footer className="relative z-10 mt-28 pt-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <HairlineRule
+          delay={0.25}
+          className="absolute top-0 left-0 right-0"
+        />
+
         <p className="font-mono text-[11px] tracking-[0.18em] uppercase text-[#71717A]">
           © 2026 ELLIK
         </p>
