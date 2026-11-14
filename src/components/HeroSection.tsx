@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import {
   motion,
   useAnimationFrame,
@@ -88,28 +89,6 @@ const ORBIT_PANELS: OrbitPanelConfig[] = [
     variant: 5,
   },
 ];
-
-function useProbedPreview(src: string): boolean {
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    const probe = new window.Image();
-    probe.onload = () => {
-      if (active) setLoaded(true);
-    };
-    probe.onerror = () => {
-      if (active) setLoaded(false);
-    };
-    probe.src = src;
-
-    return () => {
-      active = false;
-    };
-  }, [src]);
-
-  return loaded;
-}
 
 interface HeroPanelArtworkProps {
   variant: 0 | 1 | 2 | 3 | 4 | 5;
@@ -327,23 +306,36 @@ function HeroPanelArtwork({ variant }: HeroPanelArtworkProps) {
 
 interface OrbitPanelSurfaceProps {
   panel: OrbitPanelConfig;
+  isHovered: boolean;
 }
 
-function OrbitPanelSurface({ panel }: OrbitPanelSurfaceProps) {
-  const hasRealImage = useProbedPreview(panel.mission.previewImage);
+function OrbitPanelSurface({ panel, isHovered }: OrbitPanelSurfaceProps) {
+  const [imgFailed, setImgFailed] = useState(false);
 
-  if (hasRealImage) {
-    return (
-      <div
-        role="img"
-        aria-label={panel.mission.title}
-        className="h-full w-full bg-cover bg-center"
-        style={{ backgroundImage: `url(${panel.mission.previewImage})` }}
-      />
-    );
+  if (imgFailed) {
+    return <HeroPanelArtwork variant={panel.variant} />;
   }
 
-  return <HeroPanelArtwork variant={panel.variant} />;
+  return (
+    <div className="relative h-full w-full overflow-hidden bg-[#09090B]">
+      <Image
+        src={panel.mission.previewImage}
+        alt={panel.mission.title}
+        fill
+        sizes="(max-width: 640px) 156px, (max-width: 768px) 185px, 225px"
+        priority
+        draggable={false}
+        onError={() => setImgFailed(true)}
+        style={{
+          filter: isHovered
+            ? "grayscale(0%) contrast(1.05) brightness(1)"
+            : "grayscale(25%) contrast(1.08) brightness(0.82)",
+        }}
+        className="w-full h-full object-cover transition-[filter,transform] duration-500 ease-out group-hover:scale-[1.03]"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent" />
+    </div>
+  );
 }
 
 const INITIAL_ORBIT_ANGLE = 18;
@@ -708,18 +700,36 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
                         : "border-[rgba(255,255,255,0.20)]"
                     }`}
                   >
-                    <div className="flex-1 w-full overflow-hidden">
-                      <OrbitPanelSurface panel={panel} />
+                    <div className="relative flex-1 w-full overflow-hidden">
+                      <OrbitPanelSurface panel={panel} isHovered={isHovered} />
                     </div>
 
                     {/* Barra inferior limpia de 32px */}
                     <div className="h-8 shrink-0 border-t border-[rgba(255,255,255,0.14)] bg-[#09090B] px-3 flex items-center justify-between gap-2">
-                      <span className="font-sans text-xs text-[#8A8A93] group-hover:text-[#FFFFFF] transition-colors truncate">
-                        {panel.mission.shortTitle}
-                      </span>
-                      <span className="font-mono text-[11px] text-[#FFFFFF] shrink-0">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-mono text-[10px] text-[#71717A] shrink-0">
+                          {panel.mission.index}
+                        </span>
+                        <span className="font-sans text-xs text-[#8A8A93] group-hover:text-[#FFFFFF] transition-colors truncate">
+                          {panel.mission.shortTitle}
+                        </span>
+                      </div>
+                      <a
+                        href={panel.mission.liveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (totalDragDistanceRef.current > 8) {
+                            e.preventDefault();
+                          }
+                        }}
+                        aria-label={`Visitar ${panel.mission.shortTitle} en vivo`}
+                        title={`Visitar ${panel.mission.displayDomain}`}
+                        className="flex h-6 w-6 items-center justify-center font-mono text-[11px] text-[#8A8A93] hover:text-[#FFFFFF] transition-colors shrink-0"
+                      >
                         ↗
-                      </span>
+                      </a>
                     </div>
                   </div>
                 </div>

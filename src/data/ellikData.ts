@@ -16,16 +16,18 @@ export interface SystemPillar {
 
 export interface Mission {
   id: string;
+  index: string;
   shortTitle: string;
   category: string;
   title: string;
-  problemSolved: string;
-  metric: string;
+  location: string;
+  description: string;
+  highlight: string;
   liveUrl: string;
-  domainDisplay: string;
-  /** Ruta de captura real en public/proyectos/. Al guardar las 4 capturas allí, se muestran automáticamente en la órbita 3D del Hero y en Proyectos. */
+  displayDomain: string;
   previewImage: string;
-  fallbackVariant: "gastro-1" | "gastro-2" | "ropa" | "municipal";
+  secondaryImage: string;
+  fallbackVariant?: "gastro-1" | "gastro-2" | "ropa" | "municipal";
 }
 
 export interface InvestmentPlan {
@@ -101,60 +103,74 @@ export const SYSTEM_PILLARS: SystemPillar[] = [
   },
 ];
 
-// Al guardar tus 4 capturas reales dentro de public/proyectos/
-// (gastro-1.jpg, gastro-2.jpg, ropa.jpg, municipalidad.jpg),
-// aparecerán automáticamente tanto en la órbita 3D del Hero como en Proyectos.
 export const MISSIONS: Mission[] = [
   {
-    id: "proyecto-01",
-    shortTitle: "Gastronomía I",
-    category: "GASTRONOMÍA · PEDIDOS DIRECTOS",
-    title: "Sistema de Pedidos Gastronómico I",
-    problemSolved:
-      "Eliminación de demoras y errores de toma de pedido en horas pico mediante carta interactiva conectada a WhatsApp Business.",
-    metric: "Pedido armado en menos de 45 segundos",
-    liveUrl: "https://ejemplo-comida-1.vercel.app",
-    domainDisplay: "pedidos.local-gastro-01.ar",
-    previewImage: "/proyectos/gastro-1.jpg",
+    id: "mojo-grille",
+    index: "01",
+    shortTitle: "Mojo Grille",
+    category: "GASTRONOMÍA · EXPERIENCIA INTERACTIVA",
+    title: "Mojo Grille Cuban Kitchen",
+    location: "Miami, FL",
+    description:
+      "Experiencia digital inmersiva con deconstrucción interactiva de producto vinculada al scroll, catálogo dinámico de platos a la plancha y flujo de pedidos directo por WhatsApp.",
+    highlight: "Scroll-scrollytelling de producto + pedidos directos sin comisiones",
+    liveUrl: "https://mojo-grille-demo.vercel.app/",
+    displayDomain: "mojo-grille-demo.vercel.app",
+    previewImage:
+      "https://mojo-grille-demo.vercel.app/assets/mojo-bowl-ropa-vieja.jpg",
+    secondaryImage:
+      "https://mojo-grille-demo.vercel.app/assets/mojo-cubano.jpg",
     fallbackVariant: "gastro-1",
   },
   {
-    id: "proyecto-02",
-    shortTitle: "Gastronomía II",
-    category: "GASTRONOMÍA · CATÁLOGO EXPRESS",
-    title: "Plataforma Gastronómica II",
-    problemSolved:
-      "Presentación visual de menú de alta rotación optimizada para conversión inmediata desde enlaces de Instagram.",
-    metric: "Cero comisiones por pedido",
-    liveUrl: "https://ejemplo-comida-2.vercel.app",
-    domainDisplay: "carta.cocina-urbana.ar",
-    previewImage: "/proyectos/gastro-2.jpg",
-    fallbackVariant: "gastro-2",
-  },
-  {
-    id: "proyecto-03",
-    shortTitle: "Indumentaria",
-    category: "INDUMENTARIA · CATÁLOGO DIGITAL",
-    title: "Catálogo Digital de Indumentaria",
-    problemSolved:
-      "Exploración fluida de prendas por categoría con selector rápido de talles y consulta directa de disponibilidad.",
-    metric: "Experiencia optimizada para pantallas táctiles",
-    liveUrl: "https://ejemplo-ropa.vercel.app",
-    domainDisplay: "tienda.indumentaria-drop.ar",
-    previewImage: "/proyectos/ropa.jpg",
+    id: "dopamine",
+    index: "02",
+    shortTitle: "Dopamine",
+    category: "INDUMENTARIA · E-COMMERCE",
+    title: "Dopamine Streetwear",
+    location: "Buenos Aires, AR",
+    description:
+      "Tienda online de indumentaria urbana de edición limitada con selección rápida de talle desde la grilla, cálculo automático de descuento por transferencia y carrito lateral sin recargas.",
+    highlight: "Añadido rápido por talle + checkout ágil mobile-first",
+    liveUrl: "https://dopamine-three-omega.vercel.app/",
+    displayDomain: "dopamine-three-omega.vercel.app",
+    previewImage:
+      "https://dopamine-three-omega.vercel.app/assets/Branding/hero-bg.jpg",
+    secondaryImage:
+      "https://dopamine-three-omega.vercel.app/Ropa/Buzos/Buzo%20WIN.webp",
     fallbackVariant: "ropa",
   },
   {
-    id: "proyecto-04",
-    shortTitle: "Municipalidad",
-    category: "INSTITUCIONAL · SECTOR PÚBLICO",
-    title: "Desarrollo Web Municipal",
-    problemSolved:
-      "Arquitectura de información clara, accesible y de alto estándar técnico desarrollada para gestión municipal.",
-    metric: "Estándar institucional validado",
-    liveUrl: "https://ejemplo-municipalidad.vercel.app",
-    domainDisplay: "portal.gestion-municipal.gob.ar",
-    previewImage: "/proyectos/municipalidad.jpg",
+    id: "lung-yai",
+    index: "03",
+    shortTitle: "Lung Yai",
+    category: "GASTRONOMÍA · CARTA EDITORIAL",
+    title: "Lung Yai Thai Tapas",
+    location: "Calle Ocho, Miami",
+    description:
+      "Plataforma web y carta digital de lectura ultra rápida para restaurante distinguido por la Guía Michelin (Bib Gourmand), optimizada para tráfico móvil desde redes y pedidos online.",
+    highlight: "Arquitectura editorial bilingüe de carga instantánea",
+    liveUrl: "https://lungyai.vercel.app/",
+    displayDomain: "lungyai.vercel.app",
+    previewImage: "https://lungyai.vercel.app/media/wok-flames-poster.webp",
+    secondaryImage: "https://lungyai.vercel.app/images/lung-yai-logo.webp",
+    fallbackVariant: "gastro-2",
+  },
+  {
+    id: "deportistas-rio3",
+    index: "04",
+    shortTitle: "Capital del Deportista",
+    category: "INSTITUCIONAL · PORTAL HISTÓRICO",
+    title: "Río Tercero — Capital Nacional del Deportista",
+    location: "Río Tercero, Córdoba",
+    description:
+      "Portal oficial e interactivo (Ley Nacional N.º 27.378) con directorio filtrable por disciplina, fichas técnicas de atletas olímpicos y campeones mundiales, cronología y dossier cívico.",
+    highlight: "Directorio interactivo en tiempo real + estándar de accesibilidad",
+    liveUrl: "https://deportistasrio3.vercel.app/",
+    displayDomain: "deportistasrio3.vercel.app",
+    previewImage:
+      "https://deportistasrio3.vercel.app/assets/rio_tercero_hero.webp",
+    secondaryImage: "https://deportistasrio3.vercel.app/assets/prigioni.jpg",
     fallbackVariant: "municipal",
   },
 ];

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
+import Image from "next/image";
 import {
   motion,
   useMotionValue,
@@ -12,51 +13,15 @@ import { ArrowUpRight } from "lucide-react";
 import { MISSIONS, type Mission } from "@/data/ellikData";
 import { AnimatedHeading, HairlineRule } from "./AnimatedHeading";
 
-function useProbedImage(src: string): boolean {
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    const probe = new window.Image();
-    probe.onload = () => {
-      if (active) setLoaded(true);
-    };
-    probe.onerror = () => {
-      if (active) setLoaded(false);
-    };
-    probe.src = src;
-
-    return () => {
-      active = false;
-    };
-  }, [src]);
-
-  return loaded;
-}
-
-interface HighEndProjectCanvasProps {
-  mission: Mission;
+interface FallbackCanvasProps {
+  variant?: Mission["fallbackVariant"];
 }
 
 /**
- * Muestra la captura real si existe en public/proyectos/; de lo contrario,
- * renderiza un lienzo arquitectónico específico de alto contraste sin texto de relleno.
+ * Respaldo arquitectónico de alto contraste únicamente si falla la carga remota.
  */
-function HighEndProjectCanvas({ mission }: HighEndProjectCanvasProps) {
-  const hasRealImage = useProbedImage(mission.previewImage);
-
-  if (hasRealImage) {
-    return (
-      <div
-        role="img"
-        aria-label={mission.title}
-        className="h-full w-full bg-cover bg-center"
-        style={{ backgroundImage: `url(${mission.previewImage})` }}
-      />
-    );
-  }
-
-  switch (mission.fallbackVariant) {
+function FallbackCanvas({ variant }: FallbackCanvasProps) {
+  switch (variant) {
     case "gastro-1":
       return (
         <div
@@ -312,6 +277,8 @@ interface ProjectShowcaseRowProps {
 function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
   const rowRef = useRef<HTMLElement | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [primaryError, setPrimaryError] = useState(false);
+  const [secondaryError, setSecondaryError] = useState(false);
 
   const { scrollYProgress } = useScroll({
     target: rowRef,
@@ -334,11 +301,22 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
   // Scroll Parallax interno dentro de la ventana 16:10 (-8% a +8%)
   const frameParallaxY = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
 
-  // Hover 3D hacia el puntero (±4deg)
+  // Hover 3D hacia el puntero (±4deg) y desplazamiento inverso de la tarjeta secundaria
   const rawTiltX = useMotionValue(0);
   const rawTiltY = useMotionValue(0);
+  const rawSecondaryX = useMotionValue(0);
+  const rawSecondaryY = useMotionValue(0);
+
   const hoverRotateX = useSpring(rawTiltX, { stiffness: 180, damping: 22 });
   const hoverRotateY = useSpring(rawTiltY, { stiffness: 180, damping: 22 });
+  const secondaryOffsetX = useSpring(rawSecondaryX, {
+    stiffness: 170,
+    damping: 20,
+  });
+  const secondaryOffsetY = useSpring(rawSecondaryY, {
+    stiffness: 170,
+    damping: 20,
+  });
 
   const handleFrameMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -346,6 +324,8 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
     const ny = (e.clientY - rect.top) / Math.max(rect.height, 1) - 0.5;
     rawTiltX.set(-ny * 8); // +4deg arriba a -4deg abajo
     rawTiltY.set(nx * 8); // -4deg izquierda a +4deg derecha
+    rawSecondaryX.set(-nx * 14); // Desplazamiento inverso al puntero
+    rawSecondaryY.set(-ny * 10);
   };
 
   const handleFrameMouseEnter = () => {
@@ -356,9 +336,9 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
     setIsHovered(false);
     rawTiltX.set(0);
     rawTiltY.set(0);
+    rawSecondaryX.set(0);
+    rawSecondaryY.set(0);
   };
-
-  const formattedNumber = String(index + 1).padStart(2, "0");
 
   return (
     <motion.article
@@ -372,38 +352,40 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
         delay: index * 0.04,
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="relative py-16 lg:py-24 grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-10 items-start"
+      className="relative py-16 lg:py-24 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 xl:gap-10 items-start"
     >
       {/* Índice tipográfico monumental a la izquierda */}
-      <div className="xl:col-span-2 flex items-start pb-4 xl:pb-0">
+      <div className="lg:col-span-1 xl:col-span-2 flex items-start pb-4 lg:pb-0">
         <motion.span
           aria-hidden="true"
           style={{
-            fontSize: "clamp(4rem, 8vw, 7rem)",
+            fontSize: "clamp(4rem, 7vw, 7rem)",
             y: indexY,
             color: indexColor,
           }}
           className="font-serif italic leading-[0.85] tracking-[-0.02em] select-none will-change-transform"
         >
-          {formattedNumber}
+          {mission.index}
         </motion.span>
       </div>
 
-      {/* Columna de información comercial */}
-      <div className="xl:col-span-4 flex flex-col justify-between h-full">
+      {/* Columna izquierda (Editorial) */}
+      <div className="lg:col-span-5 xl:col-span-4 flex flex-col justify-between h-full">
         <div>
-          <p className="section-label">{mission.category}</p>
+          <p className="font-mono text-[11px] tracking-[0.18em] uppercase text-[#71717A]">
+            {mission.category} — {mission.location}
+          </p>
 
-          <h3 className="mt-5 font-display text-2xl sm:text-3xl font-bold uppercase tracking-[-0.02em] leading-[1.05] text-[var(--text-primary)]">
+          <h3 className="mt-5 font-display text-2xl md:text-3xl xl:text-4xl font-bold uppercase tracking-[-0.02em] leading-[1.05] text-white">
             {mission.title}
           </h3>
 
-          <p className="editorial-body mt-5 text-[var(--text-secondary)]">
-            {mission.problemSolved}
+          <p className="mt-5 font-sans text-sm md:text-base leading-relaxed text-[#8A8A93]">
+            {mission.description}
           </p>
 
-          <p className="mt-7 font-mono text-[11px] tracking-[0.18em] uppercase text-[#71717A]">
-            {mission.metric}
+          <p className="mt-7 text-xs font-mono tracking-[0.06em] text-[#F4F1EA]">
+            {mission.highlight}
           </p>
         </div>
 
@@ -418,22 +400,22 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
             target="_blank"
             rel="noopener noreferrer"
             data-cursor="action"
-            className="group inline-flex items-center gap-3 border border-[rgba(255,255,255,0.25)] px-6 py-3.5 font-mono text-xs tracking-[0.16em] uppercase text-[var(--text-primary)] transition-colors duration-200 hover:bg-[var(--text-primary)] hover:text-[#050505] hover:border-[var(--text-primary)]"
+            className="group inline-flex items-center gap-3 border border-white/25 hover:bg-white hover:text-[#050505] hover:border-white transition-colors px-6 py-3.5 font-mono text-xs tracking-[0.16em] uppercase text-white"
           >
-            <span>PROBAR PÁGINA EN VIVO</span>
+            <span>VISITAR SITIO EN VIVO</span>
             <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </a>
         </div>
       </div>
 
-      {/* Columna derecha: Escaparate interactivo 16:10 con Parallax + Hover 3D (±4deg) + Zoom 1.04 */}
-      <div className="xl:col-span-6" style={{ perspective: "1100px" }}>
+      {/* Columna derecha: Escaparate Visual con Imagen Real + Tarjeta Secundaria Flotante */}
+      <div className="lg:col-span-6" style={{ perspective: "1100px" }}>
         <motion.a
           href={mission.liveUrl}
           target="_blank"
           rel="noopener noreferrer"
           data-cursor="view"
-          aria-label={`Ver ${mission.title}`}
+          aria-label={`Visitar ${mission.title} en vivo`}
           onMouseMove={handleFrameMouseMove}
           onMouseEnter={handleFrameMouseEnter}
           onMouseLeave={handleFrameMouseLeave}
@@ -442,36 +424,71 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
             rotateY: hoverRotateY,
             transformStyle: "preserve-3d",
           }}
-          className={`group block border bg-[var(--bg-elevated)] transition-colors duration-300 will-change-transform ${
+          className={`group block border bg-[#09090B] transition-colors duration-300 will-change-transform ${
             isHovered
               ? "border-[#FFFFFF] shadow-[0_24px_60px_rgba(0,0,0,0.85)]"
               : "border-[var(--border-hairline)]"
           }`}
         >
+          {/* Barra superior minimalista del navegador */}
           <div className="relative flex items-center justify-between px-4 py-2.5 bg-[#08080A]">
             <span className="font-mono text-[11px] tracking-[0.08em] text-[var(--text-secondary)] truncate">
-              https://{mission.domainDisplay}
+              {mission.displayDomain}
             </span>
-            <ArrowUpRight className="h-3.5 w-3.5 text-[var(--text-muted)] transition-colors group-hover:text-[var(--text-primary)] shrink-0" />
+            <ArrowUpRight className="h-3.5 w-3.5 text-[var(--text-muted)] transition-colors group-hover:text-white shrink-0" />
             <HairlineRule
               delay={0.12}
               className="absolute bottom-0 left-0 right-0"
             />
           </div>
 
-          <div className="relative aspect-[16/10] w-full overflow-hidden">
+          {/* Ventana 16:10 con imagen principal y composición doble */}
+          <div className="aspect-[16/10] w-full overflow-hidden bg-[#09090B] relative group">
             <motion.div
               style={{ y: frameParallaxY }}
               className="relative -top-[12%] h-[124%] w-full will-change-transform"
             >
-              <motion.div
-                animate={{ scale: isHovered ? 1.04 : 1 }}
-                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                className="h-full w-full will-change-transform"
-              >
-                <HighEndProjectCanvas mission={mission} />
-              </motion.div>
+              {primaryError ? (
+                <FallbackCanvas variant={mission.fallbackVariant} />
+              ) : (
+                <Image
+                  src={mission.previewImage}
+                  alt={mission.title}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  priority={index === 0}
+                  draggable={false}
+                  onError={() => setPrimaryError(true)}
+                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                />
+              )}
             </motion.div>
+
+            {/* Viñeta sutil para jerarquía con la tarjeta flotante */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050505]/70 via-transparent to-transparent" />
+
+            {/* Segunda tarjeta flotante en esquina inferior derecha (sentido inverso en hover) */}
+            {!secondaryError && (
+              <motion.div
+                style={{
+                  x: secondaryOffsetX,
+                  y: secondaryOffsetY,
+                }}
+                className="pointer-events-none absolute bottom-3 right-3 md:bottom-5 md:right-5 z-20 will-change-transform"
+              >
+                <div className="w-36 md:w-48 aspect-[4/3] border border-white/20 bg-[#09090B] shadow-2xl overflow-hidden transition-transform duration-700 ease-out group-hover:-translate-x-2.5 group-hover:-translate-y-2">
+                  <Image
+                    src={mission.secondaryImage}
+                    alt={`${mission.shortTitle} — Vista secundaria`}
+                    fill
+                    sizes="(max-width: 768px) 144px, 192px"
+                    draggable={false}
+                    onError={() => setSecondaryError(true)}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </motion.div>
+            )}
           </div>
         </motion.a>
       </div>
