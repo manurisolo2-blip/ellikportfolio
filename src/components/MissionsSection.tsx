@@ -507,20 +507,10 @@ export function MissionsSection() {
       <HairlineRule className="absolute top-0 inset-x-0" />
 
       <div>
-        <motion.p
-          initial={{ opacity: 0, x: -12 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="section-label"
-        >
-          PROYECTOS
-        </motion.p>
-
         <AnimatedHeading
           prefix="DESARROLLOS REALES PROBANDO RESULTADOS EN"
           accent="PRODUCCIÓN."
-          className="heading-section mt-6 max-w-4xl text-[var(--text-primary)]"
+          className="heading-section max-w-4xl text-[var(--text-primary)]"
         />
 
         <div className="relative mt-16">

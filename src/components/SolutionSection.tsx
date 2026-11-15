@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import React from "react";
 import { SYSTEM_PILLARS } from "@/data/ellikData";
 import {
   AnimatedHeading,
@@ -10,27 +9,15 @@ import {
 } from "./AnimatedHeading";
 
 export function SolutionSection() {
-  const sectionRef = useRef<HTMLDivElement | null>(null);
-  const isInView = useInView(sectionRef, { once: true, amount: 0.15 });
-
   return (
     <section id="solucion" className="relative py-24 lg:py-36">
       <HairlineRule className="absolute top-0 inset-x-0" />
 
-      <div ref={sectionRef}>
-        <motion.p
-          initial={{ opacity: 0, x: -12 }}
-          animate={isInView ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="section-label"
-        >
-          LA SOLUCIÓN
-        </motion.p>
-
+      <div>
         <AnimatedHeading
           prefix="PÁGINAS RÁPIDAS PENSADAS PARA QUE EL CLIENTE ELIJA SOLO Y TE LLEGUE EL PEDIDO"
           accent="ARMADO."
-          className="heading-section mt-6 max-w-5xl text-[var(--text-primary)]"
+          className="heading-section max-w-5xl text-[var(--text-primary)]"
         />
 
         {/* Grilla con bordes y divisores de 1px auto-dibujables + Spotlight por columna */}

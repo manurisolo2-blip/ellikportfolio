@@ -14,19 +14,10 @@ export function ProblemSection() {
       <HairlineRule className="absolute top-0 inset-x-0" />
 
       <div ref={sectionRef} style={{ perspective: "1000px" }}>
-        <motion.p
-          initial={{ opacity: 0, x: -12 }}
-          animate={isInView ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="section-label"
-        >
-          EL PROBLEMA
-        </motion.p>
-
         <AnimatedHeading
           prefix="LA MAYORÍA DE LOS COMERCIOS NO TIENE UN PROBLEMA DE CLIENTES. TIENE UN PROBLEMA DE"
           accent="FRICCIÓN."
-          className="heading-section mt-6 max-w-4xl text-[var(--text-primary)]"
+          className="heading-section max-w-4xl text-[var(--text-primary)]"
         />
 
         <motion.p

@@ -25,16 +25,7 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
       <HairlineRule className="absolute top-0 inset-x-0" />
 
       <div ref={sectionRef}>
-        <motion.p
-          initial={{ opacity: 0, x: -12 }}
-          animate={isInView ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="section-label"
-        >
-          MODALIDADES
-        </motion.p>
-
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end">
           <AnimatedHeading
             prefix="CÓDIGO A MEDIDA, VELOCIDAD DE EJECUCIÓN Y VISIÓN COMERCIAL —"
             accent="SIN INTERMEDIARIOS."

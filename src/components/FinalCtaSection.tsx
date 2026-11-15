@@ -33,19 +33,10 @@ export function FinalCtaSection({ onOpenDrawer }: FinalCtaSectionProps) {
         className="relative z-10"
         style={{ perspective: "1000px" }}
       >
-        <motion.p
-          initial={{ opacity: 0, x: -12 }}
-          animate={isInView ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="section-label"
-        >
-          CONTACTO
-        </motion.p>
-
         <AnimatedHeading
           prefix="¿LISTO PARA DEJAR DE PERDER"
           accent="PEDIDOS?"
-          className="heading-hero mt-8 max-w-5xl text-[var(--text-primary)]"
+          className="heading-hero max-w-5xl text-[var(--text-primary)]"
         />
 
         <motion.p
