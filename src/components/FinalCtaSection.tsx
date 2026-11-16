@@ -24,47 +24,10 @@ export function FinalCtaSection({ onOpenDrawer }: FinalCtaSectionProps) {
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.2 });
 
-  const directWhatsappUrl = `https://wa.me/${ELLIK_CONFIG.whatsappNumber}?text=${encodeURIComponent(
-    "Hola ELLIK, quiero consultar por una página web para mi negocio."
-  )}`;
-
-  const footerColumns: FooterColumn[] = useMemo(
-    () => [
-      {
-        title: "SECCIONES",
-        links: [
-          { label: "Inicio", href: "#inicio" },
-          { label: "El Problema", href: "#problema" },
-          { label: "La Solución", href: "#solucion" },
-          { label: "Modalidades", href: "#modalidades" },
-        ],
-      },
-      {
-        title: "PROYECTOS EN VIVO",
-        links: MISSIONS.map((mission) => ({
-          label: `${mission.shortTitle} ↗`,
-          href: mission.liveUrl,
-        })),
-      },
-      {
-        title: "CONTACTO",
-        links: [
-          { label: "WhatsApp ↗", href: directWhatsappUrl },
-          { label: "Instagram ↗", href: ELLIK_CONFIG.instagramUrl },
-          {
-            label: ELLIK_CONFIG.email,
-            href: `mailto:${ELLIK_CONFIG.email}`,
-          },
-        ],
-      },
-    ],
-    [directWhatsappUrl]
-  );
-
   return (
     <section
       id="contacto"
-      className="relative overflow-hidden pt-24 pb-0 lg:pt-36 lg:pb-0"
+      className="relative overflow-hidden pt-24 pb-24 lg:pt-36 lg:pb-32"
     >
       <HairlineRule className="absolute top-0 inset-x-0" />
 
@@ -111,27 +74,70 @@ export function FinalCtaSection({ onOpenDrawer }: FinalCtaSectionProps) {
           </MagneticButton>
         </motion.div>
       </div>
-
-      {/* Footer interactivo halftone con wordmark gigante ELLIK al final de la página */}
-      <div className="relative z-10 mt-24 lg:mt-32 border-t border-[var(--border-hairline)]">
-        <HalftoneWordmarkFooter
-          wordmark="ELLIK"
-          label="ELLIK — DISEÑO & DESARROLLO WEB"
-          meta="© 2026 ELLIK · OPERANDO EN PRODUCCIÓN"
-          columns={footerColumns}
-          preset="night"
-          palette={{ background: "#050505", ink: "#F4F1EA", warm: "#FFFFFF" }}
-          dotGap={5}
-          radius={85}
-          crop={0.12}
-          grain={0.45}
-          fontFamily="var(--font-display), sans-serif"
-          fontWeight={700}
-          monoFamily="var(--font-mono), monospace"
-          backToTopLabel="VOLVER ARRIBA ↑"
-          height="560px"
-        />
-      </div>
     </section>
+  );
+}
+
+/**
+ * Footer halftone a ancho completo (100vw) fuera del margen izquierdo de <main>.
+ */
+export function EllikFooter() {
+  const directWhatsappUrl = `https://wa.me/${ELLIK_CONFIG.whatsappNumber}?text=${encodeURIComponent(
+    "Hola ELLIK, quiero consultar por una página web para mi negocio."
+  )}`;
+
+  const footerColumns: FooterColumn[] = useMemo(
+    () => [
+      {
+        title: "SECCIONES",
+        links: [
+          { label: "Inicio", href: "#inicio" },
+          { label: "El Problema", href: "#problema" },
+          { label: "La Solución", href: "#solucion" },
+          { label: "Modalidades", href: "#modalidades" },
+        ],
+      },
+      {
+        title: "PROYECTOS EN VIVO",
+        links: MISSIONS.map((mission) => ({
+          label: `${mission.shortTitle} ↗`,
+          href: mission.liveUrl,
+        })),
+      },
+      {
+        title: "CONTACTO",
+        links: [
+          { label: "WhatsApp ↗", href: directWhatsappUrl },
+          { label: "Instagram ↗", href: ELLIK_CONFIG.instagramUrl },
+          {
+            label: ELLIK_CONFIG.email,
+            href: `mailto:${ELLIK_CONFIG.email}`,
+          },
+        ],
+      },
+    ],
+    [directWhatsappUrl]
+  );
+
+  return (
+    <div className="relative z-[45] w-full border-t border-[var(--border-hairline)] bg-[#050505]">
+      <HalftoneWordmarkFooter
+        wordmark="ELLIK"
+        label="ELLIK — DISEÑO & DESARROLLO WEB"
+        meta="© 2026 ELLIK · OPERANDO EN PRODUCCIÓN"
+        columns={footerColumns}
+        preset="night"
+        palette={{ background: "#050505", ink: "#F4F1EA", warm: "#FFFFFF" }}
+        dotGap={5}
+        radius={85}
+        crop={0.14}
+        grain={0.45}
+        fontFamily="var(--font-display), sans-serif"
+        fontWeight={700}
+        monoFamily="var(--font-mono), monospace"
+        backToTopLabel="VOLVER ARRIBA ↑"
+        height="clamp(420px, 52vw, 560px)"
+      />
+    </div>
   );
 }

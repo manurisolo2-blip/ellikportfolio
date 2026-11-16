@@ -9,7 +9,10 @@ import { ProblemSection } from "@/components/ProblemSection";
 import { SolutionSection } from "@/components/SolutionSection";
 import { MissionsSection } from "@/components/MissionsSection";
 import { InvestmentSection } from "@/components/InvestmentSection";
-import { FinalCtaSection } from "@/components/FinalCtaSection";
+import {
+  EllikFooter,
+  FinalCtaSection,
+} from "@/components/FinalCtaSection";
 import { ContactDrawer } from "@/components/ContactDrawer";
 import type { BusinessCategory } from "@/data/ellikData";
 
@@ -36,7 +39,7 @@ export default function HomePage() {
 
       <FixedFrameNav onOpenDrawer={handleOpenDrawer} />
 
-      <main className="relative z-10 pl-6 lg:pl-48 pr-6 lg:pr-16 pb-24 lg:pb-0">
+      <main className="relative z-10 pl-6 lg:pl-48 pr-6 lg:pr-16">
         <HeroSection onOpenDrawer={handleOpenDrawer} />
         <ProblemSection />
         <SolutionSection />
@@ -44,6 +47,8 @@ export default function HomePage() {
         <InvestmentSection onOpenDrawer={handleOpenDrawer} />
         <FinalCtaSection onOpenDrawer={handleOpenDrawer} />
       </main>
+
+      <EllikFooter />
 
       <ContactDrawer
         isOpen={drawerOpen}
