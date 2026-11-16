@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
+  AnimatePresence,
   motion,
   useAnimationFrame,
   useMotionValue,
@@ -17,398 +18,226 @@ import {
   type Mission,
 } from "@/data/ellikData";
 import { MagneticButton } from "./AnimatedHeading";
-import { EllikEmblem } from "./EllikLogo";
+import { EllikSolarGyroscope } from "./EllikLogo";
 
 interface HeroSectionProps {
   onOpenDrawer: (preset?: { rubro?: BusinessCategory; plan?: string }) => void;
 }
 
-interface OrbitPanelConfig {
+interface OrbitScreenConfig {
   key: string;
   mission: Mission;
   baseAngle: number;
   offsetY: number;
   tiltX: number;
   tiltZ: number;
-  variant: 0 | 1 | 2 | 3 | 4 | 5;
-}
-
-const ORBIT_PANELS: OrbitPanelConfig[] = [
-  {
-    key: "orbit-panel-1",
-    mission: MISSIONS[0],
-    baseAngle: 0,
-    offsetY: -125,
-    tiltX: 4,
-    tiltZ: -3,
-    variant: 0,
-  },
-  {
-    key: "orbit-panel-2",
-    mission: MISSIONS[2],
-    baseAngle: 60,
-    offsetY: 95,
-    tiltX: -3,
-    tiltZ: 2,
-    variant: 1,
-  },
-  {
-    key: "orbit-panel-3",
-    mission: MISSIONS[1],
-    baseAngle: 120,
-    offsetY: -55,
-    tiltX: 2,
-    tiltZ: -2,
-    variant: 2,
-  },
-  {
-    key: "orbit-panel-4",
-    mission: MISSIONS[3],
-    baseAngle: 180,
-    offsetY: 130,
-    tiltX: -4,
-    tiltZ: 4,
-    variant: 3,
-  },
-  {
-    key: "orbit-panel-5",
-    mission: MISSIONS[0],
-    baseAngle: 240,
-    offsetY: -110,
-    tiltX: 3,
-    tiltZ: -3,
-    variant: 4,
-  },
-  {
-    key: "orbit-panel-6",
-    mission: MISSIONS[2],
-    baseAngle: 300,
-    offsetY: 45,
-    tiltX: -2,
-    tiltZ: 2,
-    variant: 5,
-  },
-];
-
-interface HeroPanelArtworkProps {
-  variant: 0 | 1 | 2 | 3 | 4 | 5;
+  radiusScale: number;
 }
 
 /**
- * Composiciones arquitectónicas de alto contraste para representar piezas reales
- * de estudio creativo cuando no existe una captura cargada en public/proyectos/.
+ * 4 lienzos web reales en órbita espacial alrededor del Sol ELLIK,
+ * distribuidos a distintas alturas y planos de profundidad desde el primer frame.
  */
-function HeroPanelArtwork({ variant }: HeroPanelArtworkProps) {
-  switch (variant) {
-    case 0:
-      return (
-        <div
-          className="relative h-full w-full overflow-hidden p-3.5 flex flex-col justify-between"
-          style={{
-            background:
-              "radial-gradient(circle at 82% 18%, rgba(217, 167, 96, 0.34) 0%, rgba(244, 241, 234, 0.14) 28%, #0E0E11 72%)",
-          }}
-        >
-          <div className="flex items-center justify-between">
-            <span className="h-1.5 w-8 bg-[#F4F1EA]/85" />
-            <span className="h-2.5 w-2.5 border border-[#F4F1EA]/55" />
-          </div>
+const ORBIT_SCREENS: OrbitScreenConfig[] = [
+  {
+    key: "orbit-screen-mojo",
+    mission: MISSIONS[0], // Mojo Grille: arriba a la izquierda en primer plano (Z > 0)
+    baseAngle: 326,
+    offsetY: -135,
+    tiltX: 10,
+    tiltZ: -5.5,
+    radiusScale: 1.0,
+  },
+  {
+    key: "orbit-screen-dopamine",
+    mission: MISSIONS[1], // Dopamine: abajo a la derecha en primer plano (Z > 0)
+    baseAngle: 44,
+    offsetY: 128,
+    tiltX: -11,
+    tiltZ: 4.5,
+    radiusScale: 0.98,
+  },
+  {
+    key: "orbit-screen-lungyai",
+    mission: MISSIONS[2], // Lung Yai: centro profundo detrás del núcleo y título (Z < 0)
+    baseAngle: 170,
+    offsetY: -18,
+    tiltX: 6,
+    tiltZ: -3.5,
+    radiusScale: 0.94,
+  },
+  {
+    key: "orbit-screen-rio3",
+    mission: MISSIONS[3], // Capital del Deportista: cuadrante inferior izquierdo trasero (Z < 0)
+    baseAngle: 242,
+    offsetY: 108,
+    tiltX: -8,
+    tiltZ: 5.5,
+    radiusScale: 1.04,
+  },
+];
 
-          <div className="my-auto grid grid-cols-12 gap-2 items-end">
-            <div className="col-span-7 space-y-2">
-              <div className="h-10 w-full bg-[#F4F1EA]/90" />
-              <div className="h-2.5 w-4/5 bg-[#8A8A93]/70" />
-              <div className="h-2 w-3/5 bg-[#8A8A93]/40" />
-            </div>
-            <div
-              className="col-span-5 h-24 border border-white/25"
-              style={{
-                background:
-                  "linear-gradient(155deg, rgba(244,241,234,0.34) 0%, rgba(217,167,96,0.18) 55%, rgba(11,11,13,0.9) 100%)",
-              }}
-            />
-          </div>
-
-          <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-white/15">
-            <span className="h-5 bg-white/10 border border-white/15" />
-            <span className="h-5 bg-white/20 border border-white/25" />
-            <span className="h-5 bg-[#F4F1EA]/85" />
-          </div>
-        </div>
-      );
-
-    case 1:
-      return (
-        <div
-          className="relative h-full w-full overflow-hidden p-3.5 flex flex-col justify-between"
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(244, 241, 234, 0.22) 0%, rgba(138, 138, 147, 0.14) 38%, #0A0A0D 78%)",
-          }}
-        >
-          <div className="flex items-center justify-between border-b border-white/15 pb-2">
-            <span className="h-2 w-12 bg-[#FFFFFF]/85" />
-            <div className="flex gap-1">
-              <span className="h-1.5 w-3 bg-white/40" />
-              <span className="h-1.5 w-3 bg-white/40" />
-            </div>
-          </div>
-
-          <div className="relative my-auto flex-1 mt-3 mb-2 grid grid-cols-5 gap-2">
-            <div
-              className="col-span-3 h-full border border-white/25"
-              style={{
-                background:
-                  "linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(180,180,188,0.45) 55%, rgba(16,16,20,0.95) 100%)",
-              }}
-            />
-            <div className="col-span-2 flex flex-col justify-between gap-2">
-              <div className="h-14 border border-white/20 bg-white/10" />
-              <div className="space-y-1.5">
-                <span className="block h-2 w-full bg-white/75" />
-                <span className="block h-1.5 w-3/4 bg-[#8A8A93]/65" />
-              </div>
-              <div className="grid grid-cols-3 gap-1">
-                <span className="h-3 border border-white/30 bg-white/15" />
-                <span className="h-3 border border-white/60 bg-[#FFFFFF]/85" />
-                <span className="h-3 border border-white/30 bg-white/15" />
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-
-    case 2:
-      return (
-        <div
-          className="relative h-full w-full overflow-hidden p-3.5 flex flex-col justify-between"
-          style={{
-            background:
-              "radial-gradient(ellipse at 50% 42%, rgba(244, 241, 234, 0.28) 0%, rgba(138, 138, 147, 0.12) 44%, #09090B 82%)",
-          }}
-        >
-          <div className="flex justify-center pt-1">
-            <span className="h-1.5 w-16 bg-white/65" />
-          </div>
-
-          <div className="my-auto flex flex-col items-center gap-2.5">
-            <div className="h-16 w-4/5 border border-white/30 bg-gradient-to-b from-[#F4F1EA]/30 to-transparent flex items-center justify-center">
-              <div className="h-8 w-8 border border-[#F4F1EA]/70 rotate-45" />
-            </div>
-            <div className="h-4 w-3/4 bg-[#FFFFFF]/85" />
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            <div className="h-9 border border-white/20 bg-white/10" />
-            <div className="h-9 border border-white/35 bg-white/20" />
-            <div className="h-9 border border-white/20 bg-white/10" />
-          </div>
-        </div>
-      );
-
-    case 3:
-      return (
-        <div
-          className="relative h-full w-full overflow-hidden p-3.5 flex flex-col justify-between"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(244, 241, 234, 0.26) 0%, rgba(138, 138, 147, 0.08) 45%, #09090C 100%)",
-          }}
-        >
-          <div className="space-y-2 border-b border-white/20 pb-2.5">
-            <div className="flex items-center justify-between">
-              <span className="h-3 w-3 border border-[#FFFFFF]/80 bg-white/25" />
-              <span className="h-1.5 w-20 bg-white/55" />
-            </div>
-            <div className="h-6 w-11/12 bg-[#FFFFFF]/88" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 my-auto py-2">
-            <div className="h-16 border border-white/25 bg-white/10 p-2 flex flex-col justify-end gap-1">
-              <span className="h-2 w-3/4 bg-white/75" />
-              <span className="h-1 w-1/2 bg-white/40" />
-            </div>
-            <div
-              className="h-16 border border-white/30 p-2 flex flex-col justify-end gap-1"
-              style={{
-                background:
-                  "linear-gradient(145deg, rgba(244,241,234,0.28) 0%, rgba(255,255,255,0.06) 100%)",
-              }}
-            >
-              <span className="h-2 w-2/3 bg-[#FFFFFF]/85" />
-              <span className="h-1 w-1/2 bg-white/45" />
-            </div>
-          </div>
-
-          <div className="h-3 w-full border-t border-white/15 pt-1.5 flex justify-between">
-            <span className="h-1.5 w-14 bg-white/35" />
-            <span className="h-1.5 w-8 bg-white/60" />
-          </div>
-        </div>
-      );
-
-    case 4:
-      return (
-        <div
-          className="relative h-full w-full overflow-hidden p-3.5 flex flex-col justify-between"
-          style={{
-            background:
-              "radial-gradient(circle at 20% 80%, rgba(217, 167, 96, 0.28) 0%, rgba(244, 241, 234, 0.14) 36%, #0B0B0E 78%)",
-          }}
-        >
-          <div className="space-y-1.5">
-            <div className="h-7 w-full bg-[#F4F1EA]/90" />
-            <div className="h-7 w-4/5 bg-[#FFFFFF]/70" />
-            <div className="h-3 w-2/5 bg-[#8A8A93]/75" />
-          </div>
-
-          <div className="mt-2 flex-1 grid grid-cols-4 gap-2 items-end">
-            <div className="col-span-2 h-24 border border-white/25 bg-gradient-to-tr from-[#D9A760]/25 via-white/15 to-white/35" />
-            <div className="col-span-2 space-y-2 pb-1">
-              <div className="h-10 border border-white/20 bg-white/10" />
-              <div className="h-6 bg-[#FFFFFF]/85" />
-            </div>
-          </div>
-        </div>
-      );
-
-    default:
-      return (
-        <div
-          className="relative h-full w-full overflow-hidden p-3.5 flex flex-col justify-between"
-          style={{
-            background:
-              "linear-gradient(160deg, #0D0D10 0%, rgba(244, 241, 234, 0.20) 52%, rgba(217, 167, 96, 0.22) 100%)",
-          }}
-        >
-          <div
-            className="h-24 w-full border border-white/30 p-2.5 flex flex-col justify-between"
-            style={{
-              background:
-                "linear-gradient(120deg, rgba(255,255,255,0.86) 0%, rgba(244,241,234,0.48) 55%, rgba(138,138,147,0.22) 100%)",
-            }}
-          >
-            <div className="flex justify-between">
-              <span className="h-2 w-8 bg-[#050505]/80" />
-              <span className="h-2 w-2 bg-[#050505]/70" />
-            </div>
-            <div className="h-4 w-3/4 bg-[#050505]/85" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 pt-2">
-            <div className="h-16 border border-white/20 bg-white/10" />
-            <div className="h-16 border border-white/25 bg-white/15" />
-          </div>
-        </div>
-      );
-  }
-}
-
-interface OrbitPanelSurfaceProps {
-  panel: OrbitPanelConfig;
-  isHovered: boolean;
-}
-
-function OrbitPanelSurface({ panel, isHovered }: OrbitPanelSurfaceProps) {
-  const [imgFailed, setImgFailed] = useState(false);
-
-  if (imgFailed) {
-    return <HeroPanelArtwork variant={panel.variant} />;
-  }
+function OrbitFallback({ variant }: { variant?: Mission["fallbackVariant"] }) {
+  const accent =
+    variant === "gastro-1"
+      ? "rgba(217, 167, 96, 0.25)"
+      : "rgba(244, 241, 234, 0.2)";
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-[#09090B]">
-      <Image
-        src={panel.mission.previewImage}
-        alt={panel.mission.title}
-        fill
-        sizes="(max-width: 640px) 156px, (max-width: 768px) 185px, 225px"
-        priority
-        draggable={false}
-        onError={() => setImgFailed(true)}
+    <div
+      className="h-full w-full"
+      style={{
+        background: `radial-gradient(circle at 70% 30%, ${accent} 0%, #09090B 72%)`,
+      }}
+    />
+  );
+}
+
+interface FloatingScreenSurfaceProps {
+  mission: Mission;
+  sheenRef: (el: HTMLDivElement | null) => void;
+  priority: boolean;
+}
+
+function FloatingScreenSurface({
+  mission,
+  sheenRef,
+  priority,
+}: FloatingScreenSurfaceProps) {
+  const [imgFailed, setImgFailed] = useState(false);
+
+  return (
+    <div className="relative h-full w-full overflow-hidden bg-[#08080A]">
+      {imgFailed ? (
+        <OrbitFallback variant={mission.fallbackVariant} />
+      ) : (
+        <Image
+          src={mission.previewImage}
+          alt={mission.title}
+          fill
+          sizes="(max-width: 640px) 190px, (max-width: 1024px) 290px, 370px"
+          priority={priority}
+          draggable={false}
+          onError={() => setImgFailed(true)}
+          className="h-full w-full object-cover"
+        />
+      )}
+
+      {/* Viñeta sutil para profundidad sin caja pesada */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/35 via-transparent to-white/[0.04]" />
+
+      {/* Reflejo diagonal de cristal animado dinámicamente al pasar por el frente */}
+      <div
+        ref={sheenRef}
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 -left-1/2 w-[200%] will-change-transform"
         style={{
-          filter: isHovered
-            ? "grayscale(0%) contrast(1.05) brightness(1)"
-            : "grayscale(25%) contrast(1.08) brightness(0.82)",
+          background:
+            "linear-gradient(115deg, transparent 22%, rgba(255, 255, 255, 0.05) 38%, rgba(244, 241, 234, 0.26) 48%, rgba(255, 255, 255, 0.06) 58%, transparent 74%)",
+          opacity: 0,
         }}
-        className="w-full h-full object-cover transition-[filter,transform] duration-500 ease-out group-hover:scale-[1.03]"
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent" />
     </div>
   );
 }
 
-const INITIAL_ORBIT_ANGLE = 18;
-const DEFAULT_RADIUS_Z = 335;
+const INITIAL_ORBIT_ANGLE = 0;
+const DEFAULT_RADIUS_Z = 345;
 const DEFAULT_Y_SCALE = 1;
 
-interface PanelFrame {
+interface ScreenFrame {
   transform: string;
   zIndex: number;
   opacity: number;
   filter: string;
   boxShadow: string;
+  sheenTranslateX: number;
+  sheenOpacity: number;
 }
 
-function computePanelFrame(
-  cfg: OrbitPanelConfig,
+function clamp(val: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, val));
+}
+
+function computeScreenFrame(
+  cfg: OrbitScreenConfig,
   orbitAngle: number,
   effectiveRadiusZ: number,
   yScale: number,
   isHovered: boolean,
   isDimmedByHover: boolean
-): PanelFrame {
+): ScreenFrame {
   const worldDeg = orbitAngle + cfg.baseAngle;
   const rad = (worldDeg * Math.PI) / 180;
 
   const sinVal = Math.sin(rad);
-  const zCos = Math.cos(rad); // -1 atrás, +1 adelante
+  const zCos = Math.cos(rad); // -1 atrás profundo, +1 frente cercano
 
-  const x = sinVal * (effectiveRadiusZ * 1.16);
-  const z = zCos * effectiveRadiusZ;
+  const rZ = effectiveRadiusZ * cfg.radiusScale;
+  const rX = rZ * 1.28;
+
+  const x = sinVal * rX;
+  const z = zCos * rZ;
   const y = cfg.offsetY * yScale;
 
-  // Curvatura cilíndrica: cada panel mira suavemente hacia la cámara/centro
-  const cantedY = -sinVal * 32;
-  const isFront = z >= 0;
-  const depthScale = isFront
-    ? 0.96 + zCos * 0.12 // Hasta 1.08 en el plano frontal
-    : 0.86 + (zCos + 1) * 0.08;
+  // Marcada inclinación 3D mirando hacia el centro gravitacional
+  const rotateY = -sinVal * 35; // -35deg a +35deg
+  const elevationPitch = -(y / Math.max(rZ, 1)) * 7;
+  const rotateX = clamp(cfg.tiltX + elevationPitch, -15, 15);
+  const rotateZ = cfg.tiltZ;
+
+  // Escala continua por profundidad Z (más pequeña atrás, mayor al frente)
+  const depthScale =
+    z >= 0 ? 0.9 + zCos * 0.2 : 0.9 + zCos * 0.22; // 0.68 atrás .. 1.10 adelante
 
   const transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(
     1
-  )}px, ${z.toFixed(1)}px) rotateY(${cantedY.toFixed(2)}deg) rotateX(${
-    cfg.tiltX
-  }deg) rotateZ(${cfg.tiltZ}deg) scale(${depthScale.toFixed(4)})`;
+  )}px, ${z.toFixed(1)}px) rotateY(${rotateY.toFixed(
+    2
+  )}deg) rotateX(${rotateX.toFixed(2)}deg) rotateZ(${rotateZ.toFixed(
+    2
+  )}deg) scale(${depthScale.toFixed(4)})`;
 
-  if (isFront) {
+  if (z >= 0) {
+    // Plano frontal (Z > 0): nitidez total, por delante de ELLIK, sombra profunda y reflejo de cristal
+    const frontFactor = zCos;
     return {
       transform,
-      zIndex: isHovered ? 50 : 25 + Math.round(zCos * 15),
-      opacity: isDimmedByHover ? 0.35 : 1,
-      filter: "blur(0px) brightness(1)",
-      boxShadow: "0 25px 60px rgba(0,0,0,0.85)",
+      zIndex: isHovered ? 50 : 25 + Math.round(frontFactor * 20),
+      opacity: isDimmedByHover ? 0.45 : 1,
+      filter: "blur(0px) brightness(1.03) contrast(1.04)",
+      boxShadow:
+        "0 34px 85px rgba(0, 0, 0, 0.92), 0 0 1px rgba(255, 255, 255, 0.25)",
+      sheenTranslateX: -sinVal * 42,
+      sheenOpacity: isHovered ? 0.95 : 0.28 + frontFactor * 0.62,
     };
   }
 
-  // Profundidad atmosférica real detrás del núcleo (z < 0 -> menor que zIndex 20)
-  const rearOpacity = Number((0.18 + (zCos + 1) * (0.45 - 0.18)).toFixed(3));
+  // Plano trasero (Z < 0): detrás de ELLIK (zIndex < 20), Depth of Field óptico hasta blur(3px) brightness(0.45)
+  const rearDepth = Math.min(1, -zCos); // 0 en ecuador .. 1 en el fondo
+  const blurPx = 0.6 + rearDepth * 2.4; // hasta 3.0px
+  const brightness = 0.72 - rearDepth * 0.27; // hasta 0.45
+  const rearOpacity = 0.86 - rearDepth * 0.34; // 0.52 .. 0.86
+
   return {
     transform,
-    zIndex: Math.max(1, 14 + Math.round(zCos * 10)),
-    opacity: isDimmedByHover ? Math.min(rearOpacity, 0.16) : rearOpacity,
-    filter: "blur(1.5px) brightness(0.55)",
-    boxShadow: "none",
+    zIndex: Math.max(1, 12 + Math.round(zCos * 10)), // 2 .. 12 (< 20 del núcleo)
+    opacity: isDimmedByHover ? Math.min(rearOpacity, 0.28) : rearOpacity,
+    filter: `blur(${blurPx.toFixed(2)}px) brightness(${brightness.toFixed(2)})`,
+    boxShadow: "0 12px 30px rgba(0, 0, 0, 0.6)",
+    sheenTranslateX: 0,
+    sheenOpacity: 0,
   };
 }
 
 export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
-  const panelRefs = useRef<Array<HTMLDivElement | null>>([]);
-  const panelSurfaceRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const screenRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const surfaceRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const sheenRefs = useRef<Array<HTMLDivElement | null>>([]);
 
-  // Estado orbital y arrastre manual con inercia
+  // Estado orbital y arrastre físico con inercia
   const orbitAngleRef = useRef<number>(INITIAL_ORBIT_ANGLE);
   const angularVelocityRef = useRef<number>(0);
   const baseSpeedFactorRef = useRef<number>(1);
@@ -421,23 +250,29 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
   const totalDragDistanceRef = useRef<number>(0);
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [finePointer, setFinePointer] = useState<boolean>(false);
   const radiusZRef = useRef<number>(DEFAULT_RADIUS_Z);
   const yScaleRef = useRef<number>(DEFAULT_Y_SCALE);
 
-  // Parallax 3D con el mouse (-12deg a +12deg)
+  // Cámara 3D reactiva al cursor sobre contenedor con perspective: 1000px
   const pointerNormX = useMotionValue(0);
-  const pointerNormY = useMotionValue(-0.12);
-
+  const pointerNormY = useMotionValue(-0.08);
   const cameraRotateX = useSpring(
-    useTransform(pointerNormY, [-0.5, 0.5], [12, -12]),
-    { stiffness: 110, damping: 22 }
+    useTransform(pointerNormY, [-0.5, 0.5], [11, -11]),
+    { stiffness: 105, damping: 22 }
   );
   const cameraRotateY = useSpring(
-    useTransform(pointerNormX, [-0.5, 0.5], [-12, 12]),
-    { stiffness: 110, damping: 22 }
+    useTransform(pointerNormX, [-0.5, 0.5], [-13, 13]),
+    { stiffness: 105, damping: 22 }
   );
 
-  // Scroll-Linked Expansion: expansión radial (+25%), aceleración y fade-out suave
+  // Coordenadas para etiqueta flotante junto al cursor solo al posar sobre una pantalla
+  const rawCursorX = useMotionValue(-200);
+  const rawCursorY = useMotionValue(-200);
+  const labelX = useSpring(rawCursorX, { stiffness: 360, damping: 28 });
+  const labelY = useSpring(rawCursorY, { stiffness: 360, damping: 28 });
+
+  // Expansión suave al hacer scroll fuera del Hero
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end start"],
@@ -449,33 +284,45 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
 
   const scrollStageOpacity = useTransform(
     scrollYProgress,
-    [0, 0.72, 1],
+    [0, 0.75, 1],
     [1, 0.35, 0]
   );
-  const scrollStageScale = useTransform(scrollYProgress, [0, 1], [1, 0.92]);
+  const scrollStageScale = useTransform(scrollYProgress, [0, 1], [1, 0.93]);
 
   useEffect(() => {
+    const mq = window.matchMedia("(pointer: fine)");
+    const syncPointer = () => setFinePointer(mq.matches);
+    syncPointer();
+    mq.addEventListener("change", syncPointer);
+
     const updateDimensions = () => {
       const vw = window.innerWidth;
-      if (vw < 768) {
+      if (vw < 640) {
         radiusZRef.current = 155;
-        yScaleRef.current = 0.58;
-      } else if (vw < 1180) {
-        radiusZRef.current = 265;
-        yScaleRef.current = 0.84;
+        yScaleRef.current = 0.54;
+      } else if (vw < 1024) {
+        radiusZRef.current = 245;
+        yScaleRef.current = 0.78;
       } else {
-        radiusZRef.current = 335;
+        radiusZRef.current = 345;
         yScaleRef.current = 1;
       }
     };
 
     updateDimensions();
     window.addEventListener("resize", updateDimensions);
-    return () => window.removeEventListener("resize", updateDimensions);
+
+    return () => {
+      mq.removeEventListener("change", syncPointer);
+      window.removeEventListener("resize", updateDimensions);
+    };
   }, []);
 
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
+      rawCursorX.set(e.clientX);
+      rawCursorY.set(e.clientY);
+
       if (!isDraggingRef.current) return;
       const dx = e.clientX - dragLastXRef.current;
       dragLastXRef.current = e.clientX;
@@ -491,7 +338,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
       isDraggingRef.current = false;
     };
 
-    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
     window.addEventListener("pointerup", handlePointerUp);
     window.addEventListener("pointercancel", handlePointerUp);
 
@@ -500,7 +347,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerUp);
     };
-  }, []);
+  }, [rawCursorX, rawCursorY]);
 
   useAnimationFrame((_, delta) => {
     const dt = Math.min(delta, 50) / 1000;
@@ -511,26 +358,26 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
 
     if (!isDraggingRef.current) {
       orbitAngleRef.current += angularVelocityRef.current;
-      angularVelocityRef.current *= 0.94;
-      if (Math.abs(angularVelocityRef.current) < 0.005) {
+      angularVelocityRef.current *= 0.95; // Inercia física suave
+      if (Math.abs(angularVelocityRef.current) < 0.004) {
         angularVelocityRef.current = 0;
       }
 
-      // Velocidad base + leve aceleración vinculada al scroll vertical
       orbitAngleRef.current +=
-        dt * (10.5 + scrollP * 18) * baseSpeedFactorRef.current;
+        dt * (9.5 + scrollP * 16) * baseSpeedFactorRef.current;
     }
 
-    const effectiveRadiusZ = radiusZRef.current * (1 + scrollP * 0.25);
+    const effectiveRadiusZ = radiusZRef.current * (1 + scrollP * 0.22);
     const activeHover = hoveredIndexRef.current;
 
-    for (let i = 0; i < ORBIT_PANELS.length; i++) {
-      const panelEl = panelRefs.current[i];
-      const surfaceEl = panelSurfaceRefs.current[i];
-      if (!panelEl || !surfaceEl) continue;
+    for (let i = 0; i < ORBIT_SCREENS.length; i++) {
+      const screenEl = screenRefs.current[i];
+      const surfaceEl = surfaceRefs.current[i];
+      const sheenEl = sheenRefs.current[i];
+      if (!screenEl || !surfaceEl) continue;
 
-      const frame = computePanelFrame(
-        ORBIT_PANELS[i],
+      const frame = computeScreenFrame(
+        ORBIT_SCREENS[i],
         orbitAngleRef.current,
         effectiveRadiusZ,
         yScaleRef.current,
@@ -538,15 +385,25 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
         activeHover !== null && activeHover !== i
       );
 
-      panelEl.style.transform = frame.transform;
-      panelEl.style.zIndex = String(frame.zIndex);
-      panelEl.style.opacity = String(frame.opacity);
+      screenEl.style.transform = frame.transform;
+      screenEl.style.zIndex = String(frame.zIndex);
+      screenEl.style.opacity = String(frame.opacity);
       surfaceEl.style.filter = frame.filter;
       surfaceEl.style.boxShadow = frame.boxShadow;
+
+      if (sheenEl) {
+        sheenEl.style.transform = `translate3d(${frame.sheenTranslateX.toFixed(
+          1
+        )}%, 0, 0)`;
+        sheenEl.style.opacity = String(frame.sheenOpacity.toFixed(3));
+      }
     }
   });
 
   const handleStagePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    rawCursorX.set(e.clientX);
+    rawCursorY.set(e.clientY);
+
     const rect = e.currentTarget.getBoundingClientRect();
     const nx = (e.clientX - rect.left) / Math.max(rect.width, 1) - 0.5;
     const ny = (e.clientY - rect.top) / Math.max(rect.height, 1) - 0.5;
@@ -556,7 +413,12 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
 
   const handleStagePointerLeave = () => {
     pointerNormX.set(0);
-    pointerNormY.set(-0.12);
+    pointerNormY.set(-0.08);
+    if (hoveredIndexRef.current !== null) {
+      targetSpeedFactorRef.current = 1;
+      hoveredIndexRef.current = null;
+      setHoveredIndex(null);
+    }
   };
 
   const handleStagePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -566,19 +428,19 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
     angularVelocityRef.current = 0;
   };
 
-  const handlePanelEnter = (idx: number) => {
-    targetSpeedFactorRef.current = 0.05;
+  const handleScreenEnter = (idx: number) => {
+    targetSpeedFactorRef.current = 0.08;
     hoveredIndexRef.current = idx;
     setHoveredIndex(idx);
   };
 
-  const handlePanelLeave = () => {
+  const handleScreenLeave = () => {
     targetSpeedFactorRef.current = 1;
     hoveredIndexRef.current = null;
     setHoveredIndex(null);
   };
 
-  const handlePanelClick = (missionId: string) => {
+  const handleScreenClick = (missionId: string) => {
     if (totalDragDistanceRef.current > 8) return;
     const target =
       document.getElementById(missionId) ??
@@ -588,13 +450,16 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
     }
   };
 
+  const hoveredMission =
+    hoveredIndex !== null ? ORBIT_SCREENS[hoveredIndex]?.mission ?? null : null;
+
   return (
     <section
       ref={sectionRef}
       id="inicio"
-      className="relative min-h-screen overflow-x-hidden flex flex-col justify-between pt-20 pb-12 lg:pt-24 lg:pb-14"
+      className="relative min-h-screen overflow-x-hidden flex flex-col justify-between pt-16 pb-12 lg:pt-20 lg:pb-14"
     >
-      {/* Envolvente Scroll-Linked fuera del plano preserve-3d */}
+      {/* Envolvente Scroll-Linked fuera de la cámara 3D */}
       <motion.div
         style={{
           opacity: scrollStageOpacity,
@@ -602,55 +467,50 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
         }}
         className="my-auto w-full"
       >
-        {/* Escenario CSS 3D Real (perspective: 1100px, preserve-3d) */}
+        {/* Escenario espacial 3D con perspective: 1000px */}
         <div
           ref={stageRef}
           data-cursor="orbit"
           onPointerMove={handleStagePointerMove}
           onPointerLeave={handleStagePointerLeave}
           onPointerDown={handleStagePointerDown}
-          style={{ perspective: "1100px" }}
-          className="relative flex w-full min-h-[480px] sm:min-h-[540px] md:min-h-[600px] items-center justify-center touch-pan-y select-none"
+          style={{ perspective: "1000px" }}
+          className="relative flex w-full min-h-[520px] sm:min-h-[580px] md:min-h-[660px] items-center justify-center touch-pan-y select-none"
         >
           <motion.div
             style={{
               rotateX: cameraRotateX,
               rotateY: cameraRotateY,
             }}
-            className="preserve-3d relative flex h-[480px] md:h-[560px] w-full items-center justify-center"
+            className="preserve-3d relative flex h-[500px] sm:h-[560px] md:h-[640px] w-full items-center justify-center"
           >
-            {/* A. EL NÚCLEO CENTRAL: EMBLEMA ELLIK (zIndex: 20, translateZ: 0px) */}
+            {/* A. EL SOL DEL SISTEMA: GIROSCOPIO 3D ELLIK + TITULAR MONUMENTAL EN PLANO MEDIO (zIndex: 20, Z=0) */}
             <div
-              style={{ transform: "translate3d(0px, 0px, 0px)", zIndex: 20 }}
+              style={{
+                transform: "translate3d(0px, 0px, 0px)",
+                zIndex: 20,
+              }}
               className="pointer-events-none relative flex flex-col items-center justify-center text-center"
             >
-              <div className="relative flex h-28 w-28 md:h-36 md:w-36 items-center justify-center">
-                <div
-                  className="animate-pulse-star absolute inset-0"
-                  style={{
-                    background:
-                      "radial-gradient(circle, rgba(255,255,255,0.16) 0%, transparent 65%)",
-                  }}
-                />
-                <EllikEmblem className="animate-pulse-star relative h-16 w-16 md:h-20 md:w-20 text-[#FFFFFF]" />
-              </div>
+              <EllikSolarGyroscope className="h-32 w-32 sm:h-40 sm:w-40 md:h-48 md:w-48 -mb-4 sm:-mb-6" />
 
               <h1
-                className="mt-1 font-display font-bold uppercase tracking-[0.22em] text-[#FFFFFF] pl-[0.22em] leading-[0.95]"
-                style={{ fontSize: "clamp(2.8rem, 6vw, 5.5rem)" }}
+                className="font-display font-bold uppercase tracking-[0.18em] text-[#FFFFFF] pl-[0.18em] leading-[0.88] drop-shadow-[0_10px_40px_rgba(0,0,0,0.85)]"
+                style={{ fontSize: "clamp(4.1rem, 11.5vw, 9.6rem)" }}
               >
                 ELLIK
               </h1>
-              <p className="mt-2 font-serif italic text-2xl md:text-3xl text-[#F4F1EA]">
+
+              <p className="mt-3 font-serif italic text-2xl sm:text-3xl md:text-4xl text-[#F4F1EA] drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
                 Tu negocio en órbita.
               </p>
             </div>
 
-            {/* B. LOS 6 PANELES ORBITALES CON ALTURAS E INCLINACIONES ASIMÉTRICAS */}
-            {ORBIT_PANELS.map((panel, idx) => {
+            {/* B. LIENZOS 3D FLOTANTES SIN MARCO PESADO NI PIE DE TEXTO */}
+            {ORBIT_SCREENS.map((screen, idx) => {
               const isHovered = hoveredIndex === idx;
-              const initialFrame = computePanelFrame(
-                panel,
+              const initialFrame = computeScreenFrame(
+                screen,
                 INITIAL_ORBIT_ANGLE,
                 DEFAULT_RADIUS_Z,
                 DEFAULT_Y_SCALE,
@@ -660,77 +520,53 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
 
               return (
                 <div
-                  key={panel.key}
+                  key={screen.key}
                   ref={(el) => {
-                    panelRefs.current[idx] = el;
+                    screenRefs.current[idx] = el;
                   }}
-                  data-cursor="view"
+                  data-cursor="action"
                   role="button"
                   tabIndex={0}
-                  onMouseEnter={() => handlePanelEnter(idx)}
-                  onMouseLeave={handlePanelLeave}
-                  onFocus={() => handlePanelEnter(idx)}
-                  onBlur={handlePanelLeave}
-                  onClick={() => handlePanelClick(panel.mission.id)}
+                  onMouseEnter={() => handleScreenEnter(idx)}
+                  onMouseLeave={handleScreenLeave}
+                  onFocus={() => handleScreenEnter(idx)}
+                  onBlur={handleScreenLeave}
+                  onClick={() => handleScreenClick(screen.mission.id)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
-                      handlePanelClick(panel.mission.id);
+                      handleScreenClick(screen.mission.id);
                     }
                   }}
-                  aria-label={`${panel.mission.title} — Ir al proyecto`}
+                  aria-label={`${screen.mission.title} — Ir al proyecto`}
                   style={{
                     transform: initialFrame.transform,
                     zIndex: initialFrame.zIndex,
                     opacity: initialFrame.opacity,
                   }}
-                  className="pointer-events-auto absolute w-[156px] h-[200px] sm:w-[185px] sm:h-[235px] md:w-[225px] md:h-[282px] cursor-pointer will-change-transform"
+                  className="pointer-events-auto absolute w-[195px] sm:w-[275px] md:w-[335px] lg:w-[375px] aspect-[16/10] cursor-pointer will-change-transform focus:outline-none"
                 >
                   <div
                     ref={(el) => {
-                      panelSurfaceRefs.current[idx] = el;
+                      surfaceRefs.current[idx] = el;
                     }}
                     style={{
                       filter: initialFrame.filter,
                       boxShadow: initialFrame.boxShadow,
                     }}
-                    className={`group flex h-full w-full flex-col bg-[#09090B] border transition-colors duration-300 ${
+                    className={`relative h-full w-full transition-[outline-color,transform] duration-300 ${
                       isHovered
-                        ? "border-[#FFFFFF]"
-                        : "border-[rgba(255,255,255,0.20)]"
+                        ? "ring-1 ring-white/55 scale-[1.02]"
+                        : "ring-1 ring-white/[0.10]"
                     }`}
                   >
-                    <div className="relative flex-1 w-full overflow-hidden">
-                      <OrbitPanelSurface panel={panel} isHovered={isHovered} />
-                    </div>
-
-                    {/* Barra inferior limpia de 32px */}
-                    <div className="h-8 shrink-0 border-t border-[rgba(255,255,255,0.14)] bg-[#09090B] px-3 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="font-mono text-[10px] text-[#71717A] shrink-0">
-                          {panel.mission.index}
-                        </span>
-                        <span className="font-sans text-xs text-[#8A8A93] group-hover:text-[#FFFFFF] transition-colors truncate">
-                          {panel.mission.shortTitle}
-                        </span>
-                      </div>
-                      <a
-                        href={panel.mission.liveUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (totalDragDistanceRef.current > 8) {
-                            e.preventDefault();
-                          }
-                        }}
-                        aria-label={`Visitar ${panel.mission.shortTitle} en vivo`}
-                        title={`Visitar ${panel.mission.displayDomain}`}
-                        className="flex h-6 w-6 items-center justify-center font-mono text-[11px] text-[#8A8A93] hover:text-[#FFFFFF] transition-colors shrink-0"
-                      >
-                        ↗
-                      </a>
-                    </div>
+                    <FloatingScreenSurface
+                      mission={screen.mission}
+                      sheenRef={(el) => {
+                        sheenRefs.current[idx] = el;
+                      }}
+                      priority={idx < 2}
+                    />
                   </div>
                 </div>
               );
@@ -739,8 +575,34 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
         </div>
       </motion.div>
 
+      {/* Etiqueta flotante junto al cursor solo al posar el mouse sobre una pantalla */}
+      <AnimatePresence>
+        {finePointer && hoveredMission && (
+          <motion.div
+            key={hoveredMission.id}
+            aria-hidden="true"
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.92 }}
+            transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+            style={{ x: labelX, y: labelY }}
+            className="pointer-events-none fixed left-0 top-0 z-[110]"
+          >
+            <div className="ml-5 mt-5 flex items-center gap-2.5 border border-white/30 bg-[#050505]/[0.92] px-3 py-1.5 backdrop-blur-sm shadow-[0_12px_32px_rgba(0,0,0,0.8)]">
+              <span className="font-mono text-[10px] tracking-[0.16em] text-[#71717A]">
+                {hoveredMission.index}
+              </span>
+              <span className="font-mono text-[11px] tracking-[0.16em] uppercase text-[#FFFFFF] whitespace-nowrap">
+                {hoveredMission.shortTitle}
+              </span>
+              <span className="font-mono text-[11px] text-[#F4F1EA]">↗</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* C. Cierre del Hero */}
-      <div className="relative z-30 flex flex-col items-center text-center pt-4">
+      <div className="relative z-30 flex flex-col items-center text-center pt-2">
         <p className="font-sans text-sm md:text-base text-[#8A8A93] max-w-md text-center leading-relaxed">
           Diseño y desarrollo web para comercios y marcas que quieren recibir
           pedidos sin fricción.
