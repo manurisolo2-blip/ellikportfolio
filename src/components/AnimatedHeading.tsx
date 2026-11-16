@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useId, useRef } from "react";
 import {
   motion,
   useInView,
@@ -64,7 +64,8 @@ interface AnimatedHeadingProps {
 }
 
 /**
- * Titular con revelado por máscara palabra a palabra y destello sutil en el acento serif.
+ * Titular con revelado por máscara palabra a palabra, destello sutil en el acento serif
+ * y halo astronómico de eclipse con paralaje leve al cursor detrás del titular.
  */
 export function AnimatedHeading({
   prefix,
@@ -73,6 +74,35 @@ export function AnimatedHeading({
 }: AnimatedHeadingProps) {
   const ref = useRef<HTMLHeadingElement | null>(null);
   const isInView = useInView(ref, { once: true, margin: "-12%" });
+  const rawId = useId();
+  const safeId = rawId.replace(/:/g, "");
+
+  const eclipseX = useSpring(0, { stiffness: 110, damping: 24 });
+  const eclipseY = useSpring(0, { stiffness: 110, damping: 24 });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+
+    const handlePointerMove = (e: PointerEvent) => {
+      const vw = Math.max(window.innerWidth, 1);
+      const vh = Math.max(window.innerHeight, 1);
+      eclipseX.set((e.clientX / vw - 0.5) * 28);
+      eclipseY.set((e.clientY / vh - 0.5) * 18);
+    };
+
+    const handleLeave = () => {
+      eclipseX.set(0);
+      eclipseY.set(0);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
+    window.addEventListener("blur", handleLeave);
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("blur", handleLeave);
+    };
+  }, [eclipseX, eclipseY]);
 
   const prefixWords = prefix.trim().split(/\s+/);
   const accentWords = accent.trim().split(/\s+/);
@@ -83,12 +113,92 @@ export function AnimatedHeading({
       variants={headingContainerVariants}
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
-      className={className}
+      className={`relative z-0 ${className}`}
     >
+      {/* Halo astronómico de eclipse detrás del titular principal */}
+      <motion.span
+        aria-hidden="true"
+        style={{ x: eclipseX, y: eclipseY }}
+        className="pointer-events-none absolute -left-8 -top-12 sm:-left-14 sm:-top-16 -z-10 h-[220px] w-[220px] sm:h-[310px] sm:w-[310px] select-none will-change-transform"
+      >
+        <svg
+          viewBox="0 0 360 360"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-full w-full"
+        >
+          <defs>
+            <radialGradient
+              id={`eclipse-blue-${safeId}`}
+              cx="50%"
+              cy="50%"
+              r="50%"
+            >
+              <stop offset="32%" stopColor="rgba(22, 42, 78, 0.16)" />
+              <stop offset="68%" stopColor="rgba(16, 30, 56, 0.06)" />
+              <stop offset="100%" stopColor="rgba(5, 5, 5, 0)" />
+            </radialGradient>
+
+            <radialGradient
+              id={`eclipse-warm-${safeId}`}
+              cx="50%"
+              cy="50%"
+              r="50%"
+            >
+              <stop offset="32%" stopColor="rgba(5, 5, 5, 0)" />
+              <stop offset="44%" stopColor="rgba(244, 241, 234, 0.14)" />
+              <stop offset="62%" stopColor="rgba(244, 241, 234, 0.045)" />
+              <stop offset="100%" stopColor="rgba(244, 241, 234, 0)" />
+            </radialGradient>
+
+            <linearGradient
+              id={`eclipse-limb-${safeId}`}
+              x1="120"
+              y1="120"
+              x2="240"
+              y2="240"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stopColor="rgba(244, 241, 234, 0.24)" />
+              <stop offset="55%" stopColor="rgba(244, 241, 234, 0.05)" />
+              <stop offset="100%" stopColor="rgba(22, 42, 78, 0.1)" />
+            </linearGradient>
+          </defs>
+
+          {/* Corona exterior azul profundo casi imperceptible */}
+          <circle
+            cx="180"
+            cy="180"
+            r="176"
+            fill={`url(#eclipse-blue-${safeId})`}
+          />
+
+          {/* Corona luminosa cálida #F4F1EA */}
+          <circle
+            cx="180"
+            cy="180"
+            r="138"
+            fill={`url(#eclipse-warm-${safeId})`}
+          />
+
+          {/* Núcleo oscuro profundo del eclipse */}
+          <circle cx="180" cy="180" r="62" fill="#040406" />
+
+          {/* Aro creciente ultrafino del limbo solar */}
+          <circle
+            cx="180"
+            cy="180"
+            r="62.5"
+            stroke={`url(#eclipse-limb-${safeId})`}
+            strokeWidth="0.9"
+          />
+        </svg>
+      </motion.span>
+
       {prefixWords.map((word, index) => (
         <span
           key={`prefix-${index}-${word}`}
-          className="inline-block overflow-hidden align-bottom pb-[0.08em] mr-[0.26em]"
+          className="relative z-10 inline-block overflow-hidden align-bottom pb-[0.08em] mr-[0.26em]"
         >
           <motion.span
             variants={wordRevealVariants}
@@ -101,7 +211,7 @@ export function AnimatedHeading({
       {accentWords.map((word, index) => (
         <span
           key={`accent-${index}-${word}`}
-          className={`inline-block overflow-hidden align-bottom pb-[0.12em] pr-[0.12em] ${
+          className={`relative z-10 inline-block overflow-hidden align-bottom pb-[0.12em] pr-[0.12em] ${
             index < accentWords.length - 1 ? "mr-[0.2em]" : ""
           }`}
         >

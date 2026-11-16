@@ -1,9 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
 import { NAV_SECTIONS, type BusinessCategory } from "@/data/ellikData";
 import { MagneticButton } from "./AnimatedHeading";
 import { EllikLogo } from "./EllikLogo";
+
+const TOTAL_MERIDIAN_TICKS = 49;
+const MERIDIAN_TICKS = Array.from({ length: TOTAL_MERIDIAN_TICKS }, (_, i) => i);
 
 interface FixedFrameNavProps {
   onOpenDrawer: (preset?: { rubro?: BusinessCategory; plan?: string }) => void;
@@ -11,29 +15,41 @@ interface FixedFrameNavProps {
 
 export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
   const [activeId, setActiveId] = useState<string>(NAV_SECTIONS[0].id);
+  const [litTickCount, setLitTickCount] = useState<number>(0);
+
+  const { scrollYProgress } = useScroll();
+  const meridianPercent = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+
+  const updateActiveByPosition = useCallback(() => {
+    if (typeof window === "undefined") return;
+    if (window.scrollY < 80) {
+      setActiveId(NAV_SECTIONS[0].id);
+      return;
+    }
+
+    const triggerY = window.innerHeight * 0.38;
+    let currentId = NAV_SECTIONS[0].id;
+
+    for (const section of NAV_SECTIONS) {
+      const el = document.getElementById(section.id);
+      if (!el) continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.top <= triggerY) {
+        currentId = section.id;
+      }
+    }
+
+    setActiveId((prev) => (prev === currentId ? prev : currentId));
+  }, []);
+
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    const clamped = Math.max(0, Math.min(1, latest));
+    const nextLit = Math.round(clamped * (TOTAL_MERIDIAN_TICKS - 1));
+    setLitTickCount((prev) => (prev === nextLit ? prev : nextLit));
+    updateActiveByPosition();
+  });
 
   useEffect(() => {
-    const updateActiveByPosition = () => {
-      if (window.scrollY < 80) {
-        setActiveId(NAV_SECTIONS[0].id);
-        return;
-      }
-
-      const triggerY = window.innerHeight * 0.38;
-      let currentId = NAV_SECTIONS[0].id;
-
-      for (const section of NAV_SECTIONS) {
-        const el = document.getElementById(section.id);
-        if (!el) continue;
-        const rect = el.getBoundingClientRect();
-        if (rect.top <= triggerY) {
-          currentId = section.id;
-        }
-      }
-
-      setActiveId(currentId);
-    };
-
     const sectionElements = NAV_SECTIONS.map((s) =>
       document.getElementById(s.id)
     ).filter((el): el is HTMLElement => el !== null);
@@ -52,13 +68,15 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
 
     sectionElements.forEach((el) => observer.observe(el));
     window.addEventListener("scroll", updateActiveByPosition, { passive: true });
+    window.addEventListener("resize", updateActiveByPosition, { passive: true });
     updateActiveByPosition();
 
     return () => {
       observer.disconnect();
       window.removeEventListener("scroll", updateActiveByPosition);
+      window.removeEventListener("resize", updateActiveByPosition);
     };
-  }, []);
+  }, [updateActiveByPosition]);
 
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
@@ -96,7 +114,61 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
         </MagneticButton>
       </div>
 
-      {/* Índice Lateral Izquierdo con Scroll-Spy (Desktop >= 1024px) */}
+      {/* Hilo Conductor de Meridiano Celeste con escala milimétrica de telescopio (Desktop >= 1024px) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed left-5 top-24 bottom-10 z-40 hidden lg:block w-3 select-none"
+      >
+        {/* Línea vertical base del meridiano */}
+        <div className="absolute left-0 top-0 bottom-0 w-px bg-white/[0.08]" />
+
+        {/* Hilo iluminado progresivo vinculado al scroll */}
+        <motion.div
+          style={{ scaleY: scrollYProgress, transformOrigin: "top" }}
+          className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-[#F4F1EA]/50 via-white/75 to-white shadow-[0_0_8px_rgba(244,241,234,0.35)] will-change-transform"
+        />
+
+        {/* Escala de marcas milimétricas de telescopio */}
+        <div className="relative flex h-full flex-col justify-between">
+          {MERIDIAN_TICKS.map((tick) => {
+            const isMajor = tick % 8 === 0;
+            const isMid = !isMajor && tick % 4 === 0;
+            const isLit = tick <= litTickCount;
+
+            const widthClass = isMajor
+              ? "w-2.5"
+              : isMid
+                ? "w-1.5"
+                : "w-[3px]";
+
+            const toneClass = isLit
+              ? isMajor
+                ? "bg-[#F4F1EA] shadow-[0_0_6px_rgba(244,241,234,0.65)]"
+                : "bg-white/70"
+              : isMajor
+                ? "bg-white/25"
+                : "bg-white/[0.12]";
+
+            return (
+              <span
+                key={tick}
+                className={`block h-px transition-[background-color,box-shadow] duration-300 ${widthClass} ${toneClass}`}
+              />
+            );
+          })}
+        </div>
+
+        {/* Marcador focal deslizante en la posición exacta del meridiano */}
+        <motion.div
+          style={{ top: meridianPercent }}
+          className="absolute left-[-2px] flex -translate-y-1/2 items-center"
+        >
+          <span className="h-[5px] w-[5px] border border-white/90 bg-[#F4F1EA] shadow-[0_0_10px_rgba(244,241,234,0.85)]" />
+          <span className="h-px w-3 bg-gradient-to-r from-[#F4F1EA] to-transparent" />
+        </motion.div>
+      </div>
+
+      {/* Índice Lateral Izquierdo con Scroll-Spy integrado al meridiano (Desktop >= 1024px) */}
       <nav
         aria-label="Índice de secciones"
         className="fixed left-10 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col gap-4"
