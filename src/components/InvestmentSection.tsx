@@ -9,6 +9,7 @@ import {
 import {
   AnimatedHeading,
   HairlineRule,
+  orbitalGridStaggerVariants,
   SpotlightSurface,
 } from "./AnimatedHeading";
 
@@ -18,7 +19,9 @@ interface InvestmentSectionProps {
 
 export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
   const sectionRef = useRef<HTMLDivElement | null>(null);
+  const gridRef = useRef<HTMLDivElement | null>(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.15 });
+  const isGridInView = useInView(gridRef, { once: true, margin: "-10%" });
 
   return (
     <section id="modalidades" className="relative py-24 lg:py-36">
@@ -48,8 +51,14 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
           </motion.p>
         </div>
 
-        {/* Grilla con líneas de 1px auto-dibujables + Spotlight radial de cursor */}
-        <div className="relative mt-16 grid grid-cols-1 lg:grid-cols-3 bg-[var(--bg-elevated)]">
+        {/* Grilla con entrada espacial escalonada, líneas de 1px y retícula orbital */}
+        <motion.div
+          ref={gridRef}
+          variants={orbitalGridStaggerVariants}
+          initial="hidden"
+          animate={isGridInView ? "visible" : "hidden"}
+          className="relative mt-16 grid grid-cols-1 lg:grid-cols-3 bg-[var(--bg-elevated)]"
+        >
           <HairlineRule className="pointer-events-none absolute top-0 left-0 right-0 z-20" />
           <HairlineRule
             delay={0.14}
@@ -86,7 +95,7 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
               )}
 
               <SpotlightSurface
-                delay={0.14 + index * 0.1}
+                staggerControlled
                 className="p-8 lg:p-10"
               >
                 <div>
@@ -146,7 +155,7 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
               </SpotlightSurface>
             </React.Fragment>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

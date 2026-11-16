@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   motion,
@@ -31,7 +31,6 @@ function FallbackCanvas({ variant }: FallbackCanvasProps) {
               "radial-gradient(circle at 72% 28%, rgba(217, 167, 96, 0.28) 0%, rgba(244, 241, 234, 0.08) 32%, #08080A 74%)",
           }}
         >
-          {/* Fondo arquitectónico de retícula y foco cálido */}
           <div className="hidden sm:flex flex-col justify-between h-full w-5/12 py-2">
             <div className="space-y-3">
               <div className="h-2 w-16 bg-[#F4F1EA]/70" />
@@ -54,7 +53,6 @@ function FallbackCanvas({ variant }: FallbackCanvasProps) {
             </div>
           </div>
 
-          {/* Silueta de teléfono móvil en perspectiva con flujo de pedido */}
           <div
             className="mx-auto sm:mx-0 w-[160px] sm:w-[200px] h-[92%] sm:h-[88%] overflow-hidden border border-white/35 bg-[#0C0C0F] p-2.5 sm:p-3.5 flex flex-col justify-between shadow-[0_24px_60px_rgba(0,0,0,0.85)]"
             style={{
@@ -90,7 +88,6 @@ function FallbackCanvas({ variant }: FallbackCanvasProps) {
               </div>
             </div>
 
-            {/* Botón de confirmación luminoso */}
             <div className="h-6 sm:h-8 w-full shrink-0 bg-[#F4F1EA] flex items-center justify-between px-2.5 sm:px-3">
               <span className="h-1.5 w-14 sm:w-16 bg-[#050505]/85" />
               <span className="h-2 w-2 bg-[#050505]" />
@@ -108,7 +105,6 @@ function FallbackCanvas({ variant }: FallbackCanvasProps) {
               "radial-gradient(ellipse at 32% 35%, rgba(244, 241, 234, 0.22) 0%, rgba(138, 138, 147, 0.08) 44%, #070709 84%)",
           }}
         >
-          {/* Grilla editorial asimétrica de doble columna */}
           <div className="flex-1 grid grid-cols-12 gap-4 min-h-0">
             <div
               className="col-span-7 border border-white/30 p-4 flex flex-col justify-between"
@@ -150,7 +146,6 @@ function FallbackCanvas({ variant }: FallbackCanvasProps) {
             </div>
           </div>
 
-          {/* Barra flotante minimalista inferior */}
           <div className="h-10 w-full border border-white/30 bg-[#0D0D10]/95 px-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="h-2 w-14 bg-white/75" />
@@ -170,7 +165,6 @@ function FallbackCanvas({ variant }: FallbackCanvasProps) {
               "linear-gradient(135deg, #111114 0%, #050507 58%, #0E0E11 100%)",
           }}
         >
-          {/* Retícula superior minimalista */}
           <div className="flex items-center justify-between border-b border-white/15 pb-3">
             <div className="flex items-center gap-2">
               <span className="h-2 w-16 bg-[#FFFFFF]/90" />
@@ -183,7 +177,6 @@ function FallbackCanvas({ variant }: FallbackCanvasProps) {
             </div>
           </div>
 
-          {/* Lookbook monocromático en proporción vertical 3:4 */}
           <div className="my-auto grid grid-cols-3 gap-4 sm:gap-5 items-center py-2">
             <div className="aspect-[3/4] border border-white/25 bg-gradient-to-b from-white/75 via-zinc-500/35 to-[#0A0A0D] p-2.5 flex flex-col justify-end">
               <span className="h-1.5 w-3/4 bg-white/80" />
@@ -216,7 +209,6 @@ function FallbackCanvas({ variant }: FallbackCanvasProps) {
               "linear-gradient(180deg, rgba(244,241,234,0.16) 0%, rgba(18,18,22,0.92) 44%, #060608 100%)",
           }}
         >
-          {/* Arquitectura limpia de grilla suiza institucional */}
           <div className="grid grid-cols-12 gap-3 border-b border-white/25 pb-4 items-center">
             <div className="col-span-2 flex items-center gap-2">
               <div className="h-7 w-7 border border-[#FFFFFF]/80 flex items-center justify-center">
@@ -276,17 +268,52 @@ interface ProjectShowcaseRowProps {
 
 function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
   const rowRef = useRef<HTMLElement | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
+  const beamRef = useRef<HTMLDivElement | null>(null);
+  const finePointerRef = useRef<boolean>(false);
+
   const [primaryError, setPrimaryError] = useState(false);
   const [secondaryError, setSecondaryError] = useState(false);
+
+  // B1 & B3. Física 3D con puntero fino: tilt ±7deg X / ±9deg Y + desplazamiento inverso ±10px
+  const rawTiltX = useMotionValue(0);
+  const rawTiltY = useMotionValue(0);
+  const rawSecondaryX = useMotionValue(0);
+  const rawSecondaryY = useMotionValue(0);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(pointer: fine)");
+    const syncPointer = () => {
+      finePointerRef.current = mq.matches;
+      if (!mq.matches) {
+        rawTiltX.set(0);
+        rawTiltY.set(0);
+        rawSecondaryX.set(0);
+        rawSecondaryY.set(0);
+      }
+    };
+    syncPointer();
+    mq.addEventListener("change", syncPointer);
+    return () => mq.removeEventListener("change", syncPointer);
+  }, [rawTiltX, rawTiltY, rawSecondaryX, rawSecondaryY]);
+
+  const hoverRotateX = useSpring(rawTiltX, { stiffness: 190, damping: 24 });
+  const hoverRotateY = useSpring(rawTiltY, { stiffness: 190, damping: 24 });
+  const secondaryOffsetX = useSpring(rawSecondaryX, {
+    stiffness: 175,
+    damping: 22,
+  });
+  const secondaryOffsetY = useSpring(rawSecondaryY, {
+    stiffness: 175,
+    damping: 22,
+  });
 
   const { scrollYProgress } = useScroll({
     target: rowRef,
     offset: ["start end", "end start"],
   });
 
-  // Índice monumental: se ilumina en #F4F1EA y se desplaza en Y al centrar en pantalla
-  const indexY = useTransform(scrollYProgress, [0, 1], [28, -28]);
+  // A. Índice Monumental Reactivo al Scroll: #F4F1EA al centro y desplazamiento ±20px en Y
+  const indexY = useTransform(scrollYProgress, [0, 1], [20, -20]);
   const indexColor = useTransform(
     scrollYProgress,
     [0.18, 0.45, 0.58, 0.85],
@@ -298,42 +325,30 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
     ]
   );
 
-  // Scroll Parallax interno dentro de la ventana 16:10 (-8% a +8%)
-  const frameParallaxY = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
+  // B2. Parallax vertical ligado al scroll para la capa base (-6% a +6% con scale 1.12)
+  const frameParallaxY = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
 
-  // Hover 3D hacia el puntero (±4deg) y desplazamiento inverso de la tarjeta secundaria
-  const rawTiltX = useMotionValue(0);
-  const rawTiltY = useMotionValue(0);
-  const rawSecondaryX = useMotionValue(0);
-  const rawSecondaryY = useMotionValue(0);
+  const handleStageMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!finePointerRef.current) return;
 
-  const hoverRotateX = useSpring(rawTiltX, { stiffness: 180, damping: 22 });
-  const hoverRotateY = useSpring(rawTiltY, { stiffness: 180, damping: 22 });
-  const secondaryOffsetX = useSpring(rawSecondaryX, {
-    stiffness: 170,
-    damping: 20,
-  });
-  const secondaryOffsetY = useSpring(rawSecondaryY, {
-    stiffness: 170,
-    damping: 20,
-  });
-
-  const handleFrameMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const nx = (e.clientX - rect.left) / Math.max(rect.width, 1) - 0.5;
-    const ny = (e.clientY - rect.top) / Math.max(rect.height, 1) - 0.5;
-    rawTiltX.set(-ny * 8); // +4deg arriba a -4deg abajo
-    rawTiltY.set(nx * 8); // -4deg izquierda a +4deg derecha
-    rawSecondaryX.set(-nx * 14); // Desplazamiento inverso al puntero
-    rawSecondaryY.set(-ny * 10);
+    const relX = e.clientX - rect.left;
+    const relY = e.clientY - rect.top;
+    const nx = relX / Math.max(rect.width, 1) - 0.5;
+    const ny = relY / Math.max(rect.height, 1) - 0.5;
+
+    rawTiltX.set(-ny * 14); // -7deg a +7deg
+    rawTiltY.set(nx * 18); // -9deg a +9deg
+    rawSecondaryX.set(-nx * 20); // ±10px en sentido opuesto
+    rawSecondaryY.set(-ny * 20);
+
+    if (beamRef.current) {
+      beamRef.current.style.setProperty("--x", `${relX.toFixed(1)}px`);
+      beamRef.current.style.setProperty("--y", `${relY.toFixed(1)}px`);
+    }
   };
 
-  const handleFrameMouseEnter = () => {
-    setIsHovered(true);
-  };
-
-  const handleFrameMouseLeave = () => {
-    setIsHovered(false);
+  const handleStageMouseLeave = () => {
     rawTiltX.set(0);
     rawTiltY.set(0);
     rawSecondaryX.set(0);
@@ -352,14 +367,14 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
         delay: index * 0.04,
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="relative py-16 lg:py-24 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 xl:gap-10 items-start"
+      className="relative py-20 lg:py-28 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 xl:gap-10 items-start"
     >
-      {/* Índice tipográfico monumental a la izquierda */}
-      <div className="lg:col-span-1 xl:col-span-2 flex items-start pb-4 lg:pb-0">
+      {/* A. Índice monumental reactivo al scroll */}
+      <div className="lg:col-span-1 xl:col-span-2 flex items-start pb-2 lg:pb-0">
         <motion.span
           aria-hidden="true"
           style={{
-            fontSize: "clamp(4rem, 7vw, 7rem)",
+            fontSize: "clamp(3.5rem, 6.5vw, 5.5rem)",
             y: indexY,
             color: indexColor,
           }}
@@ -369,14 +384,14 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
         </motion.span>
       </div>
 
-      {/* Columna izquierda (Editorial) */}
+      {/* C. Columna Editorial Limpia */}
       <div className="lg:col-span-5 xl:col-span-4 flex flex-col justify-between h-full">
         <div>
           <p className="font-mono text-[11px] tracking-[0.18em] uppercase text-[#71717A]">
-            {mission.category} — {mission.location}
+            {mission.category} · {mission.location}
           </p>
 
-          <h3 className="mt-5 font-display text-2xl md:text-3xl xl:text-4xl font-bold uppercase tracking-[-0.02em] leading-[1.05] text-white">
+          <h3 className="mt-5 font-display text-2xl md:text-4xl font-bold uppercase tracking-[-0.02em] leading-[1.05] text-white">
             {mission.title}
           </h3>
 
@@ -384,7 +399,7 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
             {mission.description}
           </p>
 
-          <p className="mt-7 text-xs font-mono tracking-[0.06em] text-[#F4F1EA]">
+          <p className="mt-6 font-serif italic text-lg leading-snug text-[#F4F1EA]">
             {mission.highlight}
           </p>
         </div>
@@ -400,53 +415,48 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
             target="_blank"
             rel="noopener noreferrer"
             data-cursor="action"
-            className="group inline-flex items-center gap-3 border border-white/25 hover:bg-white hover:text-[#050505] hover:border-white transition-colors px-6 py-3.5 font-mono text-xs tracking-[0.16em] uppercase text-white"
+            className="group/btn relative inline-flex items-center gap-3 overflow-hidden border border-white/25 px-6 py-3.5 font-mono text-xs tracking-[0.16em] uppercase text-white transition-colors duration-300 hover:border-white"
           >
-            <span>VISITAR SITIO EN VIVO</span>
-            <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 bg-white translate-y-[102%] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-y-0 group-focus-visible/btn:translate-y-0"
+            />
+            <span className="relative z-10 inline-flex items-center gap-3 transition-colors duration-300 group-hover/btn:text-[#050505] group-focus-visible/btn:text-[#050505]">
+              <span>VISITAR SITIO EN VIVO</span>
+              <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
+            </span>
           </a>
         </div>
       </div>
 
-      {/* Columna derecha: Escaparate Visual con Imagen Real + Tarjeta Secundaria Flotante */}
-      <div className="lg:col-span-6" style={{ perspective: "1100px" }}>
+      {/* B. Monolito Visual 3D en Eje Z (preserve-3d, doble capa real sin marco de navegador) */}
+      <div
+        className="lg:col-span-6 pb-6 md:pb-8 pr-3 md:pr-6 lg:pr-0"
+        style={{ perspective: "1200px" }}
+      >
         <motion.a
           href={mission.liveUrl}
           target="_blank"
           rel="noopener noreferrer"
           data-cursor="view"
           aria-label={`Visitar ${mission.title} en vivo`}
-          onMouseMove={handleFrameMouseMove}
-          onMouseEnter={handleFrameMouseEnter}
-          onMouseLeave={handleFrameMouseLeave}
+          onMouseMove={handleStageMouseMove}
+          onMouseLeave={handleStageMouseLeave}
           style={{
             rotateX: hoverRotateX,
             rotateY: hoverRotateY,
             transformStyle: "preserve-3d",
           }}
-          className={`group block border bg-[#09090B] transition-colors duration-300 will-change-transform ${
-            isHovered
-              ? "border-[#FFFFFF] shadow-[0_24px_60px_rgba(0,0,0,0.85)]"
-              : "border-[var(--border-hairline)]"
-          }`}
+          className="group/stage relative block will-change-transform focus:outline-none"
         >
-          {/* Barra superior minimalista del navegador */}
-          <div className="relative flex items-center justify-between px-4 py-2.5 bg-[#08080A]">
-            <span className="font-mono text-[11px] tracking-[0.08em] text-[var(--text-secondary)] truncate">
-              {mission.displayDomain}
-            </span>
-            <ArrowUpRight className="h-3.5 w-3.5 text-[var(--text-muted)] transition-colors group-hover:text-white shrink-0" />
-            <HairlineRule
-              delay={0.12}
-              className="absolute bottom-0 left-0 right-0"
-            />
-          </div>
-
-          {/* Ventana 16:10 con imagen principal y composición doble */}
-          <div className="aspect-[16/10] w-full overflow-hidden bg-[#09090B] relative group">
+          {/* Capa Base (translateZ: 0px): previewImage con parallax de scroll + haz de luz */}
+          <div
+            style={{ transform: "translateZ(0px)" }}
+            className="relative aspect-[16/10] w-full overflow-hidden bg-[#09090B] border border-[rgba(255,255,255,0.16)] transition-colors duration-300 group-hover/stage:border-[rgba(255,255,255,0.38)]"
+          >
             <motion.div
-              style={{ y: frameParallaxY }}
-              className="relative -top-[12%] h-[124%] w-full will-change-transform"
+              style={{ y: frameParallaxY, scale: 1.12 }}
+              className="relative h-full w-full will-change-transform"
             >
               {primaryError ? (
                 <FallbackCanvas variant={mission.fallbackVariant} />
@@ -459,37 +469,54 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
                   priority={index === 0}
                   draggable={false}
                   onError={() => setPrimaryError(true)}
-                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  className="h-full w-full object-cover"
                 />
               )}
             </motion.div>
 
-            {/* Viñeta sutil para jerarquía con la tarjeta flotante */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050505]/70 via-transparent to-transparent" />
+            {/* Viñeta muy sutil para separar la capa flotante frontal */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050505]/55 via-transparent to-transparent" />
 
-            {/* Segunda tarjeta flotante en esquina inferior derecha (sentido inverso en hover) */}
-            {!secondaryError && (
+            {/* Haz de luz estelar siguiendo el cursor */}
+            <div
+              ref={beamRef}
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover/stage:opacity-100"
+              style={{
+                background:
+                  "radial-gradient(500px circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.11), transparent 45%)",
+              }}
+            />
+          </div>
+
+          {/* Capa Flotante Despegada (translateZ: 55px): secondaryImage desplazada en sentido opuesto */}
+          {!secondaryError && (
+            <div
+              style={{
+                transform: "translateZ(55px)",
+                transformStyle: "preserve-3d",
+              }}
+              className="absolute -bottom-5 -right-3 md:-bottom-7 md:-right-6 z-20"
+            >
               <motion.div
                 style={{
                   x: secondaryOffsetX,
                   y: secondaryOffsetY,
                 }}
-                className="pointer-events-none absolute bottom-3 right-3 md:bottom-5 md:right-5 z-20 will-change-transform"
+                className="w-32 sm:w-40 md:w-48 aspect-[4/3] border border-[rgba(255,255,255,0.28)] bg-[#050505] shadow-[0_25px_50px_rgba(0,0,0,0.9)] overflow-hidden will-change-transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/stage:scale-[1.03]"
               >
-                <div className="w-36 md:w-48 aspect-[4/3] border border-white/20 bg-[#09090B] shadow-2xl overflow-hidden transition-transform duration-700 ease-out group-hover:-translate-x-2.5 group-hover:-translate-y-2">
-                  <Image
-                    src={mission.secondaryImage}
-                    alt={`${mission.shortTitle} — Vista secundaria`}
-                    fill
-                    sizes="(max-width: 768px) 144px, 192px"
-                    draggable={false}
-                    onError={() => setSecondaryError(true)}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+                <Image
+                  src={mission.secondaryImage}
+                  alt={`${mission.shortTitle} — Vista secundaria`}
+                  fill
+                  sizes="(max-width: 640px) 128px, (max-width: 768px) 160px, 192px"
+                  draggable={false}
+                  onError={() => setSecondaryError(true)}
+                  className="h-full w-full object-cover"
+                />
               </motion.div>
-            )}
-          </div>
+            </div>
+          )}
         </motion.a>
       </div>
 

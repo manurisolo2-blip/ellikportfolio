@@ -1,14 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import { SYSTEM_PILLARS } from "@/data/ellikData";
 import {
   AnimatedHeading,
   HairlineRule,
+  orbitalGridStaggerVariants,
   SpotlightSurface,
 } from "./AnimatedHeading";
 
 export function SolutionSection() {
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const isGridInView = useInView(gridRef, { once: true, margin: "-10%" });
+
   return (
     <section id="solucion" className="relative py-24 lg:py-36">
       <HairlineRule className="absolute top-0 inset-x-0" />
@@ -20,8 +25,14 @@ export function SolutionSection() {
           className="heading-section max-w-5xl text-[var(--text-primary)]"
         />
 
-        {/* Grilla con bordes y divisores de 1px auto-dibujables + Spotlight por columna */}
-        <div className="relative mt-16 grid grid-cols-1 lg:grid-cols-3 bg-[var(--bg-elevated)]">
+        {/* Grilla con entrada espacial escalonada, divisores 1px y retícula orbital */}
+        <motion.div
+          ref={gridRef}
+          variants={orbitalGridStaggerVariants}
+          initial="hidden"
+          animate={isGridInView ? "visible" : "hidden"}
+          className="relative mt-16 grid grid-cols-1 lg:grid-cols-3 bg-[var(--bg-elevated)]"
+        >
           {/* Borde perimetral y divisores internos animados */}
           <HairlineRule className="pointer-events-none absolute top-0 left-0 right-0 z-20" />
           <HairlineRule
@@ -59,7 +70,7 @@ export function SolutionSection() {
               )}
 
               <SpotlightSurface
-                delay={0.14 + index * 0.1}
+                staggerControlled
                 className="py-14 lg:py-20 px-8 lg:px-12"
               >
                 <div>
@@ -78,7 +89,7 @@ export function SolutionSection() {
               </SpotlightSurface>
             </React.Fragment>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

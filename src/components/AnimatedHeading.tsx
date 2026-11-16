@@ -271,22 +271,56 @@ export function HairlineRule({
   );
 }
 
+export const orbitalGridStaggerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.12,
+    },
+  },
+};
+
+const orbitalCellVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    scale: 0.95,
+    y: 24,
+  },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: {
+      duration: 0.65,
+      ease: HEADING_EASE,
+    },
+  },
+};
+
+const ORBITAL_CORNER_BRACKETS = [
+  "top-2.5 left-2.5 border-t border-l",
+  "top-2.5 right-2.5 border-t border-r",
+  "bottom-2.5 left-2.5 border-b border-l",
+  "bottom-2.5 right-2.5 border-b border-r",
+] as const;
+
 interface SpotlightSurfaceProps {
   children: React.ReactNode;
   className?: string;
-  delay?: number;
+  staggerControlled?: boolean;
 }
 
 /**
- * Superficie oscura con brillo radial de seguimiento de cursor que ilumina fondo y bordes de 1px.
+ * Superficie oscura con entrada espacial escalonada, brillo radial al cursor,
+ * escuadras astronómicas en las 4 esquinas y elevación sutil en hover.
  */
 export function SpotlightSurface({
   children,
   className = "",
-  delay = 0,
+  staggerControlled = false,
 }: SpotlightSurfaceProps) {
   const surfaceRef = useRef<HTMLElement | null>(null);
-  const isInView = useInView(surfaceRef, { once: true, margin: "-8%" });
+  const isInView = useInView(surfaceRef, { once: true, margin: "-10%" });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
     const el = surfaceRef.current;
@@ -299,11 +333,15 @@ export function SpotlightSurface({
   return (
     <motion.article
       ref={surfaceRef}
-      initial={{ opacity: 0, y: 22 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 22 }}
-      transition={{ duration: 0.55, delay, ease: HAIRLINE_EASE }}
+      variants={orbitalCellVariants}
+      {...(!staggerControlled
+        ? {
+            initial: "hidden",
+            animate: isInView ? "visible" : "hidden",
+          }
+        : {})}
       onMouseMove={handleMouseMove}
-      className={`group relative overflow-hidden bg-[var(--bg-elevated)] ${className}`}
+      className={`group relative overflow-hidden bg-[var(--bg-elevated)] will-change-transform ${className}`}
     >
       {/* Brillo radial en el fondo */}
       <div
@@ -330,7 +368,16 @@ export function SpotlightSurface({
         }}
       />
 
-      <div className="relative z-10 flex h-full flex-col justify-between">
+      {/* Retícula orbital en hover: 4 escuadras astronómicas de 8px */}
+      {ORBITAL_CORNER_BRACKETS.map((cornerClass) => (
+        <span
+          key={cornerClass}
+          aria-hidden="true"
+          className={`pointer-events-none absolute z-20 h-2 w-2 border-[rgba(255,255,255,0.6)] opacity-0 scale-75 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-100 group-hover:scale-100 ${cornerClass}`}
+        />
+      ))}
+
+      <div className="relative z-10 flex h-full flex-col justify-between transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-[3px]">
         {children}
       </div>
     </motion.article>
