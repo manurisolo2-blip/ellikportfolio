@@ -1,13 +1,20 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { ELLIK_CONFIG, type BusinessCategory } from "@/data/ellikData";
+import {
+  ELLIK_CONFIG,
+  MISSIONS,
+  type BusinessCategory,
+} from "@/data/ellikData";
 import {
   AnimatedHeading,
   HairlineRule,
   MagneticButton,
 } from "./AnimatedHeading";
+import HalftoneWordmarkFooter, {
+  type FooterColumn,
+} from "./ui/halftone-wordmark-footer";
 
 interface FinalCtaSectionProps {
   onOpenDrawer: (preset?: { rubro?: BusinessCategory; plan?: string }) => void;
@@ -21,10 +28,43 @@ export function FinalCtaSection({ onOpenDrawer }: FinalCtaSectionProps) {
     "Hola ELLIK, quiero consultar por una página web para mi negocio."
   )}`;
 
+  const footerColumns: FooterColumn[] = useMemo(
+    () => [
+      {
+        title: "SECCIONES",
+        links: [
+          { label: "Inicio", href: "#inicio" },
+          { label: "El Problema", href: "#problema" },
+          { label: "La Solución", href: "#solucion" },
+          { label: "Modalidades", href: "#modalidades" },
+        ],
+      },
+      {
+        title: "PROYECTOS EN VIVO",
+        links: MISSIONS.map((mission) => ({
+          label: `${mission.shortTitle} ↗`,
+          href: mission.liveUrl,
+        })),
+      },
+      {
+        title: "CONTACTO",
+        links: [
+          { label: "WhatsApp ↗", href: directWhatsappUrl },
+          { label: "Instagram ↗", href: ELLIK_CONFIG.instagramUrl },
+          {
+            label: ELLIK_CONFIG.email,
+            href: `mailto:${ELLIK_CONFIG.email}`,
+          },
+        ],
+      },
+    ],
+    [directWhatsappUrl]
+  );
+
   return (
     <section
       id="contacto"
-      className="relative overflow-hidden pt-24 pb-12 lg:pt-36 lg:pb-14"
+      className="relative overflow-hidden pt-24 pb-0 lg:pt-36 lg:pb-0"
     >
       <HairlineRule className="absolute top-0 inset-x-0" />
 
@@ -72,51 +112,26 @@ export function FinalCtaSection({ onOpenDrawer }: FinalCtaSectionProps) {
         </motion.div>
       </div>
 
-      {/* Footer minimalista con hairline auto-dibujable */}
-      <footer className="relative z-10 mt-28 pt-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <HairlineRule
-          delay={0.25}
-          className="absolute top-0 left-0 right-0"
+      {/* Footer interactivo halftone con wordmark gigante ELLIK al final de la página */}
+      <div className="relative z-10 mt-24 lg:mt-32 border-t border-[var(--border-hairline)]">
+        <HalftoneWordmarkFooter
+          wordmark="ELLIK"
+          label="ELLIK — DISEÑO & DESARROLLO WEB"
+          meta="© 2026 ELLIK · OPERANDO EN PRODUCCIÓN"
+          columns={footerColumns}
+          preset="night"
+          palette={{ background: "#050505", ink: "#F4F1EA", warm: "#FFFFFF" }}
+          dotGap={5}
+          radius={85}
+          crop={0.12}
+          grain={0.45}
+          fontFamily="var(--font-display), sans-serif"
+          fontWeight={700}
+          monoFamily="var(--font-mono), monospace"
+          backToTopLabel="VOLVER ARRIBA ↑"
+          height="560px"
         />
-
-        <p className="font-mono text-[11px] tracking-[0.18em] uppercase text-[#71717A]">
-          © 2026 ELLIK
-        </p>
-
-        <div className="flex flex-wrap items-center gap-4 font-mono text-[11px] tracking-[0.18em] uppercase text-[var(--text-secondary)]">
-          <a
-            href={directWhatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-cursor="action"
-            className="hover:text-[var(--text-primary)] transition-colors"
-          >
-            WHATSAPP ↗
-          </a>
-          <span aria-hidden="true" className="text-[#52525B]">
-            ·
-          </span>
-          <a
-            href={ELLIK_CONFIG.instagramUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-cursor="action"
-            className="hover:text-[var(--text-primary)] transition-colors"
-          >
-            INSTAGRAM ↗
-          </a>
-          <span aria-hidden="true" className="text-[#52525B]">
-            ·
-          </span>
-          <a
-            href={`mailto:${ELLIK_CONFIG.email}`}
-            data-cursor="action"
-            className="hover:text-[var(--text-primary)] transition-colors normal-case tracking-[0.06em]"
-          >
-            {ELLIK_CONFIG.email}
-          </a>
-        </div>
-      </footer>
+      </div>
     </section>
   );
 }
