@@ -12,20 +12,20 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "ELLIK — Diseño & Ingeniería Web de Alta Conversión",
+  title: "ELLIK — Diseño y Desarrollo Web a Medida",
   description:
-    "Estudio web especializado en páginas rápidas de alta conversión para comercios, gastronomía, indumentaria e instituciones. Pedidos directos sin fricción ni intermediarios.",
+    "Estudio web independiente en Córdoba. Cartas digitales con pedidos por WhatsApp, tiendas online para indumentaria y desarrollos a medida.",
   keywords: [
-    "diseño web alta conversión",
+    "diseño web a medida",
     "carta digital whatsapp",
-    "catálogo online indumentaria",
-    "desarrollo web a medida",
+    "tienda online indumentaria",
+    "desarrollo web córdoba",
     "ELLIK",
   ],
   openGraph: {
-    title: "ELLIK — Diseño & Ingeniería Web de Alta Conversión",
+    title: "ELLIK — Diseño y Desarrollo Web a Medida",
     description:
-      "Páginas rápidas pensadas para que el cliente elija solo y te llegue el pedido armado por WhatsApp.",
+      "Diseño y desarrollo web a medida — Desde Córdoba para cualquier ciudad.",
     type: "website",
     locale: "es_AR",
   },

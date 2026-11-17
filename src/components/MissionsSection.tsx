@@ -369,80 +369,12 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
         delay: index * 0.04,
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="relative py-20 lg:py-28 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-10 xl:gap-12 items-start"
+      className="relative grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 lg:items-stretch"
     >
-      {/* A. Índice monumental reactivo al scroll (Instrument Serif italic) */}
+      {/* B. Monolito Visual 3D en Eje Z (8/12 columnas en desktop, alternando izquierda/derecha) */}
       <div
-        className={`lg:col-span-1 xl:col-span-2 flex items-start pb-2 lg:pb-0 ${
-          isEven ? "lg:order-2 xl:pl-4" : "lg:order-1"
-        }`}
-      >
-        <motion.span
-          aria-hidden="true"
-          style={{
-            fontSize: "clamp(3.5rem, 6.5vw, 5.5rem)",
-            y: indexY,
-            color: indexColor,
-          }}
-          className="font-serif italic leading-[0.85] tracking-[-0.02em] select-none will-change-transform"
-        >
-          {mission.index}
-        </motion.span>
-      </div>
-
-      {/* C. Columna Editorial Limpia (alternando lado en desktop) */}
-      <div
-        className={`lg:col-span-5 xl:col-span-4 flex flex-col justify-between h-full ${
-          isEven ? "lg:order-3" : "lg:order-2"
-        }`}
-      >
-        <div>
-          <p className="font-mono text-[11px] tracking-[0.14em] uppercase text-[#71717A]">
-            {mission.category} · {mission.location}
-          </p>
-
-          <h3 className="mt-5 font-display text-3xl md:text-[42px] font-medium tracking-[-0.025em] leading-[1.04] text-white">
-            {mission.title}
-          </h3>
-
-          <p className="mt-5 font-sans text-base md:text-[17px] leading-[1.65] text-[#9CA3AF]">
-            {mission.description}
-          </p>
-
-          <p className="mt-6 border-l-2 border-[#F4F1EA]/40 pl-3 font-sans text-sm leading-snug text-[#F4F1EA]">
-            {mission.highlight}
-          </p>
-        </div>
-
-        <div className="relative mt-9 pt-6">
-          <HairlineRule
-            delay={0.1}
-            className="absolute top-0 left-0 right-0"
-          />
-
-          <a
-            href={mission.liveUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-cursor="action"
-            className="group/btn relative inline-flex min-h-[44px] items-center gap-3 overflow-hidden border border-white/25 px-6 py-3.5 font-sans text-xs font-medium tracking-[0.06em] uppercase text-white transition-colors duration-300 hover:border-white"
-          >
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 bg-white translate-y-[102%] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-y-0 group-focus-visible/btn:translate-y-0"
-            />
-            <span className="relative z-10 inline-flex items-center gap-3 transition-colors duration-300 group-hover/btn:text-[#050505] group-focus-visible/btn:text-[#050505]">
-              <span>Visitar sitio en vivo</span>
-              <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
-            </span>
-          </a>
-        </div>
-      </div>
-
-      {/* B. Monolito Visual 3D en Eje Z (preserve-3d, doble capa real alternando en desktop) */}
-      <div
-        className={`lg:col-span-6 pb-6 md:pb-8 pr-3 md:pr-6 ${
-          isEven ? "lg:order-1 lg:pr-6" : "lg:order-3 lg:pr-0"
+        className={`order-1 lg:col-span-8 pb-6 md:pb-8 pr-3 md:pr-6 ${
+          isEven ? "lg:order-2" : "lg:order-1"
         }`}
         style={{ perspective: "1200px" }}
       >
@@ -477,7 +409,7 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
                   src={mission.previewImage}
                   alt={mission.title}
                   fill
-                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  sizes="(max-width: 1024px) 100vw, 66vw"
                   priority={index === 0}
                   draggable={false}
                   onError={() => setPrimaryError(true)}
@@ -515,13 +447,13 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
                   x: secondaryOffsetX,
                   y: secondaryOffsetY,
                 }}
-                className="w-32 sm:w-40 md:w-48 aspect-[4/3] border border-[rgba(255,255,255,0.28)] bg-[#050505] shadow-[0_25px_50px_rgba(0,0,0,0.9)] overflow-hidden will-change-transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/stage:scale-[1.03]"
+                className="w-32 sm:w-40 md:w-52 aspect-[4/3] border border-[rgba(255,255,255,0.28)] bg-[#050505] shadow-[0_25px_50px_rgba(0,0,0,0.9)] overflow-hidden will-change-transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/stage:scale-[1.03]"
               >
                 <Image
                   src={mission.secondaryImage}
                   alt={`${mission.shortTitle} — Vista secundaria`}
                   fill
-                  sizes="(max-width: 640px) 144px, (max-width: 768px) 160px, 192px"
+                  sizes="(max-width: 640px) 144px, (max-width: 768px) 160px, 208px"
                   draggable={false}
                   onError={() => setSecondaryError(true)}
                   className="h-full w-full object-cover"
@@ -532,10 +464,68 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
         </motion.a>
       </div>
 
-      <HairlineRule
-        delay={0.14}
-        className="absolute bottom-0 left-0 right-0"
-      />
+      {/* C. Columna Editorial Limpia (4/12 columnas en desktop, pegada al borde inferior de la imagen) */}
+      <div
+        className={`order-2 lg:col-span-4 flex flex-col justify-between lg:pb-8 ${
+          isEven ? "lg:order-1" : "lg:order-2"
+        }`}
+      >
+        <div className="mb-8 lg:mb-0">
+          <motion.span
+            aria-hidden="true"
+            style={{
+              fontSize: "clamp(3.5rem, 6.5vw, 5.5rem)",
+              y: indexY,
+              color: indexColor,
+            }}
+            className="inline-block font-serif italic leading-[0.85] tracking-[-0.02em] select-none will-change-transform"
+          >
+            {mission.index}
+          </motion.span>
+        </div>
+
+        <div className="mt-auto">
+          <p className="font-mono text-[11px] tracking-[0.14em] uppercase text-[#71717A]">
+            {mission.category}
+          </p>
+
+          <h3 className="mt-4 font-display text-3xl md:text-[40px] font-medium tracking-[-0.025em] leading-[1.04] text-white">
+            {mission.title}
+          </h3>
+
+          <p className="mt-4 font-sans text-base md:text-[17px] leading-[1.6] text-[#9CA3AF]">
+            {mission.description}
+          </p>
+
+          <p className="mt-5 border-l-2 border-[#F4F1EA]/40 pl-3 font-sans text-sm leading-snug text-[#F4F1EA]">
+            {mission.highlight}
+          </p>
+
+          <div className="relative mt-8 pt-6">
+            <HairlineRule
+              delay={0.1}
+              className="absolute top-0 left-0 right-0"
+            />
+
+            <a
+              href={mission.liveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-cursor="action"
+              className="group/btn relative inline-flex min-h-[44px] items-center gap-3 overflow-hidden border border-white/25 px-6 py-3.5 font-sans text-xs font-medium tracking-[0.06em] uppercase text-white transition-colors duration-300 hover:border-white"
+            >
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-white translate-y-[102%] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-y-0 group-focus-visible/btn:translate-y-0"
+              />
+              <span className="relative z-10 inline-flex items-center gap-3 transition-colors duration-300 group-hover/btn:text-[#050505] group-focus-visible/btn:text-[#050505]">
+                <span>Visitar sitio en vivo</span>
+                <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
     </motion.article>
   );
 }
@@ -544,11 +534,11 @@ export function MissionsSection() {
   return (
     <section id="proyectos" className="relative py-24 lg:py-36">
       <div>
-        <h2 className="font-display text-[clamp(3rem,7vw,6.5rem)] font-semibold tracking-[-0.035em] leading-none mb-20 lg:mb-24 text-white">
+        <h2 className="font-display text-[clamp(3rem,7vw,6.5rem)] font-semibold tracking-[-0.035em] leading-none mb-20 lg:mb-28 text-white">
           Obra reciente.
         </h2>
 
-        <div className="relative">
+        <div className="relative space-y-40 md:space-y-56">
           {MISSIONS.map((mission, idx) => (
             <ProjectShowcaseRow
               key={mission.id}

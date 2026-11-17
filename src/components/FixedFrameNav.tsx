@@ -99,7 +99,7 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
           scrollToSection("inicio");
         }}
         aria-label="ELLIK — Volver al inicio"
-        className="fixed top-4 left-6 lg:top-8 lg:left-10 z-40 inline-flex min-h-[44px] items-center text-[var(--text-primary)] transition-opacity hover:opacity-80"
+        className="fixed top-4 left-6 lg:top-8 lg:left-10 z-40 inline-flex min-h-[44px] items-center text-white mix-blend-difference transition-opacity hover:opacity-80"
       >
         <EllikLogo />
       </a>
@@ -117,7 +117,7 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
       {/* Hilo Conductor de Meridiano Celeste con escala milimétrica de telescopio (Desktop >= 1024px) */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed left-5 top-24 bottom-10 z-40 hidden lg:block w-3 select-none"
+        className="pointer-events-none fixed left-5 top-24 bottom-10 z-40 hidden lg:block w-3 select-none mix-blend-difference"
       >
         {/* Línea vertical base del meridiano */}
         <div className="absolute left-0 top-0 bottom-0 w-px bg-white/[0.08]" />
@@ -171,7 +171,7 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
       {/* Índice Lateral Izquierdo con Scroll-Spy integrado al meridiano (Desktop >= 1024px) */}
       <nav
         aria-label="Índice de secciones"
-        className="fixed left-10 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col gap-4"
+        className="fixed left-10 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col gap-4 mix-blend-difference"
       >
         {NAV_SECTIONS.map((section) => {
           const isActive = section.id === activeId;
@@ -185,15 +185,15 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
               <span
                 className={`block h-px transition-all duration-200 ${
                   isActive
-                    ? "w-4 bg-[var(--text-primary)]"
-                    : "w-2 bg-[var(--text-muted)] opacity-50 group-hover:w-3 group-hover:bg-[var(--text-secondary)]"
+                    ? "w-4 bg-white"
+                    : "w-2 bg-white/45 group-hover:w-3 group-hover:bg-white/80"
                 }`}
               />
               <span
                 className={`font-mono text-[11px] tracking-[0.18em] uppercase transition-colors duration-200 ${
                   isActive
-                    ? "text-[var(--text-primary)] font-medium"
-                    : "text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]"
+                    ? "text-white font-medium"
+                    : "text-[#A1A1AA] group-hover:text-white"
                 }`}
               >
                 {section.label}

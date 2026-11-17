@@ -55,12 +55,10 @@ export const ELLIK_CONFIG = {
 } as const;
 
 export const NAV_SECTIONS: NavSection[] = [
-  { id: "inicio", label: "INICIO" },
-  { id: "problema", label: "EL PROBLEMA" },
-  { id: "proyectos", label: "PROYECTOS" },
-  { id: "solucion", label: "SISTEMA" },
-  { id: "modalidades", label: "MODALIDADES" },
-  { id: "contacto", label: "CONTACTO" },
+  { id: "inicio", label: "Index" },
+  { id: "proyectos", label: "Obra (04)" },
+  { id: "servicios", label: "Qué hago" },
+  { id: "contacto", label: "Contacto" },
 ];
 
 export const PAIN_POINTS: PainPoint[] = [
@@ -108,12 +106,12 @@ export const MISSIONS: Mission[] = [
     id: "mojo-grille",
     index: "01",
     shortTitle: "Mojo Grille",
-    category: "GASTRONOMÍA · EXPERIENCIA INTERACTIVA",
-    title: "Mojo Grille Cuban Kitchen",
+    category: "Gastronomía · Miami",
+    title: "Mojo Grille",
     location: "Miami, FL",
     description:
-      "Experiencia digital inmersiva con deconstrucción interactiva de producto vinculada al scroll, catálogo dinámico de platos a la plancha y flujo de pedidos directo por WhatsApp.",
-    highlight: "Scroll-scrollytelling de producto + pedidos directos sin comisiones",
+      "Web interactiva para restaurante cubano en Miami. El plato principal se desarma al hacer scroll y el cliente manda el pedido armado directo al WhatsApp del local.",
+    highlight: "Pedidos por WhatsApp sin pagar comisiones",
     liveUrl: "https://mojo-grille-demo.vercel.app/",
     displayDomain: "mojo-grille-demo.vercel.app",
     previewImage:
@@ -126,12 +124,12 @@ export const MISSIONS: Mission[] = [
     id: "dopamine",
     index: "02",
     shortTitle: "Dopamine",
-    category: "INDUMENTARIA · E-COMMERCE",
+    category: "E-Commerce · Buenos Aires",
     title: "Dopamine Streetwear",
     location: "Buenos Aires, AR",
     description:
-      "Tienda online de indumentaria urbana de edición limitada con selección rápida de talle desde la grilla, cálculo automático de descuento por transferencia y carrito lateral sin recargas.",
-    highlight: "Añadido rápido por talle + checkout ágil mobile-first",
+      "Tienda online de ropa urbana. Permite elegir el talle directo desde el catálogo, calcula solo el descuento por transferencia y abre la bolsa de compra sin recargar la página.",
+    highlight: "Compra rápida en 2 toques desde el celular",
     liveUrl: "https://dopamine-three-omega.vercel.app/",
     displayDomain: "dopamine-three-omega.vercel.app",
     previewImage:
@@ -144,12 +142,12 @@ export const MISSIONS: Mission[] = [
     id: "lung-yai",
     index: "03",
     shortTitle: "Lung Yai",
-    category: "GASTRONOMÍA · CARTA EDITORIAL",
+    category: "Restaurante · Guía Michelin",
     title: "Lung Yai Thai Tapas",
     location: "Calle Ocho, Miami",
     description:
-      "Plataforma web y carta digital de lectura ultra rápida para restaurante distinguido por la Guía Michelin (Bib Gourmand), optimizada para tráfico móvil desde redes y pedidos online.",
-    highlight: "Arquitectura editorial bilingüe de carga instantánea",
+      "Carta digital bilingüe y sitio oficial para restaurante tailandés en Calle Ocho (Miami). Pensada para abrirse al instante desde Instagram sin bajar PDFs pesados.",
+    highlight: "Carga instantánea en móvil + menú bilingüe",
     liveUrl: "https://lungyai.vercel.app/",
     displayDomain: "lungyai.vercel.app",
     previewImage: "https://lungyai.vercel.app/media/wok-flames-poster.webp",
@@ -160,12 +158,12 @@ export const MISSIONS: Mission[] = [
     id: "deportistas-rio3",
     index: "04",
     shortTitle: "Capital del Deportista",
-    category: "INSTITUCIONAL · PORTAL HISTÓRICO",
-    title: "Río Tercero — Capital Nacional del Deportista",
+    category: "Institucional · Río Tercero",
+    title: "Capital Nacional del Deportista",
     location: "Río Tercero, Córdoba",
     description:
-      "Portal oficial e interactivo (Ley Nacional N.º 27.378) con directorio filtrable por disciplina, fichas técnicas de atletas olímpicos y campeones mundiales, cronología y dossier cívico.",
-    highlight: "Directorio interactivo en tiempo real + estándar de accesibilidad",
+      "Archivo histórico y directorio interactivo para la Municipalidad de Río Tercero. Buscador en vivo por deporte, perfiles de atletas olímpicos y recorrido histórico.",
+    highlight: "Proyecto oficial para gestión municipal",
     liveUrl: "https://deportistasrio3.vercel.app/",
     displayDomain: "deportistasrio3.vercel.app",
     previewImage:
@@ -178,40 +176,40 @@ export const MISSIONS: Mission[] = [
 export const INVESTMENT_PLANS: InvestmentPlan[] = [
   {
     code: "01",
-    title: "01 — CARTA & LANDING",
-    fullTitle: "01 — CARTA & LANDING",
+    title: "Web de Pedidos & Carta Digital",
+    fullTitle: "Web de Pedidos & Carta Digital",
     description:
-      "Ideal para locales gastronómicos y servicios que necesitan recibir pedidos o consultas hoy mismo.",
+      "Para locales de comida que quieren recibir el pedido ya armado en su WhatsApp sin errores ni demoras.",
     scopeItems: [
-      "Carta o grilla de servicios interactiva pensada para celular",
-      "Armado automático de pedido hacia WhatsApp Business",
-      "Carga veloz para tráfico directo desde Instagram",
+      "Carta interactiva pensada para abrir al instante desde el celular",
+      "Armado automático del pedido directo a WhatsApp",
+      "Sin comisiones por venta ni intermediarios",
     ],
     defaultRubro: "Local Gastronómico",
   },
   {
     code: "02",
-    title: "02 — CATÁLOGO COMERCIAL",
-    fullTitle: "02 — CATÁLOGO COMERCIAL",
+    title: "Catálogo & Tienda Online",
+    fullTitle: "Catálogo & Tienda Online",
     description:
-      "Pensado para tiendas de ropa y comercios con múltiples categorías, variantes y carrito directo a WhatsApp.",
+      "Para marcas de ropa y comercios que necesitan mostrar talles, stock y vender directo desde el teléfono.",
     scopeItems: [
-      "Categorías dinámicas y selector rápido de talles o variantes",
-      "Carrito persistente con resumen listo para cobrar o reservar",
-      "Panel simple para actualizar stock y precios sin fricción",
+      "Selección de talles y categorías sin recargar la página",
+      "Cálculo automático de descuentos y bolsa de compra",
+      "Carga simple de stock y precios",
     ],
     defaultRubro: "Tienda de Ropa",
   },
   {
     code: "03",
-    title: "03 — DESARROLLO A MEDIDA",
-    fullTitle: "03 — DESARROLLO A MEDIDA",
+    title: "Desarrollo Web a Medida",
+    fullTitle: "Desarrollo Web a Medida",
     description:
-      "Desarrollos institucionales o plataformas web personalizadas con requerimientos específicos.",
+      "Sitios institucionales, portales o ideas especiales programadas desde cero con animaciones propias.",
     scopeItems: [
-      "Arquitectura de información institucional o multi-área",
-      "Integraciones específicas, formularios y accesibilidad",
-      "Código limpio documentado y soporte técnico directo",
+      "Arquitectura institucional o multi-área a medida",
+      "Directorios, buscadores en vivo e integraciones específicas",
+      "Código limpio y soporte directo de desarrollador",
     ],
     defaultRubro: "Institución / Otro",
   },

@@ -603,16 +603,16 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
 
       {/* C. Cierre del Hero */}
       <div className="relative z-30 flex flex-col items-center text-center pt-2">
-        <p className="font-sans text-[15px] md:text-base text-[#8A8A93] max-w-md text-center leading-relaxed">
-          Diseño y desarrollo web para comercios y marcas que quieren recibir
-          pedidos sin fricción.
+        <p className="font-sans text-sm md:text-base text-[#A1A1AA] max-w-lg text-center leading-relaxed">
+          Diseño y desarrollo web a medida — Desde Córdoba para cualquier
+          ciudad.
         </p>
 
         <MagneticButton
           onClick={() => onOpenDrawer()}
           className="mt-7 inline-flex min-h-[44px] items-center border border-[rgba(255,255,255,0.28)] bg-transparent px-7 py-3.5 font-sans text-sm font-medium tracking-[0.02em] text-[#FFFFFF] transition-colors duration-200 hover:border-[#FFFFFF]"
         >
-          Agendar llamada de 10 min
+          Hablemos de tu web ↗
         </MagneticButton>
       </div>
     </section>

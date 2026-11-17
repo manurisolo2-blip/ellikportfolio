@@ -5,8 +5,6 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import { OrbitalBackground } from "@/components/OrbitalBackground";
 import { FixedFrameNav } from "@/components/FixedFrameNav";
 import { HeroSection } from "@/components/HeroSection";
-import { ProblemSection } from "@/components/ProblemSection";
-import { SolutionSection } from "@/components/SolutionSection";
 import { MissionsSection } from "@/components/MissionsSection";
 import { InvestmentSection } from "@/components/InvestmentSection";
 import {
@@ -39,13 +37,17 @@ export default function HomePage() {
 
       <FixedFrameNav onOpenDrawer={handleOpenDrawer} />
 
-      <main className="relative z-10 pl-6 lg:pl-48 pr-6 lg:pr-16">
-        <HeroSection onOpenDrawer={handleOpenDrawer} />
-        <ProblemSection />
-        <MissionsSection />
-        <SolutionSection />
+      <main className="relative z-10">
+        <div className="pl-6 lg:pl-48 pr-6 lg:pr-16">
+          <HeroSection onOpenDrawer={handleOpenDrawer} />
+          <MissionsSection />
+        </div>
+
         <InvestmentSection onOpenDrawer={handleOpenDrawer} />
-        <FinalCtaSection onOpenDrawer={handleOpenDrawer} />
+
+        <div className="pl-6 lg:pl-48 pr-6 lg:pr-16">
+          <FinalCtaSection onOpenDrawer={handleOpenDrawer} />
+        </div>
       </main>
 
       <EllikFooter />
