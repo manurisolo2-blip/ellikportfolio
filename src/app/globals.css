@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --font-display: "Clash Display", sans-serif;
-  --font-sans: "Satoshi", sans-serif;
-  --font-mono: "Azeret Mono", monospace;
+  --font-display: 'Clash Display', sans-serif !important;
+  --font-sans: 'Satoshi', sans-serif !important;
+  --font-mono: 'Azeret Mono', monospace !important;
   --bg-void: #050505;
   --bg-elevated: #0B0B0D;
   --bg-glass: rgba(8, 8, 10, 0.88);
@@ -42,10 +42,16 @@ html {
 body {
   background-color: var(--bg-void);
   color: var(--text-primary);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: 'Satoshi', sans-serif !important;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3 {
+  font-family: 'Clash Display', sans-serif !important;
 }
 
 ::selection {
@@ -54,8 +60,20 @@ body {
 }
 
 @layer utilities {
+  .font-display {
+    font-family: 'Clash Display', sans-serif !important;
+  }
+
+  .font-sans {
+    font-family: 'Satoshi', sans-serif !important;
+  }
+
+  .font-mono {
+    font-family: 'Azeret Mono', monospace !important;
+  }
+
   .heading-hero {
-    font-family: var(--font-display), sans-serif;
+    font-family: 'Clash Display', sans-serif !important;
     font-size: clamp(2.5rem, 5.5vw, 4.75rem);
     font-weight: 500;
     letter-spacing: -0.03em;
@@ -63,7 +81,7 @@ body {
   }
 
   .heading-section {
-    font-family: var(--font-display), sans-serif;
+    font-family: 'Clash Display', sans-serif !important;
     font-size: clamp(2rem, 4vw, 3.5rem);
     font-weight: 500;
     letter-spacing: -0.025em;
@@ -81,7 +99,7 @@ body {
 
   .telemetry-label,
   .section-label {
-    font-family: var(--font-mono), monospace;
+    font-family: 'Azeret Mono', monospace !important;
     font-size: 11px;
     letter-spacing: 0.14em;
     line-height: 1.6;
@@ -90,7 +108,7 @@ body {
   }
 
   .editorial-body {
-    font-family: var(--font-sans), sans-serif;
+    font-family: 'Satoshi', sans-serif !important;
     font-size: 1rem;
     line-height: 1.65;
   }

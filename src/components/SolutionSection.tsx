@@ -3,7 +3,6 @@
 import React, { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { SYSTEM_PILLARS } from "@/data/ellikData";
-import { AnimatedHeading, HairlineRule } from "./AnimatedHeading";
 
 function toSentenceCase(text: string): string {
   const clean = text.trim();
@@ -11,54 +10,48 @@ function toSentenceCase(text: string): string {
   return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
 }
 
+const STEPPED_OFFSETS = ["lg:ml-0", "lg:ml-[28%]", "lg:ml-[54%]"] as const;
+
 export function SolutionSection() {
-  const listRef = useRef<HTMLDivElement | null>(null);
-  const isListInView = useInView(listRef, { once: true, margin: "-10%" });
+  const sectionRef = useRef<HTMLDivElement | null>(null);
+  const isInView = useInView(sectionRef, { once: true, margin: "-10%" });
 
   return (
-    <section id="solucion" className="relative py-24 lg:py-36">
-      <HairlineRule className="absolute top-0 inset-x-0" />
+    <section id="solucion" className="relative py-28 lg:py-40">
+      <div ref={sectionRef}>
+        <h2 className="font-display text-[clamp(2.1rem,4.2vw,3.75rem)] font-medium leading-[1.02] tracking-[-0.025em] max-w-3xl">
+          <span className="text-white">
+            Páginas rápidas pensadas para que el cliente elija solo
+          </span>{" "}
+          <span className="text-[#71717A]">y te llegue el pedido armado.</span>
+        </h2>
 
-      <div>
-        <AnimatedHeading
-          prefix="Páginas rápidas pensadas para que el cliente elija solo"
-          accent="y te llegue el pedido armado."
-          toneVariant="silver"
-          className="text-[clamp(2.1rem,4.2vw,3.75rem)] font-medium leading-[1.02] tracking-[-0.025em] max-w-3xl"
-        />
-
-        {/* Matriz Arquitectónica Escalonada: filas horizontales limpias sin cajas de IA */}
-        <div ref={listRef} className="mt-16 border-t border-white/[0.12]">
+        {/* Composición Escalonada en Escalera: sin números ni bordes de tabla */}
+        <div className="mt-16 lg:mt-24 space-y-6 lg:space-y-10">
           {SYSTEM_PILLARS.map((pillar, index) => (
-            <motion.div
+            <motion.article
               key={pillar.code}
-              initial={{ opacity: 0, y: 20 }}
-              animate={isListInView ? { opacity: 1, y: 0 } : {}}
+              initial={{ opacity: 0, y: 24 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{
-                duration: 0.55,
-                delay: index * 0.1,
+                duration: 0.58,
+                delay: index * 0.14,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 py-10 border-b border-white/[0.12] items-baseline group hover:bg-white/[0.015] transition-colors px-2"
+              className={`max-w-md py-12 ${
+                STEPPED_OFFSETS[index] ?? "lg:ml-0"
+              }`}
             >
-              <div className="md:col-span-2">
-                <span className="font-mono text-xs tracking-[0.14em] text-[#71717A] group-hover:text-[#F4F1EA] transition-colors">
-                  {pillar.code}
-                </span>
-              </div>
+              <div aria-hidden="true" className="w-8 h-[2px] bg-[#F4F1EA] mb-6" />
 
-              <div className="md:col-span-5">
-                <h3 className="font-display text-2xl md:text-3xl font-medium text-white tracking-[-0.02em] leading-[1.05] group-hover:translate-x-2 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
-                  {toSentenceCase(pillar.title)}
-                </h3>
-              </div>
+              <h3 className="font-display text-3xl font-medium text-white tracking-[-0.02em] leading-[1.08] mb-3">
+                {toSentenceCase(pillar.title)}
+              </h3>
 
-              <div className="md:col-span-5">
-                <p className="font-sans text-base text-[#8A8A93] leading-relaxed group-hover:text-[#D4D4D8] transition-colors">
-                  {pillar.description}
-                </p>
-              </div>
-            </motion.div>
+              <p className="font-sans text-base text-[#8A8A93] leading-relaxed">
+                {pillar.description}
+              </p>
+            </motion.article>
           ))}
         </div>
       </div>

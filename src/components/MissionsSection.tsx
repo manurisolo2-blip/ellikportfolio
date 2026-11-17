@@ -11,7 +11,7 @@ import {
 } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { MISSIONS, type Mission } from "@/data/ellikData";
-import { AnimatedHeading, HairlineRule } from "./AnimatedHeading";
+import { HairlineRule } from "./AnimatedHeading";
 
 interface FallbackCanvasProps {
   variant?: Mission["fallbackVariant"];
@@ -355,6 +355,8 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
     rawSecondaryY.set(0);
   };
 
+  const isEven = index % 2 === 1;
+
   return (
     <motion.article
       ref={rowRef}
@@ -367,10 +369,14 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
         delay: index * 0.04,
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="relative py-20 lg:py-28 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 xl:gap-10 items-start"
+      className="relative py-20 lg:py-28 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-10 xl:gap-12 items-start"
     >
-      {/* A. Índice monumental reactivo al scroll */}
-      <div className="lg:col-span-1 xl:col-span-2 flex items-start pb-2 lg:pb-0">
+      {/* A. Índice monumental reactivo al scroll (Instrument Serif italic) */}
+      <div
+        className={`lg:col-span-1 xl:col-span-2 flex items-start pb-2 lg:pb-0 ${
+          isEven ? "lg:order-2 xl:pl-4" : "lg:order-1"
+        }`}
+      >
         <motion.span
           aria-hidden="true"
           style={{
@@ -384,8 +390,12 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
         </motion.span>
       </div>
 
-      {/* C. Columna Editorial Limpia */}
-      <div className="lg:col-span-5 xl:col-span-4 flex flex-col justify-between h-full">
+      {/* C. Columna Editorial Limpia (alternando lado en desktop) */}
+      <div
+        className={`lg:col-span-5 xl:col-span-4 flex flex-col justify-between h-full ${
+          isEven ? "lg:order-3" : "lg:order-2"
+        }`}
+      >
         <div>
           <p className="font-mono text-[11px] tracking-[0.14em] uppercase text-[#71717A]">
             {mission.category} · {mission.location}
@@ -429,9 +439,11 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
         </div>
       </div>
 
-      {/* B. Monolito Visual 3D en Eje Z (preserve-3d, doble capa real sin marco de navegador) */}
+      {/* B. Monolito Visual 3D en Eje Z (preserve-3d, doble capa real alternando en desktop) */}
       <div
-        className="lg:col-span-6 pb-6 md:pb-8 pr-3 md:pr-6 lg:pr-0"
+        className={`lg:col-span-6 pb-6 md:pb-8 pr-3 md:pr-6 ${
+          isEven ? "lg:order-1 lg:pr-6" : "lg:order-3 lg:pr-0"
+        }`}
         style={{ perspective: "1200px" }}
       >
         <motion.a
@@ -531,19 +543,12 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
 export function MissionsSection() {
   return (
     <section id="proyectos" className="relative py-24 lg:py-36">
-      <HairlineRule className="absolute top-0 inset-x-0" />
-
       <div>
-        <AnimatedHeading
-          prefix="Desarrollos reales probando"
-          accent="resultados en producción."
-          toneVariant="silver"
-          className="text-[clamp(2rem,4vw,3.5rem)] font-medium leading-[1.02] tracking-[-0.025em] max-w-4xl"
-        />
+        <h2 className="font-display text-[clamp(3rem,7vw,6.5rem)] font-semibold tracking-[-0.035em] leading-none mb-20 lg:mb-24 text-white">
+          Obra reciente.
+        </h2>
 
-        <div className="relative mt-16">
-          <HairlineRule delay={0.12} />
-
+        <div className="relative">
           {MISSIONS.map((mission, idx) => (
             <ProjectShowcaseRow
               key={mission.id}

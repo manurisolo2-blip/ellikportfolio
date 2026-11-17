@@ -42,8 +42,8 @@ export default function HomePage() {
       <main className="relative z-10 pl-6 lg:pl-48 pr-6 lg:pr-16">
         <HeroSection onOpenDrawer={handleOpenDrawer} />
         <ProblemSection />
-        <SolutionSection />
         <MissionsSection />
+        <SolutionSection />
         <InvestmentSection onOpenDrawer={handleOpenDrawer} />
         <FinalCtaSection onOpenDrawer={handleOpenDrawer} />
       </main>

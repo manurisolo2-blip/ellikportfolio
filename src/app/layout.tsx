@@ -51,7 +51,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@400,500,700&f[]=azeret-mono@400,500&display=swap"
+          href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=cabinet-grotesk@700,800&f[]=satoshi@400,500,700&f[]=azeret-mono@400&display=swap"
           rel="stylesheet"
         />
       </head>
