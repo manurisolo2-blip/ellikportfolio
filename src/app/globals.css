@@ -129,6 +129,10 @@ h3 {
     border-radius: 9999px !important;
   }
 
+  .zoom-reveal-surface {
+    border-radius: var(--zoom-reveal-radius, 0px) !important;
+  }
+
   .animate-pulse-star {
     animation: pulse-star 3.6s ease-in-out infinite;
   }

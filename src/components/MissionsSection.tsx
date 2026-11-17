@@ -267,7 +267,7 @@ interface ProjectShowcaseRowProps {
 }
 
 function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
-  const rowRef = useRef<HTMLElement | null>(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
   const beamRef = useRef<HTMLDivElement | null>(null);
   const finePointerRef = useRef<boolean>(false);
 
@@ -307,8 +307,31 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
     damping: 22,
   });
 
+  // Cámara espacial Zoom-In al entrar al foco (0.45..0.55) / Zoom-Out al salir
+  const { scrollYProgress: zoomProgress } = useScroll({
+    target: cardRef,
+    offset: ["start end", "center center", "end start"],
+  });
+
+  const cardScale = useTransform(
+    zoomProgress,
+    [0, 0.45, 0.55, 1],
+    [0.74, 1, 1, 0.78]
+  );
+  const cardOpacity = useTransform(
+    zoomProgress,
+    [0, 0.45, 0.55, 1],
+    [0.15, 1, 1, 0.15]
+  );
+  const cardRotateX = useTransform(
+    zoomProgress,
+    [0, 0.45, 0.55, 1],
+    [12, 0, 0, -10]
+  );
+
+  // Recorrido interno del índice monumental y parallax de la imagen base
   const { scrollYProgress } = useScroll({
-    target: rowRef,
+    target: cardRef,
     offset: ["start end", "end start"],
   });
 
@@ -358,19 +381,15 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
   const isEven = index % 2 === 1;
 
   return (
-    <motion.article
-      ref={rowRef}
-      id={mission.id}
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.14 }}
-      transition={{
-        duration: 0.55,
-        delay: index * 0.04,
-        ease: [0.22, 1, 0.36, 1],
-      }}
-      className="relative grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 lg:items-stretch"
-    >
+    <div ref={cardRef} id={mission.id} style={{ perspective: "1400px" }}>
+      <motion.article
+        style={{
+          scale: cardScale,
+          opacity: cardOpacity,
+          rotateX: cardRotateX,
+        }}
+        className="relative grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 lg:items-stretch will-change-[transform,opacity]"
+      >
       {/* B. Monolito Visual 3D en Eje Z (8/12 columnas en desktop, alternando izquierda/derecha) */}
       <div
         className={`order-1 lg:col-span-8 pb-6 md:pb-8 pr-3 md:pr-6 ${
@@ -526,7 +545,8 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
           </div>
         </div>
       </div>
-    </motion.article>
+      </motion.article>
+    </div>
   );
 }
 

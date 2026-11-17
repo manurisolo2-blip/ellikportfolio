@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { OrbitalBackground } from "@/components/OrbitalBackground";
 import { FixedFrameNav } from "@/components/FixedFrameNav";
+import { AstronautScrollTracker } from "@/components/AstronautScrollTracker";
 import { HeroSection } from "@/components/HeroSection";
 import { MissionsSection } from "@/components/MissionsSection";
 import { InvestmentSection } from "@/components/InvestmentSection";
@@ -36,8 +37,9 @@ export default function HomePage() {
       <OrbitalBackground />
 
       <FixedFrameNav onOpenDrawer={handleOpenDrawer} />
+      <AstronautScrollTracker />
 
-      <main className="relative z-10">
+      <main className="relative z-10 overflow-x-clip">
         <div className="pl-6 lg:pl-48 pr-6 lg:pr-16">
           <HeroSection onOpenDrawer={handleOpenDrawer} />
           <MissionsSection />

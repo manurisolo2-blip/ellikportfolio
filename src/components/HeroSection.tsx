@@ -272,7 +272,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
   const labelX = useSpring(rawCursorX, { stiffness: 360, damping: 28 });
   const labelY = useSpring(rawCursorY, { stiffness: 360, damping: 28 });
 
-  // Expansión suave al hacer scroll fuera del Hero
+  // Portal Zoom-Through al salir del Hero hacia los proyectos
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end start"],
@@ -284,10 +284,15 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
 
   const scrollStageOpacity = useTransform(
     scrollYProgress,
-    [0, 0.75, 1],
-    [1, 0.35, 0]
+    [0, 0.65, 1],
+    [1, 1, 0]
   );
-  const scrollStageScale = useTransform(scrollYProgress, [0, 1], [1, 0.93]);
+  const scrollStageScale = useTransform(scrollYProgress, [0, 1], [1, 1.65]);
+  const scrollStageBlur = useTransform(scrollYProgress, (latest) =>
+    latest <= 0.65
+      ? "none"
+      : `blur(${(((latest - 0.65) / 0.35) * 10).toFixed(2)}px)`
+  );
 
   useEffect(() => {
     const mq = window.matchMedia("(pointer: fine)");
@@ -457,15 +462,16 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
     <section
       ref={sectionRef}
       id="inicio"
-      className="relative min-h-screen overflow-x-hidden flex flex-col justify-between pt-16 pb-24 lg:pt-20 lg:pb-14"
+      className="relative min-h-screen overflow-x-clip flex flex-col justify-between pt-16 pb-24 lg:pt-20 lg:pb-14"
     >
-      {/* Envolvente Scroll-Linked fuera de la cámara 3D */}
+      {/* Envolvente Portal Zoom-Through controlada por el scroll */}
       <motion.div
         style={{
           opacity: scrollStageOpacity,
           scale: scrollStageScale,
+          filter: scrollStageBlur,
         }}
-        className="my-auto w-full"
+        className="my-auto w-full will-change-[transform,opacity]"
       >
         {/* Escenario espacial 3D con perspective: 1000px */}
         <div
