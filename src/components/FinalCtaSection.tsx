@@ -37,9 +37,10 @@ export function FinalCtaSection({ onOpenDrawer }: FinalCtaSectionProps) {
         style={{ perspective: "1000px" }}
       >
         <AnimatedHeading
-          prefix="¿LISTO PARA DEJAR DE PERDER"
-          accent="PEDIDOS?"
-          className="heading-hero max-w-5xl text-[var(--text-primary)]"
+          prefix="¿Listo para dejar de perder"
+          accent="pedidos?"
+          toneVariant="warm"
+          className="text-[clamp(2.5rem,5.5vw,4.75rem)] font-medium leading-[1.0] tracking-[-0.03em] max-w-5xl"
         />
 
         <motion.p
@@ -50,7 +51,7 @@ export function FinalCtaSection({ onOpenDrawer }: FinalCtaSectionProps) {
             delay: 0.2,
             ease: [0.22, 1, 0.36, 1],
           }}
-          className="editorial-body mt-7 max-w-xl text-[var(--text-secondary)]"
+          className="mt-7 max-w-xl font-sans text-base leading-relaxed text-[var(--text-secondary)]"
         >
           En 10 minutos revisamos cómo llegan tus consultas hoy y definimos qué
           sistema web necesita tu local para empezar a vender directo.
@@ -68,9 +69,9 @@ export function FinalCtaSection({ onOpenDrawer }: FinalCtaSectionProps) {
         >
           <MagneticButton
             onClick={() => onOpenDrawer()}
-            className="border border-[rgba(255,255,255,0.35)] bg-[#050505] px-8 py-5 font-mono text-xs sm:text-sm tracking-[0.16em] uppercase text-[var(--text-primary)] transition-colors duration-200 hover:border-[#FFFFFF]"
+            className="inline-flex min-h-[44px] items-center border border-[rgba(255,255,255,0.35)] bg-[#050505] px-8 py-5 font-sans text-sm font-medium tracking-[0.02em] text-[var(--text-primary)] transition-colors duration-200 hover:border-[#FFFFFF]"
           >
-            INICIAR DIAGNÓSTICO DE 10 MIN
+            Iniciar diagnóstico de 10 min
           </MagneticButton>
         </motion.div>
       </div>

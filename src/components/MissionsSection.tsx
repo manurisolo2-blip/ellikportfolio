@@ -387,19 +387,19 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
       {/* C. Columna Editorial Limpia */}
       <div className="lg:col-span-5 xl:col-span-4 flex flex-col justify-between h-full">
         <div>
-          <p className="font-mono text-[11px] tracking-[0.18em] uppercase text-[#71717A]">
+          <p className="font-mono text-[11px] tracking-[0.14em] uppercase text-[#71717A]">
             {mission.category} · {mission.location}
           </p>
 
-          <h3 className="mt-5 font-display text-2xl md:text-4xl font-bold uppercase tracking-[-0.02em] leading-[1.05] text-white">
+          <h3 className="mt-5 font-display text-3xl md:text-[42px] font-medium tracking-[-0.025em] leading-[1.04] text-white">
             {mission.title}
           </h3>
 
-          <p className="mt-5 font-sans text-sm md:text-base leading-relaxed text-[#8A8A93]">
+          <p className="mt-5 font-sans text-base md:text-[17px] leading-[1.65] text-[#9CA3AF]">
             {mission.description}
           </p>
 
-          <p className="mt-6 font-serif italic text-lg leading-snug text-[#F4F1EA]">
+          <p className="mt-6 border-l-2 border-[#F4F1EA]/40 pl-3 font-sans text-sm leading-snug text-[#F4F1EA]">
             {mission.highlight}
           </p>
         </div>
@@ -415,14 +415,14 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
             target="_blank"
             rel="noopener noreferrer"
             data-cursor="action"
-            className="group/btn relative inline-flex items-center gap-3 overflow-hidden border border-white/25 px-6 py-3.5 font-mono text-xs tracking-[0.16em] uppercase text-white transition-colors duration-300 hover:border-white"
+            className="group/btn relative inline-flex min-h-[44px] items-center gap-3 overflow-hidden border border-white/25 px-6 py-3.5 font-sans text-xs font-medium tracking-[0.06em] uppercase text-white transition-colors duration-300 hover:border-white"
           >
             <span
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 bg-white translate-y-[102%] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-y-0 group-focus-visible/btn:translate-y-0"
             />
             <span className="relative z-10 inline-flex items-center gap-3 transition-colors duration-300 group-hover/btn:text-[#050505] group-focus-visible/btn:text-[#050505]">
-              <span>VISITAR SITIO EN VIVO</span>
+              <span>Visitar sitio en vivo</span>
               <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
             </span>
           </a>
@@ -535,9 +535,10 @@ export function MissionsSection() {
 
       <div>
         <AnimatedHeading
-          prefix="DESARROLLOS REALES PROBANDO RESULTADOS EN"
-          accent="PRODUCCIÓN."
-          className="heading-section max-w-4xl text-[var(--text-primary)]"
+          prefix="Desarrollos reales probando"
+          accent="resultados en producción."
+          toneVariant="silver"
+          className="text-[clamp(2rem,4vw,3.5rem)] font-medium leading-[1.02] tracking-[-0.025em] max-w-4xl"
         />
 
         <div className="relative mt-16">

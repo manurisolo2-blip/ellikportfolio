@@ -495,7 +495,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
               <EllikSolarGyroscope className="h-32 w-32 sm:h-40 sm:w-40 md:h-48 md:w-48 -mb-4 sm:-mb-6" />
 
               <h1
-                className="font-display font-bold uppercase tracking-[0.18em] text-[#FFFFFF] pl-[0.18em] leading-[0.88] drop-shadow-[0_10px_40px_rgba(0,0,0,0.85)]"
+                className="font-display font-semibold uppercase tracking-[0.14em] text-[#FFFFFF] pl-[0.14em] leading-[0.88] drop-shadow-[0_10px_40px_rgba(0,0,0,0.85)]"
                 style={{ fontSize: "clamp(4.1rem, 11.5vw, 9.6rem)" }}
               >
                 ELLIK
@@ -603,16 +603,16 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
 
       {/* C. Cierre del Hero */}
       <div className="relative z-30 flex flex-col items-center text-center pt-2">
-        <p className="font-sans text-sm md:text-base text-[#8A8A93] max-w-md text-center leading-relaxed">
+        <p className="font-sans text-[15px] md:text-base text-[#8A8A93] max-w-md text-center leading-relaxed">
           Diseño y desarrollo web para comercios y marcas que quieren recibir
           pedidos sin fricción.
         </p>
 
         <MagneticButton
           onClick={() => onOpenDrawer()}
-          className="mt-7 border border-[rgba(255,255,255,0.28)] bg-transparent px-7 py-3.5 font-mono text-xs tracking-[0.18em] uppercase text-[#FFFFFF] transition-colors duration-200 hover:border-[#FFFFFF]"
+          className="mt-7 inline-flex min-h-[44px] items-center border border-[rgba(255,255,255,0.28)] bg-transparent px-7 py-3.5 font-sans text-sm font-medium tracking-[0.02em] text-[#FFFFFF] transition-colors duration-200 hover:border-[#FFFFFF]"
         >
-          AGENDAR LLAMADA DE 10 MIN
+          Agendar llamada de 10 min
         </MagneticButton>
       </div>
     </section>

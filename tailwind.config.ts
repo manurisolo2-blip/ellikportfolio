@@ -21,10 +21,10 @@ const config: Config = {
         orbital: "var(--orbital-line)",
       },
       fontFamily: {
-        display: ["var(--font-display)", "sans-serif"],
-        serif: ["var(--font-serif)", "serif"],
-        mono: ["var(--font-mono)", "monospace"],
-        sans: ["var(--font-sans)", "sans-serif"],
+        display: ["var(--font-display)", "Clash Display", "sans-serif"],
+        serif: ["var(--font-serif)", "Instrument Serif", "serif"],
+        mono: ["var(--font-mono)", "Azeret Mono", "monospace"],
+        sans: ["var(--font-sans)", "Satoshi", "sans-serif"],
       },
       borderRadius: {
         none: "0px",

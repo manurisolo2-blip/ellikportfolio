@@ -3,16 +3,17 @@
 import React, { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { SYSTEM_PILLARS } from "@/data/ellikData";
-import {
-  AnimatedHeading,
-  HairlineRule,
-  orbitalGridStaggerVariants,
-  SpotlightSurface,
-} from "./AnimatedHeading";
+import { AnimatedHeading, HairlineRule } from "./AnimatedHeading";
+
+function toSentenceCase(text: string): string {
+  const clean = text.trim();
+  if (!clean) return clean;
+  return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
+}
 
 export function SolutionSection() {
-  const gridRef = useRef<HTMLDivElement | null>(null);
-  const isGridInView = useInView(gridRef, { once: true, margin: "-10%" });
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const isListInView = useInView(listRef, { once: true, margin: "-10%" });
 
   return (
     <section id="solucion" className="relative py-24 lg:py-36">
@@ -20,76 +21,46 @@ export function SolutionSection() {
 
       <div>
         <AnimatedHeading
-          prefix="PÁGINAS RÁPIDAS PENSADAS PARA QUE EL CLIENTE ELIJA SOLO Y TE LLEGUE EL PEDIDO"
-          accent="ARMADO."
-          className="heading-section max-w-5xl text-[var(--text-primary)]"
+          prefix="Páginas rápidas pensadas para que el cliente elija solo"
+          accent="y te llegue el pedido armado."
+          toneVariant="silver"
+          className="text-[clamp(2.1rem,4.2vw,3.75rem)] font-medium leading-[1.02] tracking-[-0.025em] max-w-3xl"
         />
 
-        {/* Grilla con entrada espacial escalonada, divisores 1px y retícula orbital */}
-        <motion.div
-          ref={gridRef}
-          variants={orbitalGridStaggerVariants}
-          initial="hidden"
-          animate={isGridInView ? "visible" : "hidden"}
-          className="relative mt-16 grid grid-cols-1 lg:grid-cols-3 bg-[var(--bg-elevated)]"
-        >
-          {/* Borde perimetral y divisores internos animados */}
-          <HairlineRule className="pointer-events-none absolute top-0 left-0 right-0 z-20" />
-          <HairlineRule
-            delay={0.14}
-            className="pointer-events-none absolute bottom-0 left-0 right-0 z-20"
-          />
-          <HairlineRule
-            orientation="vertical"
-            delay={0.08}
-            className="pointer-events-none absolute top-0 bottom-0 left-0 z-20"
-          />
-          <HairlineRule
-            orientation="vertical"
-            delay={0.16}
-            className="pointer-events-none absolute top-0 bottom-0 right-0 z-20"
-          />
-          <HairlineRule
-            orientation="vertical"
-            delay={0.2}
-            className="pointer-events-none hidden lg:block absolute top-0 bottom-0 left-1/3 z-20"
-          />
-          <HairlineRule
-            orientation="vertical"
-            delay={0.28}
-            className="pointer-events-none hidden lg:block absolute top-0 bottom-0 left-2/3 z-20"
-          />
-
+        {/* Matriz Arquitectónica Escalonada: filas horizontales limpias sin cajas de IA */}
+        <div ref={listRef} className="mt-16 border-t border-white/[0.12]">
           {SYSTEM_PILLARS.map((pillar, index) => (
-            <React.Fragment key={pillar.code}>
-              {index > 0 && (
-                <HairlineRule
-                  delay={0.16 + index * 0.08}
-                  className="lg:hidden z-20"
-                />
-              )}
+            <motion.div
+              key={pillar.code}
+              initial={{ opacity: 0, y: 20 }}
+              animate={isListInView ? { opacity: 1, y: 0 } : {}}
+              transition={{
+                duration: 0.55,
+                delay: index * 0.1,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 py-10 border-b border-white/[0.12] items-baseline group hover:bg-white/[0.015] transition-colors px-2"
+            >
+              <div className="md:col-span-2">
+                <span className="font-mono text-xs tracking-[0.14em] text-[#71717A] group-hover:text-[#F4F1EA] transition-colors">
+                  {pillar.code}
+                </span>
+              </div>
 
-              <SpotlightSurface
-                staggerControlled
-                className="py-14 lg:py-20 px-8 lg:px-12"
-              >
-                <div>
-                  <span className="font-mono text-[11px] tracking-[0.18em] text-[#71717A] transition-colors duration-200 group-hover:text-[#FFFFFF]">
-                    {pillar.code}
-                  </span>
+              <div className="md:col-span-5">
+                <h3 className="font-display text-2xl md:text-3xl font-medium text-white tracking-[-0.02em] leading-[1.05] group-hover:translate-x-2 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                  {toSentenceCase(pillar.title)}
+                </h3>
+              </div>
 
-                  <h3 className="mt-8 font-display text-2xl font-bold uppercase tracking-[-0.02em] text-[var(--text-primary)]">
-                    {pillar.title}
-                  </h3>
-
-                  <p className="editorial-body mt-5 text-[var(--text-secondary)]">
-                    {pillar.description}
-                  </p>
-                </div>
-              </SpotlightSurface>
-            </React.Fragment>
+              <div className="md:col-span-5">
+                <p className="font-sans text-base text-[#8A8A93] leading-relaxed group-hover:text-[#D4D4D8] transition-colors">
+                  {pillar.description}
+                </p>
+              </div>
+            </motion.div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

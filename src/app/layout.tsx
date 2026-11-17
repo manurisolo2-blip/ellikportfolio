@@ -1,39 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import {
-  Space_Grotesk,
-  Instrument_Serif,
-  JetBrains_Mono,
-  Inter,
-} from "next/font/google";
+import { Instrument_Serif } from "next/font/google";
 import { CustomCursor } from "@/components/CustomCursor";
 import "./globals.css";
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  weight: ["300", "600", "700"],
-  variable: "--font-display",
-  display: "swap",
-});
 
 const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
   weight: "400",
   style: ["normal", "italic"],
   variable: "--font-serif",
-  display: "swap",
-});
-
-// Variable font (100..800) covers weights 400, 500, and 700 cleanly with .woff2
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-  display: "swap",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-sans",
   display: "swap",
 });
 
@@ -69,10 +43,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="es"
-      className={`${spaceGrotesk.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} ${inter.variable}`}
-    >
+    <html lang="es" className={instrumentSerif.variable}>
+      <head>
+        <link
+          rel="preconnect"
+          href="https://api.fontshare.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@400,500,700&f[]=azeret-mono@400,500&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="bg-[var(--bg-void)] text-[var(--text-primary)] antialiased">
         {/* Textura fija de grano espacial (feTurbulence inline, sin peso extra) */}
         <div

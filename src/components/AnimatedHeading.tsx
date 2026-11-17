@@ -60,16 +60,18 @@ const accentRevealVariants: Variants = {
 interface AnimatedHeadingProps {
   prefix: string;
   accent: string;
+  toneVariant?: "silver" | "warm";
   className?: string;
 }
 
 /**
- * Titular con revelado por máscara palabra a palabra, destello sutil en el acento serif
- * y halo astronómico de eclipse con paralaje leve al cursor detrás del titular.
+ * Titular editorial en Clash Display con contraste tonal (#FFFFFF / #71717A o #F4F1EA),
+ * revelado por máscara palabra a palabra y halo astronómico de eclipse.
  */
 export function AnimatedHeading({
   prefix,
   accent,
+  toneVariant = "silver",
   className = "",
 }: AnimatedHeadingProps) {
   const ref = useRef<HTMLHeadingElement | null>(null);
@@ -106,6 +108,8 @@ export function AnimatedHeading({
 
   const prefixWords = prefix.trim().split(/\s+/);
   const accentWords = accent.trim().split(/\s+/);
+  const accentColorClass =
+    toneVariant === "warm" ? "text-[#F4F1EA]" : "text-[#71717A]";
 
   return (
     <motion.h2
@@ -113,7 +117,7 @@ export function AnimatedHeading({
       variants={headingContainerVariants}
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
-      className={`relative z-0 ${className}`}
+      className={`relative z-0 font-display font-medium ${className}`}
     >
       {/* Halo astronómico de eclipse detrás del titular principal */}
       <motion.span
@@ -202,7 +206,7 @@ export function AnimatedHeading({
         >
           <motion.span
             variants={wordRevealVariants}
-            className="inline-block origin-bottom-left"
+            className="inline-block origin-bottom-left text-white"
           >
             {word}
           </motion.span>
@@ -211,13 +215,15 @@ export function AnimatedHeading({
       {accentWords.map((word, index) => (
         <span
           key={`accent-${index}-${word}`}
-          className={`relative z-10 inline-block overflow-hidden align-bottom pb-[0.12em] pr-[0.12em] ${
-            index < accentWords.length - 1 ? "mr-[0.2em]" : ""
+          className={`relative z-10 inline-block overflow-hidden align-bottom pb-[0.08em] ${
+            index < accentWords.length - 1 ? "mr-[0.26em]" : ""
           }`}
         >
           <motion.span
-            variants={accentRevealVariants}
-            className="serif-accent inline-block origin-bottom-left"
+            variants={
+              toneVariant === "warm" ? accentRevealVariants : wordRevealVariants
+            }
+            className={`inline-block origin-bottom-left ${accentColorClass}`}
           >
             {word}
           </motion.span>
