@@ -509,7 +509,7 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
                   src={mission.secondaryImage}
                   alt={`${mission.shortTitle} — Vista secundaria`}
                   fill
-                  sizes="(max-width: 640px) 128px, (max-width: 768px) 160px, 192px"
+                  sizes="(max-width: 640px) 144px, (max-width: 768px) 160px, 192px"
                   draggable={false}
                   onError={() => setSecondaryError(true)}
                   className="h-full w-full object-cover"

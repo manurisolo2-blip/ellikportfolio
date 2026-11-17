@@ -115,7 +115,7 @@ function FloatingScreenSurface({
           src={mission.previewImage}
           alt={mission.title}
           fill
-          sizes="(max-width: 640px) 190px, (max-width: 1024px) 290px, 370px"
+          sizes="(max-width: 640px) 256px, (max-width: 1024px) 290px, 370px"
           priority={priority}
           draggable={false}
           onError={() => setImgFailed(true)}
@@ -298,8 +298,8 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
     const updateDimensions = () => {
       const vw = window.innerWidth;
       if (vw < 640) {
-        radiusZRef.current = 155;
-        yScaleRef.current = 0.54;
+        radiusZRef.current = 124;
+        yScaleRef.current = 0.48;
       } else if (vw < 1024) {
         radiusZRef.current = 245;
         yScaleRef.current = 0.78;
@@ -457,7 +457,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
     <section
       ref={sectionRef}
       id="inicio"
-      className="relative min-h-screen overflow-x-hidden flex flex-col justify-between pt-16 pb-12 lg:pt-20 lg:pb-14"
+      className="relative min-h-screen overflow-x-hidden flex flex-col justify-between pt-16 pb-24 lg:pt-20 lg:pb-14"
     >
       {/* Envolvente Scroll-Linked fuera de la cámara 3D */}
       <motion.div
@@ -475,14 +475,14 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
           onPointerLeave={handleStagePointerLeave}
           onPointerDown={handleStagePointerDown}
           style={{ perspective: "1000px" }}
-          className="relative flex w-full min-h-[520px] sm:min-h-[580px] md:min-h-[660px] items-center justify-center touch-pan-y select-none"
+          className="relative flex w-full min-h-[420px] sm:min-h-[560px] md:min-h-[660px] items-center justify-center touch-pan-y select-none"
         >
           <motion.div
             style={{
               rotateX: cameraRotateX,
               rotateY: cameraRotateY,
             }}
-            className="preserve-3d relative flex h-[500px] sm:h-[560px] md:h-[640px] w-full items-center justify-center"
+            className="preserve-3d relative flex h-[400px] sm:h-[540px] md:h-[640px] w-full items-center justify-center"
           >
             {/* A. EL SOL DEL SISTEMA: GIROSCOPIO 3D ELLIK + TITULAR MONUMENTAL EN PLANO MEDIO (zIndex: 20, Z=0) */}
             <div

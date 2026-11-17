@@ -144,7 +144,7 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
                         plan: plan.fullTitle,
                       })
                     }
-                    className="group/btn font-mono text-xs tracking-[0.16em] uppercase text-[var(--text-primary)] hover:text-[var(--accent-starlight)] transition-colors inline-flex items-center gap-2 px-2 py-1"
+                    className="group/btn font-mono text-xs tracking-[0.16em] uppercase text-[var(--text-primary)] hover:text-[var(--accent-starlight)] transition-colors inline-flex min-h-[44px] items-center gap-2 px-2 py-3 -ml-2"
                   >
                     <span>CONSULTAR ALCANCE</span>
                     <span className="inline-block transition-transform duration-200 group-hover/btn:translate-x-1">

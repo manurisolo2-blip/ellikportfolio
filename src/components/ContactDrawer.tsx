@@ -125,7 +125,7 @@ export function ContactDrawer({
                   type="button"
                   data-cursor="action"
                   onClick={onClose}
-                  className="section-label hover:text-[var(--text-primary)] transition-colors px-2 py-1"
+                  className="section-label inline-flex min-h-[44px] min-w-[44px] items-center justify-end hover:text-[var(--text-primary)] transition-colors px-3 py-2"
                 >
                   CERRAR ×
                 </button>
@@ -147,7 +147,7 @@ export function ContactDrawer({
                   <button
                     type="button"
                     onClick={() => setSelectedPlan("")}
-                    className="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    className="inline-flex min-h-[44px] min-w-[44px] items-center justify-end font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--text-muted)] hover:text-[var(--text-primary)] px-2 -my-2"
                   >
                     QUITAR ×
                   </button>
@@ -168,7 +168,7 @@ export function ContactDrawer({
                           key={category}
                           type="button"
                           onClick={() => setRubro(category)}
-                          className={`border px-3 py-3 text-left font-mono text-[11px] tracking-[0.1em] uppercase transition-colors ${
+                          className={`border px-3 py-3 min-h-[44px] flex items-center text-left font-mono text-[11px] tracking-[0.1em] uppercase transition-colors ${
                             active
                               ? "border-[var(--text-primary)] bg-[var(--text-primary)] text-[#050505] font-medium"
                               : "border-[var(--border-hairline)] bg-transparent text-[var(--text-secondary)] hover:border-[var(--border-active)] hover:text-[var(--text-primary)]"
@@ -196,7 +196,7 @@ export function ContactDrawer({
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Ej. Martín Gómez"
-                      className="w-full border-b border-white/20 focus:border-white bg-transparent py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none transition-colors"
+                      className="w-full border-b border-white/20 focus:border-white bg-transparent py-3 text-base sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none transition-colors"
                     />
                   </div>
 
@@ -213,7 +213,7 @@ export function ContactDrawer({
                       value={businessAndCity}
                       onChange={(e) => setBusinessAndCity(e.target.value)}
                       placeholder="Ej. Pizzería Sur — Río Tercero"
-                      className="w-full border-b border-white/20 focus:border-white bg-transparent py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none transition-colors"
+                      className="w-full border-b border-white/20 focus:border-white bg-transparent py-3 text-base sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none transition-colors"
                     />
                   </div>
 
@@ -230,7 +230,7 @@ export function ContactDrawer({
                       value={need}
                       onChange={(e) => setNeed(e.target.value)}
                       placeholder="Ej. Recibir pedidos sin audios eternos los viernes a la noche..."
-                      className="w-full resize-none border-b border-white/20 focus:border-white bg-transparent py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none transition-colors"
+                      className="w-full resize-none border-b border-white/20 focus:border-white bg-transparent py-3 text-base sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
@@ -254,7 +254,7 @@ export function ContactDrawer({
               <button
                 type="button"
                 onClick={handleCopyEmail}
-                className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.14em] uppercase text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                className="inline-flex min-h-[44px] items-center gap-2 font-mono text-[11px] tracking-[0.14em] uppercase text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors py-2 px-1"
               >
                 {emailCopied ? (
                   <>

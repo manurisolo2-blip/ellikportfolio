@@ -99,16 +99,16 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
           scrollToSection("inicio");
         }}
         aria-label="ELLIK — Volver al inicio"
-        className="fixed top-6 left-6 lg:top-8 lg:left-10 z-40 text-[var(--text-primary)] transition-opacity hover:opacity-80"
+        className="fixed top-4 left-6 lg:top-8 lg:left-10 z-40 inline-flex min-h-[44px] items-center text-[var(--text-primary)] transition-opacity hover:opacity-80"
       >
         <EllikLogo />
       </a>
 
       {/* Esquina Superior Derecha: Acción magnética de contacto directo */}
-      <div className="fixed top-6 right-6 lg:top-8 lg:right-10 z-40">
+      <div className="fixed top-4 right-6 lg:top-8 lg:right-10 z-40">
         <MagneticButton
           onClick={() => onOpenDrawer()}
-          className="border border-[rgba(255,255,255,0.20)] bg-[#050505] px-4 py-2 font-mono text-[11px] tracking-[0.18em] uppercase text-[var(--text-primary)] transition-colors duration-200 hover:border-[#FFFFFF]"
+          className="inline-flex min-h-[44px] items-center border border-[rgba(255,255,255,0.20)] bg-[#050505] px-4 py-2.5 font-mono text-[11px] tracking-[0.18em] uppercase text-[var(--text-primary)] transition-colors duration-200 hover:border-[#FFFFFF]"
         >
           INICIAR CONTACTO ↗
         </MagneticButton>
@@ -204,7 +204,7 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
       </nav>
 
       {/* Versión Móvil (< 1024px): Barra inferior minimalista fija */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-[#08080A]/90 backdrop-blur-md px-5 py-3.5 flex items-center justify-between">
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-[#08080A]/90 backdrop-blur-md px-5 py-2 flex items-center justify-between">
         <span className="font-mono text-[11px] tracking-[0.18em] text-[var(--text-primary)] uppercase">
           {activeSection.label}
         </span>
@@ -212,7 +212,7 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
         <button
           type="button"
           onClick={() => onOpenDrawer()}
-          className="font-mono text-[11px] tracking-[0.18em] uppercase text-[var(--text-primary)] border border-white/25 px-3.5 py-1.5 hover:bg-white hover:text-[#050505] transition-colors"
+          className="inline-flex min-h-[44px] items-center font-mono text-[11px] tracking-[0.18em] uppercase text-[var(--text-primary)] border border-white/25 px-4 py-2.5 hover:bg-white hover:text-[#050505] transition-colors"
         >
           CONSULTAR ↗
         </button>

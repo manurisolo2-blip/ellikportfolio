@@ -120,7 +120,7 @@ export function EllikFooter() {
   );
 
   return (
-    <div className="relative z-[45] w-full border-t border-[var(--border-hairline)] bg-[#050505]">
+    <div className="relative z-30 lg:z-[45] w-full border-t border-[var(--border-hairline)] bg-[#050505] pb-[68px] lg:pb-0">
       <HalftoneWordmarkFooter
         wordmark="ELLIK"
         label="ELLIK — DISEÑO & DESARROLLO WEB"
@@ -136,7 +136,7 @@ export function EllikFooter() {
         fontWeight={700}
         monoFamily="var(--font-mono), monospace"
         backToTopLabel="VOLVER ARRIBA ↑"
-        height="clamp(420px, 52vw, 560px)"
+        height="clamp(600px, 48vw, 640px)"
       />
     </div>
   );
