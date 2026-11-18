@@ -107,6 +107,7 @@ export function ContactDrawer({
 
           {/* Panel deslizable desde la derecha */}
           <motion.aside
+            data-lenis-prevent
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}

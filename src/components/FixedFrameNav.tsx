@@ -102,7 +102,7 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
       {/* Índice Lateral Izquierdo con Scroll-Spy (Desktop >= 1024px) */}
       <nav
         aria-label="Índice de secciones"
-        className="fixed left-16 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col gap-4 mix-blend-difference"
+        className="fixed left-[92px] top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col gap-4 mix-blend-difference"
       >
         {NAV_SECTIONS.map((section) => {
           const isActive = section.id === activeId;

@@ -34,9 +34,18 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   background-color: var(--bg-void);
   color: var(--text-primary);
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
 }
 
 body {
@@ -127,10 +136,6 @@ h3 {
 
   .cursor-ring-circle {
     border-radius: 9999px !important;
-  }
-
-  .zoom-reveal-surface {
-    border-radius: var(--zoom-reveal-radius, 0px) !important;
   }
 
   .animate-pulse-star {

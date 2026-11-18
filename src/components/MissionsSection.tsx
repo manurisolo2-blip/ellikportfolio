@@ -307,26 +307,28 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
     damping: 22,
   });
 
-  // Cámara espacial Zoom-In al entrar al foco (0.45..0.55) / Zoom-Out al salir
+  // Cámara espacial Zoom-In al entrar al foco (0.45..0.55) / Zoom-Out al salir (GPU: scale + y + opacity)
   const { scrollYProgress: zoomProgress } = useScroll({
     target: cardRef,
     offset: ["start end", "center center", "end start"],
   });
 
+  const smoothZoom = useSpring(zoomProgress, {
+    stiffness: 120,
+    damping: 24,
+    mass: 0.4,
+  });
+
   const cardScale = useTransform(
-    zoomProgress,
+    smoothZoom,
     [0, 0.45, 0.55, 1],
     [0.74, 1, 1, 0.78]
   );
+  const cardY = useTransform(smoothZoom, [0, 0.45, 0.55, 1], [36, 0, 0, -28]);
   const cardOpacity = useTransform(
-    zoomProgress,
+    smoothZoom,
     [0, 0.45, 0.55, 1],
     [0.15, 1, 1, 0.15]
-  );
-  const cardRotateX = useTransform(
-    zoomProgress,
-    [0, 0.45, 0.55, 1],
-    [12, 0, 0, -10]
   );
 
   // Recorrido interno del índice monumental y parallax de la imagen base
@@ -335,10 +337,16 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
     offset: ["start end", "end start"],
   });
 
+  const smoothScroll = useSpring(scrollYProgress, {
+    stiffness: 120,
+    damping: 24,
+    mass: 0.4,
+  });
+
   // A. Índice Monumental Reactivo al Scroll: #F4F1EA al centro y desplazamiento ±20px en Y
-  const indexY = useTransform(scrollYProgress, [0, 1], [20, -20]);
+  const indexY = useTransform(smoothScroll, [0, 1], [20, -20]);
   const indexColor = useTransform(
-    scrollYProgress,
+    smoothScroll,
     [0.18, 0.45, 0.58, 0.85],
     [
       "rgba(255, 255, 255, 0.12)",
@@ -349,7 +357,7 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
   );
 
   // B2. Parallax vertical ligado al scroll para la capa base (-6% a +6% con scale 1.12)
-  const frameParallaxY = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
+  const frameParallaxY = useTransform(smoothScroll, [0, 1], ["-6%", "6%"]);
 
   const handleStageMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!finePointerRef.current) return;
@@ -381,12 +389,12 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
   const isEven = index % 2 === 1;
 
   return (
-    <div ref={cardRef} id={mission.id} style={{ perspective: "1400px" }}>
+    <div ref={cardRef} id={mission.id}>
       <motion.article
         style={{
           scale: cardScale,
+          y: cardY,
           opacity: cardOpacity,
-          rotateX: cardRotateX,
         }}
         className="relative grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 lg:items-stretch will-change-[transform,opacity]"
       >

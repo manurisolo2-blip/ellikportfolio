@@ -40,14 +40,14 @@ export default function HomePage() {
       <AstronautScrollTracker />
 
       <main className="relative z-10 overflow-x-clip">
-        <div className="pl-6 lg:pl-48 pr-6 lg:pr-16">
+        <div className="pl-6 lg:pl-52 pr-6 lg:pr-16">
           <HeroSection onOpenDrawer={handleOpenDrawer} />
           <MissionsSection />
         </div>
 
         <InvestmentSection onOpenDrawer={handleOpenDrawer} />
 
-        <div className="pl-6 lg:pl-48 pr-6 lg:pr-16">
+        <div className="pl-6 lg:pl-52 pr-6 lg:pr-16">
           <FinalCtaSection onOpenDrawer={handleOpenDrawer} />
         </div>
       </main>

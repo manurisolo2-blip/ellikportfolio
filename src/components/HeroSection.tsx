@@ -272,26 +272,31 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
   const labelX = useSpring(rawCursorX, { stiffness: 360, damping: 28 });
   const labelY = useSpring(rawCursorY, { stiffness: 360, damping: 28 });
 
-  // Portal Zoom-Through al salir del Hero hacia los proyectos
+  // Portal Zoom-Through al salir del Hero hacia los proyectos (solo GPU: scale + opacity)
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end start"],
   });
 
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+  const smoothScrollProgress = useSpring(scrollYProgress, {
+    stiffness: 120,
+    damping: 24,
+    mass: 0.4,
+  });
+
+  useMotionValueEvent(smoothScrollProgress, "change", (latest) => {
     scrollProgressRef.current = latest;
   });
 
   const scrollStageOpacity = useTransform(
-    scrollYProgress,
+    smoothScrollProgress,
     [0, 0.65, 1],
     [1, 1, 0]
   );
-  const scrollStageScale = useTransform(scrollYProgress, [0, 1], [1, 1.65]);
-  const scrollStageBlur = useTransform(scrollYProgress, (latest) =>
-    latest <= 0.65
-      ? "none"
-      : `blur(${(((latest - 0.65) / 0.35) * 10).toFixed(2)}px)`
+  const scrollStageScale = useTransform(
+    smoothScrollProgress,
+    [0, 1],
+    [1, 1.65]
   );
 
   useEffect(() => {
@@ -469,7 +474,6 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
         style={{
           opacity: scrollStageOpacity,
           scale: scrollStageScale,
-          filter: scrollStageBlur,
         }}
         className="my-auto w-full will-change-[transform,opacity]"
       >

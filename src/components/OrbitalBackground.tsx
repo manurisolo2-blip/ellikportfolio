@@ -50,44 +50,6 @@ interface MeteorState {
 
 const SECTION_CONSTELLATIONS: SectionConstellation[] = [
   {
-    sectionId: "problema",
-    nodes: [
-      { rx: 0.68, ry: 0.14, magnitude: 2.3 },
-      { rx: 0.81, ry: 0.22, magnitude: 1.9 },
-      { rx: 0.91, ry: 0.16, magnitude: 2.5 },
-      { rx: 0.87, ry: 0.42, magnitude: 2.0 },
-      { rx: 0.74, ry: 0.36, magnitude: 1.8 },
-    ],
-    edges: [
-      [0, 1],
-      [1, 2],
-      [2, 3],
-      [3, 4],
-      [4, 0],
-      [1, 4],
-    ],
-  },
-  {
-    sectionId: "solucion",
-    nodes: [
-      { rx: 0.64, ry: 0.12, magnitude: 2.2 },
-      { rx: 0.76, ry: 0.19, magnitude: 2.4 },
-      { rx: 0.9, ry: 0.11, magnitude: 2.0 },
-      { rx: 0.94, ry: 0.28, magnitude: 1.9 },
-      { rx: 0.82, ry: 0.31, magnitude: 2.1 },
-      { rx: 0.7, ry: 0.25, magnitude: 1.7 },
-    ],
-    edges: [
-      [0, 1],
-      [1, 2],
-      [2, 3],
-      [3, 4],
-      [4, 5],
-      [5, 0],
-      [1, 4],
-    ],
-  },
-  {
     sectionId: "proyectos",
     nodes: [
       { rx: 0.56, ry: 0.08, magnitude: 2.5 },
@@ -107,13 +69,13 @@ const SECTION_CONSTELLATIONS: SectionConstellation[] = [
     ],
   },
   {
-    sectionId: "modalidades",
+    sectionId: "contacto",
     nodes: [
-      { rx: 0.66, ry: 0.11, magnitude: 2.3 },
-      { rx: 0.78, ry: 0.07, magnitude: 2.0 },
-      { rx: 0.91, ry: 0.16, magnitude: 2.4 },
-      { rx: 0.86, ry: 0.29, magnitude: 1.9 },
-      { rx: 0.73, ry: 0.25, magnitude: 2.1 },
+      { rx: 0.66, ry: 0.14, magnitude: 2.3 },
+      { rx: 0.78, ry: 0.1, magnitude: 2.0 },
+      { rx: 0.91, ry: 0.22, magnitude: 2.4 },
+      { rx: 0.86, ry: 0.42, magnitude: 1.9 },
+      { rx: 0.73, ry: 0.36, magnitude: 2.1 },
     ],
     edges: [
       [0, 1],
@@ -221,17 +183,70 @@ export function OrbitalBackground() {
 
     let width = window.innerWidth;
     let height = window.innerHeight;
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+
+    // Pre-cálculo de atmósfera en canvas offscreen (evita crear gradientes en cada frame)
+    const ATMOSPHERE_PAD = 48;
+    const atmosphereCanvas = document.createElement("canvas");
+    const atmosphereCtx = atmosphereCanvas.getContext("2d");
+
+    const buildAtmosphereCache = () => {
+      if (!atmosphereCtx || width <= 0 || height <= 0) return;
+      const aw = width + ATMOSPHERE_PAD * 2;
+      const ah = height + ATMOSPHERE_PAD * 2;
+      atmosphereCanvas.width = aw;
+      atmosphereCanvas.height = ah;
+      atmosphereCtx.clearRect(0, 0, aw, ah);
+
+      const deepBlueGrad = atmosphereCtx.createRadialGradient(
+        width * 0.28 + ATMOSPHERE_PAD,
+        height * 0.35 + ATMOSPHERE_PAD,
+        0,
+        width * 0.28 + ATMOSPHERE_PAD,
+        height * 0.35 + ATMOSPHERE_PAD,
+        Math.max(width, height) * 0.58
+      );
+      deepBlueGrad.addColorStop(0, "rgba(18, 34, 62, 0.14)");
+      deepBlueGrad.addColorStop(0.55, "rgba(12, 22, 40, 0.05)");
+      deepBlueGrad.addColorStop(1, "rgba(5, 5, 5, 0)");
+
+      atmosphereCtx.fillStyle = deepBlueGrad;
+      atmosphereCtx.fillRect(0, 0, aw, ah);
+
+      const warmDustGrad = atmosphereCtx.createRadialGradient(
+        width * 0.76 + ATMOSPHERE_PAD,
+        height * 0.62 + ATMOSPHERE_PAD,
+        0,
+        width * 0.76 + ATMOSPHERE_PAD,
+        height * 0.62 + ATMOSPHERE_PAD,
+        Math.max(width, height) * 0.45
+      );
+      warmDustGrad.addColorStop(0, "rgba(244, 241, 234, 0.032)");
+      warmDustGrad.addColorStop(0.6, "rgba(244, 241, 234, 0.009)");
+      warmDustGrad.addColorStop(1, "rgba(5, 5, 5, 0)");
+
+      atmosphereCtx.fillStyle = warmDustGrad;
+      atmosphereCtx.fillRect(0, 0, aw, ah);
+    };
+
+    const sectionElements: Record<string, HTMLElement | null> = {};
+    const syncSectionElements = () => {
+      for (const c of SECTION_CONSTELLATIONS) {
+        sectionElements[c.sectionId] = document.getElementById(c.sectionId);
+      }
+    };
 
     const resizeCanvas = () => {
       width = window.innerWidth;
       height = window.innerHeight;
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      buildAtmosphereCache();
+      syncSectionElements();
     };
 
     resizeCanvas();
@@ -304,45 +319,23 @@ export function OrbitalBackground() {
     let prevTime = performance.now();
 
     const drawCosmicAtmosphere = (tSec: number) => {
-      // Velo de polvo cósmico azul nocturno profundo y blanco cálido imperceptible
-      const driftX = Math.sin(tSec * 0.06) * 24 + smoothMouseX * 16;
-      const driftY = Math.cos(tSec * 0.05) * 18 + smoothMouseY * 12;
-
-      const deepBlueGrad = ctx.createRadialGradient(
-        width * 0.28 + driftX,
-        height * 0.35 + driftY,
-        0,
-        width * 0.28 + driftX,
-        height * 0.35 + driftY,
-        Math.max(width, height) * 0.58
+      if (atmosphereCanvas.width === 0 || atmosphereCanvas.height === 0) return;
+      const driftX = Math.sin(tSec * 0.06) * 20 + smoothMouseX * 14;
+      const driftY = Math.cos(tSec * 0.05) * 16 + smoothMouseY * 10;
+      ctx.drawImage(
+        atmosphereCanvas,
+        driftX - ATMOSPHERE_PAD,
+        driftY - ATMOSPHERE_PAD
       );
-      deepBlueGrad.addColorStop(0, "rgba(18, 34, 62, 0.14)");
-      deepBlueGrad.addColorStop(0.55, "rgba(12, 22, 40, 0.05)");
-      deepBlueGrad.addColorStop(1, "rgba(5, 5, 5, 0)");
-
-      ctx.fillStyle = deepBlueGrad;
-      ctx.fillRect(0, 0, width, height);
-
-      const warmDustGrad = ctx.createRadialGradient(
-        width * 0.76 - driftX * 0.8,
-        height * 0.62 - driftY * 0.8,
-        0,
-        width * 0.76 - driftX * 0.8,
-        height * 0.62 - driftY * 0.8,
-        Math.max(width, height) * 0.45
-      );
-      warmDustGrad.addColorStop(0, "rgba(244, 241, 234, 0.032)");
-      warmDustGrad.addColorStop(0.6, "rgba(244, 241, 234, 0.009)");
-      warmDustGrad.addColorStop(1, "rgba(5, 5, 5, 0)");
-
-      ctx.fillStyle = warmDustGrad;
-      ctx.fillRect(0, 0, width, height);
     };
 
     const drawConstellations = (dt: number) => {
       for (const constellation of SECTION_CONSTELLATIONS) {
-        const sectionEl = document.getElementById(constellation.sectionId);
+        const sectionEl =
+          sectionElements[constellation.sectionId] ??
+          document.getElementById(constellation.sectionId);
         if (!sectionEl) continue;
+        sectionElements[constellation.sectionId] = sectionEl;
 
         const rect = sectionEl.getBoundingClientRect();
         const inView = rect.top < height * 0.88 && rect.bottom > height * 0.1;
@@ -622,8 +615,10 @@ export function OrbitalBackground() {
       drawConstellations(dt);
       drawMeteor(dt, nowMs);
 
-      if (!prefersReducedMotion) {
+      if (!prefersReducedMotion && !document.hidden) {
         rafId = window.requestAnimationFrame(renderFrame);
+      } else {
+        rafId = 0;
       }
     };
 
@@ -655,10 +650,28 @@ export function OrbitalBackground() {
       };
     }
 
-    rafId = window.requestAnimationFrame(renderFrame);
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (rafId) {
+          window.cancelAnimationFrame(rafId);
+          rafId = 0;
+        }
+      } else if (!rafId) {
+        prevTime = performance.now();
+        rafId = window.requestAnimationFrame(renderFrame);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    if (!document.hidden) {
+      rafId = window.requestAnimationFrame(renderFrame);
+    }
 
     return () => {
-      window.cancelAnimationFrame(rafId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+      }
       window.removeEventListener("resize", resizeCanvas);
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("blur", handlePointerLeave);

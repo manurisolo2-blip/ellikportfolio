@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useRef } from "react";
-import { motion, useInView, useScroll, useTransform } from "framer-motion";
+import {
+  motion,
+  useInView,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import {
   INVESTMENT_PLANS,
   type BusinessCategory,
@@ -21,15 +27,21 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
     offset: ["start end", "start 20%", "end 65%", "end start"],
   });
 
+  const smoothReveal = useSpring(scrollYProgress, {
+    stiffness: 120,
+    damping: 24,
+    mass: 0.4,
+  });
+
   const revealScale = useTransform(
-    scrollYProgress,
+    smoothReveal,
     [0, 0.33, 0.67, 1],
-    [0.86, 1, 1, 0.92]
+    [0.88, 1, 1, 0.94]
   );
-  const revealRadius = useTransform(
-    scrollYProgress,
-    [0, 0.33, 0.67, 1],
-    ["24px", "0px", "0px", "20px"]
+  const revealOpacity = useTransform(
+    smoothReveal,
+    [0, 0.25, 0.82, 1],
+    [0.55, 1, 1, 0.72]
   );
 
   return (
@@ -39,15 +51,13 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
       className="relative w-full overflow-x-clip py-4"
     >
       <motion.div
-        style={
-          {
-            scale: revealScale,
-            "--zoom-reveal-radius": revealRadius,
-          } as unknown as React.CSSProperties
-        }
-        className="zoom-reveal-surface w-full bg-[#F4F1EA] text-[#050505] py-28 md:py-36 selection:bg-[#050505] selection:text-[#F4F1EA] will-change-[transform,opacity]"
+        style={{
+          scale: revealScale,
+          opacity: revealOpacity,
+        }}
+        className="w-full bg-[#F4F1EA] text-[#050505] py-28 md:py-36 selection:bg-[#050505] selection:text-[#F4F1EA] will-change-[transform,opacity]"
       >
-        <div ref={contentRef} className="pl-6 lg:pl-48 pr-6 lg:pr-16">
+        <div ref={contentRef} className="pl-6 lg:pl-52 pr-6 lg:pr-16">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
