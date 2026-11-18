@@ -116,24 +116,22 @@ function FloatingScreenSurface({
           alt={mission.title}
           fill
           sizes="(max-width: 640px) 256px, (max-width: 1024px) 290px, 370px"
+          quality={90}
           priority={priority}
           draggable={false}
           onError={() => setImgFailed(true)}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover object-top"
         />
       )}
 
-      {/* Viñeta sutil para profundidad sin caja pesada */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/35 via-transparent to-white/[0.04]" />
-
-      {/* Reflejo diagonal de cristal animado dinámicamente al pasar por el frente */}
+      {/* Reflejo diagonal especular sutil sin apagar los colores reales */}
       <div
         ref={sheenRef}
         aria-hidden="true"
         className="pointer-events-none absolute inset-y-0 -left-1/2 w-[200%] will-change-transform"
         style={{
           background:
-            "linear-gradient(115deg, transparent 22%, rgba(255, 255, 255, 0.05) 38%, rgba(244, 241, 234, 0.26) 48%, rgba(255, 255, 255, 0.06) 58%, transparent 74%)",
+            "linear-gradient(115deg, transparent 24%, rgba(255, 255, 255, 0.06) 39%, rgba(255, 255, 255, 0.24) 48%, rgba(255, 255, 255, 0.05) 57%, transparent 72%)",
           opacity: 0,
         }}
       />
@@ -165,7 +163,8 @@ function computeScreenFrame(
   effectiveRadiusZ: number,
   yScale: number,
   isHovered: boolean,
-  isDimmedByHover: boolean
+  isDimmedByHover: boolean,
+  scrollP: number
 ): ScreenFrame {
   const worldDeg = orbitAngle + cfg.baseAngle;
   const rad = (worldDeg * Math.PI) / 180;
@@ -173,22 +172,28 @@ function computeScreenFrame(
   const sinVal = Math.sin(rad);
   const zCos = Math.cos(rad); // -1 atrás profundo, +1 frente cercano
 
-  const rZ = effectiveRadiusZ * cfg.radiusScale;
+  const p = clamp(scrollP, 0, 1);
+  const scatterFactor = 1 + p * 1.1; // 1x -> 2.1x dispersión radial
+
+  const rZ = effectiveRadiusZ * cfg.radiusScale * scatterFactor;
   const rX = rZ * 1.28;
 
   const x = sinVal * rX;
   const z = zCos * rZ;
-  const y = cfg.offsetY * yScale;
+  const y = cfg.offsetY * yScale * (1 + p * 0.7);
 
-  // Marcada inclinación 3D mirando hacia el centro gravitacional
-  const rotateY = -sinVal * 35; // -35deg a +35deg
+  // Inclinación 3D hacia el centro, acentuándose al dispersarse en el portal
+  const rotateY = -sinVal * (35 + p * 24);
   const elevationPitch = -(y / Math.max(rZ, 1)) * 7;
-  const rotateX = clamp(cfg.tiltX + elevationPitch, -15, 15);
-  const rotateZ = cfg.tiltZ;
+  const tiltOut = (y >= 0 ? -1 : 1) * p * 14;
+  const rotateX = clamp(cfg.tiltX + elevationPitch + tiltOut, -28, 28);
+  const rotateZ = cfg.tiltZ + (sinVal >= 0 ? 1 : -1) * p * 10;
 
   // Escala continua por profundidad Z (más pequeña atrás, mayor al frente)
   const depthScale =
     z >= 0 ? 0.9 + zCos * 0.2 : 0.9 + zCos * 0.22; // 0.68 atrás .. 1.10 adelante
+
+  const exitFade = p <= 0.68 ? 1 : Math.max(0, 1 - (p - 0.68) / 0.32);
 
   const transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(
     1
@@ -199,30 +204,30 @@ function computeScreenFrame(
   )}deg) scale(${depthScale.toFixed(4)})`;
 
   if (z >= 0) {
-    // Plano frontal (Z > 0): nitidez total, por delante de ELLIK, sombra profunda y reflejo de cristal
+    // Plano frontal (Z > 0): fidelidad cromática real sin filtros oscuros
     const frontFactor = zCos;
     return {
       transform,
       zIndex: isHovered ? 50 : 25 + Math.round(frontFactor * 20),
-      opacity: isDimmedByHover ? 0.45 : 1,
-      filter: "blur(0px) brightness(1.03) contrast(1.04)",
+      opacity: (isDimmedByHover ? 0.48 : 1) * exitFade,
+      filter: "none",
       boxShadow:
         "0 34px 85px rgba(0, 0, 0, 0.92), 0 0 1px rgba(255, 255, 255, 0.25)",
       sheenTranslateX: -sinVal * 42,
-      sheenOpacity: isHovered ? 0.95 : 0.28 + frontFactor * 0.62,
+      sheenOpacity: isHovered ? 0.92 : 0.16 + frontFactor * 0.38,
     };
   }
 
-  // Plano trasero (Z < 0): detrás de ELLIK (zIndex < 20), Depth of Field óptico hasta blur(3px) brightness(0.45)
-  const rearDepth = Math.min(1, -zCos); // 0 en ecuador .. 1 en el fondo
-  const blurPx = 0.6 + rearDepth * 2.4; // hasta 3.0px
-  const brightness = 0.72 - rearDepth * 0.27; // hasta 0.45
-  const rearOpacity = 0.86 - rearDepth * 0.34; // 0.52 .. 0.86
+  // Plano trasero (Z < 0): suave profundidad detrás de ELLIK conservando el color del sitio
+  const rearDepth = Math.min(1, -zCos);
+  const blurPx = 0.4 + rearDepth * 1.4;
+  const brightness = 0.9 - rearDepth * 0.18; // 0.90 .. 0.72
+  const rearOpacity = (0.9 - rearDepth * 0.25) * exitFade;
 
   return {
     transform,
     zIndex: Math.max(1, 12 + Math.round(zCos * 10)), // 2 .. 12 (< 20 del núcleo)
-    opacity: isDimmedByHover ? Math.min(rearOpacity, 0.28) : rearOpacity,
+    opacity: isDimmedByHover ? Math.min(rearOpacity, 0.34) : rearOpacity,
     filter: `blur(${blurPx.toFixed(2)}px) brightness(${brightness.toFixed(2)})`,
     boxShadow: "0 12px 30px rgba(0, 0, 0, 0.6)",
     sheenTranslateX: 0,
@@ -288,16 +293,12 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
     scrollProgressRef.current = latest;
   });
 
-  const scrollStageOpacity = useTransform(
+  const coreOpacity = useTransform(
     smoothScrollProgress,
-    [0, 0.65, 1],
-    [1, 1, 0]
+    [0, 0.72, 1],
+    [1, 0.35, 0]
   );
-  const scrollStageScale = useTransform(
-    smoothScrollProgress,
-    [0, 1],
-    [1, 1.65]
-  );
+  const coreScale = useTransform(smoothScrollProgress, [0, 1], [1, 2.1]);
 
   useEffect(() => {
     const mq = window.matchMedia("(pointer: fine)");
@@ -360,6 +361,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
   }, [rawCursorX, rawCursorY]);
 
   useAnimationFrame((_, delta) => {
+    if (document.hidden) return;
     const dt = Math.min(delta, 50) / 1000;
     const scrollP = scrollProgressRef.current;
 
@@ -377,7 +379,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
         dt * (9.5 + scrollP * 16) * baseSpeedFactorRef.current;
     }
 
-    const effectiveRadiusZ = radiusZRef.current * (1 + scrollP * 0.22);
+    const effectiveRadiusZ = radiusZRef.current;
     const activeHover = hoveredIndexRef.current;
 
     for (let i = 0; i < ORBIT_SCREENS.length; i++) {
@@ -392,7 +394,8 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
         effectiveRadiusZ,
         yScaleRef.current,
         activeHover === i,
-        activeHover !== null && activeHover !== i
+        activeHover !== null && activeHover !== i,
+        scrollP
       );
 
       screenEl.style.transform = frame.transform;
@@ -469,14 +472,8 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
       id="inicio"
       className="relative min-h-screen overflow-x-clip flex flex-col justify-between pt-16 pb-24 lg:pt-20 lg:pb-14"
     >
-      {/* Envolvente Portal Zoom-Through controlada por el scroll */}
-      <motion.div
-        style={{
-          opacity: scrollStageOpacity,
-          scale: scrollStageScale,
-        }}
-        className="my-auto w-full will-change-[transform,opacity]"
-      >
+      {/* Portal de Dispersión Radial 3D controlada por scroll */}
+      <div className="my-auto w-full">
         {/* Escenario espacial 3D con perspective: 1000px */}
         <div
           ref={stageRef}
@@ -495,12 +492,14 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
             className="preserve-3d relative flex h-[400px] sm:h-[540px] md:h-[640px] w-full items-center justify-center"
           >
             {/* A. EL SOL DEL SISTEMA: GIROSCOPIO 3D ELLIK + TITULAR MONUMENTAL EN PLANO MEDIO (zIndex: 20, Z=0) */}
-            <div
+            <motion.div
               style={{
-                transform: "translate3d(0px, 0px, 0px)",
+                z: 0,
+                scale: coreScale,
+                opacity: coreOpacity,
                 zIndex: 20,
               }}
-              className="pointer-events-none relative flex flex-col items-center justify-center text-center"
+              className="pointer-events-none relative flex flex-col items-center justify-center text-center will-change-[transform,opacity]"
             >
               <EllikSolarGyroscope className="h-32 w-32 sm:h-40 sm:w-40 md:h-48 md:w-48 -mb-4 sm:-mb-6" />
 
@@ -514,7 +513,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
               <p className="mt-3 font-serif italic text-2xl sm:text-3xl md:text-4xl text-[#F4F1EA] drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
                 Tu negocio en órbita.
               </p>
-            </div>
+            </motion.div>
 
             {/* B. LIENZOS 3D FLOTANTES SIN MARCO PESADO NI PIE DE TEXTO */}
             {ORBIT_SCREENS.map((screen, idx) => {
@@ -525,7 +524,8 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
                 DEFAULT_RADIUS_Z,
                 DEFAULT_Y_SCALE,
                 false,
-                false
+                false,
+                0
               );
 
               return (
@@ -583,7 +583,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
             })}
           </motion.div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Etiqueta flotante junto al cursor solo al posar el mouse sobre una pantalla */}
       <AnimatePresence>

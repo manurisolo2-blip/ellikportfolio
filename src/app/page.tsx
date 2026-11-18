@@ -7,6 +7,7 @@ import { FixedFrameNav } from "@/components/FixedFrameNav";
 import { AstronautScrollTracker } from "@/components/AstronautScrollTracker";
 import { HeroSection } from "@/components/HeroSection";
 import { MissionsSection } from "@/components/MissionsSection";
+import { VelocityMarquee } from "@/components/VelocityMarquee";
 import { InvestmentSection } from "@/components/InvestmentSection";
 import {
   EllikFooter,
@@ -40,14 +41,16 @@ export default function HomePage() {
       <AstronautScrollTracker />
 
       <main className="relative z-10 overflow-x-clip">
-        <div className="pl-6 lg:pl-52 pr-6 lg:pr-16">
+        <div className="pl-6 lg:pl-60 pr-6 lg:pr-16">
           <HeroSection onOpenDrawer={handleOpenDrawer} />
           <MissionsSection />
         </div>
 
+        <VelocityMarquee />
+
         <InvestmentSection onOpenDrawer={handleOpenDrawer} />
 
-        <div className="pl-6 lg:pl-52 pr-6 lg:pr-16">
+        <div className="pl-6 lg:pl-60 pr-6 lg:pr-16">
           <FinalCtaSection onOpenDrawer={handleOpenDrawer} />
         </div>
       </main>

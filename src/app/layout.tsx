@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Instrument_Serif } from "next/font/google";
 import { CustomCursor } from "@/components/CustomCursor";
 import { SmoothScroll } from "@/components/SmoothScroll";
+import { TabTitleManager } from "@/components/TabTitleManager";
 import "./globals.css";
 
 const instrumentSerif = Instrument_Serif({
@@ -13,7 +14,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "ELLIK — Diseño y Desarrollo Web a Medida",
+  title: "ellik",
   description:
     "Estudio web independiente en Córdoba. Cartas digitales con pedidos por WhatsApp, tiendas online para indumentaria y desarrollos a medida.",
   keywords: [
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
     "ELLIK",
   ],
   openGraph: {
-    title: "ELLIK — Diseño y Desarrollo Web a Medida",
+    title: "ellik",
     description:
       "Diseño y desarrollo web a medida — Desde Córdoba para cualquier ciudad.",
     type: "website",
@@ -57,6 +58,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-[var(--bg-void)] text-[var(--text-primary)] antialiased">
+        <TabTitleManager />
         <CustomCursor />
 
         <SmoothScroll>{children}</SmoothScroll>

@@ -4,10 +4,13 @@ import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   motion,
+  useInView,
   useMotionValue,
   useScroll,
   useSpring,
   useTransform,
+  useVelocity,
+  type MotionValue,
 } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { MISSIONS, type Mission } from "@/data/ellikData";
@@ -261,15 +264,42 @@ function FallbackCanvas({ variant }: FallbackCanvasProps) {
   }
 }
 
+function splitTitleLines(title: string): string[] {
+  const words = title.trim().split(/\s+/);
+  if (words.length <= 1 || title.length <= 14) return [title];
+  const lines: string[] = [];
+  let current = "";
+  for (const word of words) {
+    if (!current) {
+      current = word;
+    } else if (`${current} ${word}`.length <= 17) {
+      current = `${current} ${word}`;
+    } else {
+      lines.push(current);
+      current = word;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
 interface ProjectShowcaseRowProps {
   mission: Mission;
   index: number;
+  textSkewY: MotionValue<number>;
 }
 
-function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
+function ProjectShowcaseRow({
+  mission,
+  index,
+  textSkewY,
+}: ProjectShowcaseRowProps) {
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const titleRef = useRef<HTMLHeadingElement | null>(null);
   const beamRef = useRef<HTMLDivElement | null>(null);
   const finePointerRef = useRef<boolean>(false);
+
+  const titleInView = useInView(titleRef, { once: true, margin: "-12%" });
 
   const [primaryError, setPrimaryError] = useState(false);
   const [secondaryError, setSecondaryError] = useState(false);
@@ -331,6 +361,26 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
     [0.15, 1, 1, 0.15]
   );
 
+  // Revelado de lente (clip-path) y contra-zoom cinematográfico (1.18 -> 1.0)
+  const { scrollYProgress: lensRaw } = useScroll({
+    target: cardRef,
+    offset: ["start 92%", "start 35%"],
+  });
+
+  const smoothLens = useSpring(lensRaw, {
+    stiffness: 120,
+    damping: 24,
+    mass: 0.4,
+  });
+
+  const lensClipPath = useTransform(smoothLens, (p) => {
+    const v = 1 - Math.max(0, Math.min(1, p));
+    return `inset(${(14 * v).toFixed(2)}% ${(8 * v).toFixed(2)}% ${(
+      14 * v
+    ).toFixed(2)}% ${(8 * v).toFixed(2)}%)`;
+  });
+  const imageCounterScale = useTransform(smoothLens, [0, 1], [1.18, 1.0]);
+
   // Recorrido interno del índice monumental y parallax de la imagen base
   const { scrollYProgress } = useScroll({
     target: cardRef,
@@ -356,8 +406,8 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
     ]
   );
 
-  // B2. Parallax vertical ligado al scroll para la capa base (-6% a +6% con scale 1.12)
-  const frameParallaxY = useTransform(smoothScroll, [0, 1], ["-6%", "6%"]);
+  // B2. Paneo vertical sutil interno dentro del marco desktop
+  const frameParallaxY = useTransform(smoothScroll, [0, 1], ["-3%", "3%"]);
 
   const handleStageMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!finePointerRef.current) return;
@@ -400,7 +450,7 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
       >
       {/* B. Monolito Visual 3D en Eje Z (8/12 columnas en desktop, alternando izquierda/derecha) */}
       <div
-        className={`order-1 lg:col-span-8 pb-6 md:pb-8 pr-3 md:pr-6 ${
+        className={`order-1 lg:col-span-8 pb-10 md:pb-12 pr-2 sm:pr-4 md:pr-6 ${
           isEven ? "lg:order-2" : "lg:order-1"
         }`}
         style={{ perspective: "1200px" }}
@@ -420,39 +470,48 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
           }}
           className="group/stage relative block will-change-transform focus:outline-none"
         >
-          {/* Capa Base (translateZ: 0px): previewImage con parallax de scroll + haz de luz */}
+          {/* Capa Base (translateZ: 0px): captura Desktop con revelado de lente clip-path + contra-zoom */}
           <div
             style={{ transform: "translateZ(0px)" }}
-            className="relative aspect-[16/10] w-full overflow-hidden bg-[#09090B] border border-[rgba(255,255,255,0.16)] transition-colors duration-300 group-hover/stage:border-[rgba(255,255,255,0.38)]"
+            className="relative aspect-[16/10] w-full overflow-hidden bg-[#0B0B0D] border border-white/15 transition-colors duration-300 group-hover/stage:border-white/35"
           >
-            <motion.div
-              style={{ y: frameParallaxY, scale: 1.12 }}
-              className="relative h-full w-full will-change-transform"
-            >
-              {primaryError ? (
-                <FallbackCanvas variant={mission.fallbackVariant} />
-              ) : (
-                <Image
-                  src={mission.previewImage}
-                  alt={mission.title}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 66vw"
-                  priority={index === 0}
-                  draggable={false}
-                  onError={() => setPrimaryError(true)}
-                  className="h-full w-full object-cover"
-                />
-              )}
-            </motion.div>
+            {/* Brillo superior sutil (1px highlight) */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent"
+            />
 
-            {/* Viñeta muy sutil para separar la capa flotante frontal */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050505]/55 via-transparent to-transparent" />
+            <motion.div
+              style={{ clipPath: lensClipPath }}
+              className="relative h-full w-full overflow-hidden will-change-[clip-path]"
+            >
+              <motion.div
+                style={{ y: frameParallaxY, scale: imageCounterScale }}
+                className="relative h-[108%] w-full -top-[4%] will-change-transform"
+              >
+                {primaryError ? (
+                  <FallbackCanvas variant={mission.fallbackVariant} />
+                ) : (
+                  <Image
+                    src={mission.previewImage}
+                    alt={`${mission.title} — Vista desktop`}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 66vw"
+                    quality={90}
+                    priority={index === 0}
+                    draggable={false}
+                    onError={() => setPrimaryError(true)}
+                    className="h-full w-full object-cover object-top"
+                  />
+                )}
+              </motion.div>
+            </motion.div>
 
             {/* Haz de luz estelar siguiendo el cursor */}
             <div
               ref={beamRef}
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover/stage:opacity-100"
+              className="pointer-events-none absolute inset-0 z-10 opacity-0 transition-opacity duration-300 group-hover/stage:opacity-100"
               style={{
                 background:
                   "radial-gradient(500px circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.11), transparent 45%)",
@@ -460,30 +519,35 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
             />
           </div>
 
-          {/* Capa Flotante Despegada (translateZ: 55px): secondaryImage desplazada en sentido opuesto */}
+          {/* Capa Flotante 3D (translateZ: 65px): silueta minimalista de teléfono real con captura móvil */}
           {!secondaryError && (
             <div
               style={{
-                transform: "translateZ(55px)",
+                transform: "translateZ(65px)",
                 transformStyle: "preserve-3d",
               }}
-              className="absolute -bottom-5 -right-3 md:-bottom-7 md:-right-6 z-20"
+              className="absolute -bottom-6 right-1 sm:-bottom-8 sm:-right-3 md:-right-5 z-20"
             >
               <motion.div
                 style={{
                   x: secondaryOffsetX,
                   y: secondaryOffsetY,
                 }}
-                className="w-32 sm:w-40 md:w-52 aspect-[4/3] border border-[rgba(255,255,255,0.28)] bg-[#050505] shadow-[0_25px_50px_rgba(0,0,0,0.9)] overflow-hidden will-change-transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/stage:scale-[1.03]"
+                className="relative w-24 sm:w-28 md:w-36 aspect-[9/19] phone-preview-frame rounded-[18px] border border-white/25 bg-[#050505] shadow-[0_30px_60px_rgba(0,0,0,0.92)] overflow-hidden will-change-transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/stage:scale-[1.03]"
               >
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                />
                 <Image
                   src={mission.secondaryImage}
-                  alt={`${mission.shortTitle} — Vista secundaria`}
+                  alt={`${mission.shortTitle} — Vista móvil`}
                   fill
-                  sizes="(max-width: 640px) 144px, (max-width: 768px) 160px, 208px"
+                  sizes="(max-width: 640px) 96px, (max-width: 768px) 112px, 144px"
+                  quality={90}
                   draggable={false}
                   onError={() => setSecondaryError(true)}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover object-top"
                 />
               </motion.div>
             </div>
@@ -491,9 +555,9 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
         </motion.a>
       </div>
 
-      {/* C. Columna Editorial Limpia (4/12 columnas en desktop, pegada al borde inferior de la imagen) */}
+      {/* C. Columna Editorial Limpia (4/12 columnas en desktop, con skewY por velocidad y split-line reveal) */}
       <div
-        className={`order-2 lg:col-span-4 flex flex-col justify-between lg:pb-8 ${
+        className={`order-2 lg:col-span-4 flex flex-col justify-between lg:pb-10 ${
           isEven ? "lg:order-1" : "lg:order-2"
         }`}
       >
@@ -511,13 +575,34 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
           </motion.span>
         </div>
 
-        <div className="mt-auto">
+        <motion.div
+          style={{ skewY: textSkewY }}
+          className="mt-auto will-change-transform"
+        >
           <p className="font-mono text-[11px] tracking-[0.14em] uppercase text-[#71717A]">
             {mission.category}
           </p>
 
-          <h3 className="mt-4 font-display text-3xl md:text-[40px] font-medium tracking-[-0.025em] leading-[1.04] text-white">
-            {mission.title}
+          <h3
+            ref={titleRef}
+            className="mt-4 font-display text-3xl md:text-[40px] font-medium tracking-[-0.025em] leading-[1.06] text-white"
+          >
+            {splitTitleLines(mission.title).map((line, lineIdx) => (
+              <span key={line} className="block overflow-hidden">
+                <motion.span
+                  initial={{ y: "108%" }}
+                  animate={titleInView ? { y: "0%" } : {}}
+                  transition={{
+                    duration: 0.72,
+                    delay: lineIdx * 0.09,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  className="block will-change-transform"
+                >
+                  {line}
+                </motion.span>
+              </span>
+            ))}
           </h3>
 
           <p className="mt-4 font-sans text-base md:text-[17px] leading-[1.6] text-[#9CA3AF]">
@@ -551,7 +636,7 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
               </span>
             </a>
           </div>
-        </div>
+        </motion.div>
       </div>
       </motion.article>
     </div>
@@ -559,6 +644,17 @@ function ProjectShowcaseRow({ mission, index }: ProjectShowcaseRowProps) {
 }
 
 export function MissionsSection() {
+  const { scrollY } = useScroll();
+  const scrollVelocity = useVelocity(scrollY);
+  const rawSkew = useTransform(scrollVelocity, [-1800, 0, 1800], [-2.5, 0, 2.5], {
+    clamp: true,
+  });
+  const textSkewY = useSpring(rawSkew, {
+    stiffness: 200,
+    damping: 28,
+    mass: 0.4,
+  });
+
   return (
     <section id="proyectos" className="relative py-24 lg:py-36">
       <div>
@@ -572,6 +668,7 @@ export function MissionsSection() {
               key={mission.id}
               mission={mission}
               index={idx}
+              textSkewY={textSkewY}
             />
           ))}
         </div>

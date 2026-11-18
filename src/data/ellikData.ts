@@ -114,10 +114,8 @@ export const MISSIONS: Mission[] = [
     highlight: "Pedidos por WhatsApp sin pagar comisiones",
     liveUrl: "https://mojo-grille-demo.vercel.app/",
     displayDomain: "mojo-grille-demo.vercel.app",
-    previewImage:
-      "https://mojo-grille-demo.vercel.app/assets/mojo-bowl-ropa-vieja.jpg",
-    secondaryImage:
-      "https://mojo-grille-demo.vercel.app/assets/mojo-cubano.jpg",
+    previewImage: "/previews/mojo-desktop.webp",
+    secondaryImage: "/previews/mojo-mobile.webp",
     fallbackVariant: "gastro-1",
   },
   {
@@ -132,10 +130,8 @@ export const MISSIONS: Mission[] = [
     highlight: "Compra rápida en 2 toques desde el celular",
     liveUrl: "https://dopamine-three-omega.vercel.app/",
     displayDomain: "dopamine-three-omega.vercel.app",
-    previewImage:
-      "https://dopamine-three-omega.vercel.app/assets/Branding/hero-bg.jpg",
-    secondaryImage:
-      "https://dopamine-three-omega.vercel.app/Ropa/Buzos/Buzo%20WIN.webp",
+    previewImage: "/previews/dopamine-desktop.webp",
+    secondaryImage: "/previews/dopamine-mobile.webp",
     fallbackVariant: "ropa",
   },
   {
@@ -150,8 +146,8 @@ export const MISSIONS: Mission[] = [
     highlight: "Carga instantánea en móvil + menú bilingüe",
     liveUrl: "https://lungyai.vercel.app/",
     displayDomain: "lungyai.vercel.app",
-    previewImage: "https://lungyai.vercel.app/media/wok-flames-poster.webp",
-    secondaryImage: "https://lungyai.vercel.app/images/lung-yai-logo.webp",
+    previewImage: "/previews/lungyai-desktop.webp",
+    secondaryImage: "/previews/lungyai-mobile.webp",
     fallbackVariant: "gastro-2",
   },
   {
@@ -166,9 +162,8 @@ export const MISSIONS: Mission[] = [
     highlight: "Proyecto oficial para gestión municipal",
     liveUrl: "https://deportistasrio3.vercel.app/",
     displayDomain: "deportistasrio3.vercel.app",
-    previewImage:
-      "https://deportistasrio3.vercel.app/assets/rio_tercero_hero.webp",
-    secondaryImage: "https://deportistasrio3.vercel.app/assets/prigioni.jpg",
+    previewImage: "/previews/rio3-desktop.webp",
+    secondaryImage: "/previews/rio3-mobile.webp",
     fallbackVariant: "municipal",
   },
 ];

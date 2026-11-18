@@ -138,6 +138,10 @@ h3 {
     border-radius: 9999px !important;
   }
 
+  .phone-preview-frame {
+    border-radius: 18px !important;
+  }
+
   .animate-pulse-star {
     animation: pulse-star 3.6s ease-in-out infinite;
   }
