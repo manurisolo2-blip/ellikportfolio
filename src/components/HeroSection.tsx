@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import {
   AnimatePresence,
@@ -18,7 +19,19 @@ import {
   type Mission,
 } from "@/data/ellikData";
 import { MagneticButton } from "./AnimatedHeading";
-import { EllikSolarGyroscope } from "./EllikLogo";
+
+const EllikEmblem3D = dynamic(
+  () => import("./EllikEmblem3D").then((m) => m.EllikEmblem3D),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        aria-hidden="true"
+        className="pointer-events-none h-[260px] w-[260px] sm:h-[280px] sm:w-[280px] md:h-[400px] md:w-[400px]"
+      />
+    ),
+  }
+);
 
 interface HeroSectionProps {
   onOpenDrawer: (preset?: { rubro?: BusinessCategory; plan?: string }) => void;
@@ -204,11 +217,11 @@ function computeScreenFrame(
   )}deg) scale(${depthScale.toFixed(4)})`;
 
   if (z >= 0) {
-    // Plano frontal (Z > 0): fidelidad cromática real sin filtros oscuros
+    // Plano frontal (Z > 0): fidelidad cromática real por delante del emblema (z >= 20)
     const frontFactor = zCos;
     return {
       transform,
-      zIndex: isHovered ? 50 : 25 + Math.round(frontFactor * 20),
+      zIndex: isHovered ? 50 : 20 + Math.round(frontFactor * 20),
       opacity: (isDimmedByHover ? 0.48 : 1) * exitFade,
       filter: "none",
       boxShadow:
@@ -218,7 +231,7 @@ function computeScreenFrame(
     };
   }
 
-  // Plano trasero (Z < 0): suave profundidad detrás de ELLIK conservando el color del sitio
+  // Plano trasero (Z < 0): detrás del emblema central (zIndex 1..8 < 10)
   const rearDepth = Math.min(1, -zCos);
   const blurPx = 0.4 + rearDepth * 1.4;
   const brightness = 0.9 - rearDepth * 0.18; // 0.90 .. 0.72
@@ -226,7 +239,7 @@ function computeScreenFrame(
 
   return {
     transform,
-    zIndex: Math.max(1, 12 + Math.round(zCos * 10)), // 2 .. 12 (< 20 del núcleo)
+    zIndex: Math.max(1, 8 + Math.round(zCos * 7)),
     opacity: isDimmedByHover ? Math.min(rearOpacity, 0.34) : rearOpacity,
     filter: `blur(${blurPx.toFixed(2)}px) brightness(${brightness.toFixed(2)})`,
     boxShadow: "0 12px 30px rgba(0, 0, 0, 0.6)",
@@ -255,6 +268,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
   const totalDragDistanceRef = useRef<number>(0);
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [isDraggingOrbit, setIsDraggingOrbit] = useState<boolean>(false);
   const [finePointer, setFinePointer] = useState<boolean>(false);
   const radiusZRef = useRef<number>(DEFAULT_RADIUS_Z);
   const yScaleRef = useRef<number>(DEFAULT_Y_SCALE);
@@ -347,6 +361,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
     const handlePointerUp = () => {
       if (!isDraggingRef.current) return;
       isDraggingRef.current = false;
+      setIsDraggingOrbit(false);
     };
 
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
@@ -436,6 +451,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
 
   const handleStagePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     isDraggingRef.current = true;
+    setIsDraggingOrbit(true);
     dragLastXRef.current = e.clientX;
     totalDragDistanceRef.current = 0;
     angularVelocityRef.current = 0;
@@ -491,17 +507,21 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
             }}
             className="preserve-3d relative flex h-[400px] sm:h-[540px] md:h-[640px] w-full items-center justify-center"
           >
-            {/* A. EL SOL DEL SISTEMA: GIROSCOPIO 3D ELLIK + TITULAR MONUMENTAL EN PLANO MEDIO (zIndex: 20, Z=0) */}
+            {/* A. EL SOL DEL SISTEMA: EMBLEMA 3D WEBGL EN PLANO CENTRAL (zIndex: 10, Z=0) */}
             <motion.div
               style={{
                 z: 0,
                 scale: coreScale,
                 opacity: coreOpacity,
-                zIndex: 20,
+                zIndex: 10,
               }}
               className="pointer-events-none relative flex flex-col items-center justify-center text-center will-change-[transform,opacity]"
             >
-              <EllikSolarGyroscope className="h-32 w-32 sm:h-40 sm:w-40 md:h-48 md:w-48 -mb-4 sm:-mb-6" />
+              <EllikEmblem3D
+                boost={isDraggingOrbit}
+                scrollProgressRef={scrollProgressRef}
+                className="-mb-12 sm:-mb-16 md:-mb-24"
+              />
 
               <h1
                 className="font-display font-semibold uppercase tracking-[0.14em] text-[#FFFFFF] pl-[0.14em] leading-[0.88] drop-shadow-[0_10px_40px_rgba(0,0,0,0.85)]"
