@@ -218,46 +218,30 @@ export function MissionsSection() {
             />
           </div>
 
-          {/* Dock inferior compacto en 2 filas: selectores + CTA arriba, ficha editorial debajo */}
+          {/* Dock inferior minimalista: ficha editorial del proyecto activo + CTA en una sola fila */}
           <div className="relative z-20 shrink-0 border-t border-white/10 bg-[#050505]/95 px-6 md:px-12 py-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              {/* Selectores directos de proyecto */}
-              <div
-                className="flex flex-wrap items-center gap-2"
-                role="tablist"
-                aria-label="Seleccionar proyecto"
-              >
-                {MISSIONS.map((mission, idx) => {
-                  const isActive = idx === safeIndex;
-                  return (
-                    <button
-                      key={mission.id}
-                      data-project-tab={mission.id}
-                      type="button"
-                      role="tab"
-                      aria-selected={isActive}
-                      onClick={() => setActiveIndex(idx)}
-                      data-cursor="action"
-                      className={`min-h-[44px] inline-flex items-center gap-2 border px-3.5 py-2 font-sans font-medium tabular-nums text-[11px] sm:text-xs tracking-[0.12em] uppercase transition-colors duration-200 ${
-                        isActive
-                          ? "border-white bg-white text-[#050505] font-medium"
-                          : "border-white/15 bg-transparent text-white/65 hover:border-white/45 hover:text-white"
-                      }`}
-                    >
-                      <span
-                        className={
-                          isActive ? "text-[#050505]/70" : "text-white/40"
-                        }
-                      >
-                        {mission.index}
-                      </span>
-                      <span>{mission.shortTitle}</span>
-                    </button>
-                  );
-                })}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeMission.id}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    className="space-y-1"
+                  >
+                    <p className="font-sans font-medium text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/90 leading-snug">
+                      {activeMission.category} · {activeMission.highlight}
+                    </p>
+                    <p className="hidden sm:block text-sm leading-relaxed text-white/75 line-clamp-1 max-w-3xl">
+                      {activeMission.description}
+                    </p>
+                  </motion.div>
+                </AnimatePresence>
               </div>
 
-              {/* Botón directo al sitio en vivo en una sola línea */}
+              {/* Botón directo al sitio en vivo */}
               <a
                 href={activeMission.liveUrl}
                 target="_blank"
@@ -274,27 +258,6 @@ export function MissionsSection() {
                   <ArrowUpRight className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
                 </span>
               </a>
-            </div>
-
-            {/* Ficha editorial del proyecto activo con ancho cómodo */}
-            <div className="mt-3 pt-3 border-t border-white/[0.08]">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeMission.id}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                  className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-1.5 md:gap-8"
-                >
-                  <p className="hidden sm:block text-sm leading-relaxed text-white/75 line-clamp-1 max-w-3xl">
-                    {activeMission.description}
-                  </p>
-                  <p className="font-sans font-medium text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/90 md:shrink-0 md:text-right leading-snug">
-                    {activeMission.category} · {activeMission.highlight}
-                  </p>
-                </motion.div>
-              </AnimatePresence>
             </div>
           </div>
         </motion.div>
