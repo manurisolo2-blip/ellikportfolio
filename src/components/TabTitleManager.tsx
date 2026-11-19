@@ -18,11 +18,11 @@ export function TabTitleManager() {
       if (document.hidden) {
         clearPending();
         wasHiddenRef.current = true;
-        document.title = "come back";
+        document.title = "Come Back · ellik";
       } else if (wasHiddenRef.current) {
         clearPending();
         wasHiddenRef.current = false;
-        document.title = "welcome back";
+        document.title = "Welcome Back · ellik";
         timeoutRef.current = setTimeout(() => {
           document.title = "ellik";
           timeoutRef.current = null;
