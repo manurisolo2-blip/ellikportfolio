@@ -31,24 +31,24 @@ const DECK_VISUAL_META: Record<
     eyebrow: "GASTRONOMÍA / PEDIDOS DIRECTOS A WHATSAPP",
     image: "/previews/mojo-desktop.webp",
     accent: "#E06D3B",
-    ctaLabel: "Consultar alcance",
-    ctaSublabel: "Respuesta directa por WhatsApp",
+    ctaLabel: "Consultar esta modalidad",
+    ctaSublabel: "Charla directa por WhatsApp",
   },
   "02": {
     id: "catalogo-tienda",
     eyebrow: "INDUMENTARIA & COMERCIOS / VENTA DESDE EL CELULAR",
     image: "/previews/dopamine-desktop.webp",
     accent: "#D9A45B",
-    ctaLabel: "Consultar alcance",
-    ctaSublabel: "Respuesta directa por WhatsApp",
+    ctaLabel: "Consultar esta modalidad",
+    ctaSublabel: "Charla directa por WhatsApp",
   },
   "03": {
     id: "desarrollo-medida",
     eyebrow: "INSTITUCIONES & PROYECTOS ESPECIALES / CÓDIGO PROPIO",
     image: "/previews/rio3-desktop.webp",
     accent: "#5B9BD5",
-    ctaLabel: "Consultar alcance",
-    ctaSublabel: "Respuesta directa por WhatsApp",
+    ctaLabel: "Consultar esta modalidad",
+    ctaSublabel: "Charla directa por WhatsApp",
   },
 };
 
@@ -63,8 +63,8 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
         eyebrow: plan.defaultRubro.toUpperCase(),
         image: "/previews/mojo-desktop.webp",
         accent: "#E06D3B",
-        ctaLabel: "Consultar alcance",
-        ctaSublabel: "Respuesta directa por WhatsApp",
+        ctaLabel: "Consultar esta modalidad",
+        ctaSublabel: "Charla directa por WhatsApp",
       };
 
       return {
@@ -101,39 +101,41 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
       id="servicios"
       className="relative w-full bg-[#F4F1EA] text-[#050505] py-24 md:py-32 selection:bg-[#050505] selection:text-[#F4F1EA]"
     >
-      <div className="px-5 sm:px-8 lg:pl-28 lg:pr-20 xl:pl-32 xl:pr-24">
-        <div
-          ref={headerRef}
-          className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 md:mb-16"
-        >
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-            className="font-display font-semibold text-[clamp(2.4rem,5vw,4.4rem)] leading-[0.96] tracking-[-0.03em] text-[#050505] max-w-3xl"
+      <div className="px-6 sm:px-10 lg:px-28 xl:px-32">
+        <div className="mx-auto w-full max-w-[1100px]">
+          <div
+            ref={headerRef}
+            className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 md:mb-12"
           >
-            Tres formas de trabajar juntos.
-          </motion.h2>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+              className="font-display font-semibold text-[clamp(2.4rem,5vw,4.4rem)] leading-[0.96] tracking-[-0.03em] text-[#050505] max-w-3xl"
+            >
+              Tres formas de trabajar juntos.
+            </motion.h2>
 
-          <motion.p
-            initial={{ opacity: 0, y: 14 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{
-              duration: 0.5,
-              delay: 0.1,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            className="font-sans font-medium text-[11px] uppercase tracking-[0.16em] text-[#050505]/60 shrink-0"
-          >
-            DESLIZÁ PARA APILAR / TOCÁ PARA CONSULTAR
-          </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 14 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{
+                duration: 0.5,
+                delay: 0.1,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="font-sans font-medium text-[11px] uppercase tracking-[0.16em] text-[#050505]/60 shrink-0"
+            >
+              DESLIZÁ PARA APILAR / TOCÁ PARA CONSULTAR
+            </motion.p>
+          </div>
+
+          <ProjectDeck
+            items={deckItems}
+            ground="#F4F1EA"
+            onSelectItem={handleSelectItem}
+          />
         </div>
-
-        <ProjectDeck
-          items={deckItems}
-          ground="#F4F1EA"
-          onSelectItem={handleSelectItem}
-        />
       </div>
     </section>
   );

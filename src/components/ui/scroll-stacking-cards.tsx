@@ -23,8 +23,8 @@ export type DeckItem = {
   deliverables: string[];// 3 puntos concretos incluidos
   image: string;         // Captura real local de respaldo visual (/previews/...)
   accent: string;        // Color de acento del círculo con flecha
-  ctaLabel: string;      // Ej: "Consultar alcance"
-  ctaSublabel: string;   // Ej: "Respuesta directa por WhatsApp"
+  ctaLabel: string;      // Ej: "Consultar esta modalidad"
+  ctaSublabel: string;   // Ej: "Charla directa por WhatsApp"
   planKey: string;       // Clave para preseleccionar en ContactDrawer
   url?: string;          // Opcional si se usa con link externo
 };
@@ -38,9 +38,9 @@ export interface ProjectDeckProps {
 
 const ENTER = 0.72;
 
-function easeOut(t: number): number {
-  const clamped = Math.max(0, Math.min(1, t));
-  return 1 - Math.pow(1 - clamped, 3);
+function smootherStep(t: number): number {
+  const x = Math.max(0, Math.min(1, t));
+  return x * x * x * (x * (x * 6 - 15) + 10);
 }
 
 /**
@@ -53,23 +53,20 @@ function arrived(cardIndex: number, v: number, total: number): number {
   const segStart = (cardIndex - 1) / steps;
   const segSpan = (1 / steps) * ENTER;
   const raw = (v - segStart) / Math.max(segSpan, 0.0001);
-  return easeOut(raw);
+  return smootherStep(raw);
 }
 
 const DECK_SCOPED_CSS = `
 .ellik-deck-card {
-  border-radius: 26px !important;
+  border-radius: 24px !important;
 }
 .ellik-deck-media {
   border-radius: 16px !important;
 }
 .ellik-deck-notch {
-  border-top-left-radius: 30px !important;
+  border-top-left-radius: 24px !important;
 }
 .ellik-deck-orb {
-  border-radius: 9999px !important;
-}
-.ellik-deck-badge {
   border-radius: 9999px !important;
 }
 `;
@@ -104,30 +101,30 @@ function DeckCard({
   const y = useTransform(progress, (v) => {
     if (reducedMotion) return "0svh";
     const a = arrived(index, v, total);
-    const enterY = index === 0 ? 0 : (1 - a) * 94;
-    const stackY = -above(v) * 5.2;
+    const enterY = index === 0 ? 0 : (1 - a) * 96;
+    const stackY = -above(v) * 4.5;
     return `${(enterY + stackY).toFixed(3)}svh`;
   });
 
   const scale = useTransform(progress, (v) => {
     if (reducedMotion) return 1;
     const ab = above(v);
-    return Math.max(0.86, 1 - ab * 0.045);
+    return Math.max(0.88, 1 - ab * 0.045);
   });
 
   const rotateX = useTransform(progress, (v) => {
     if (reducedMotion) return 0;
     const a = arrived(index, v, total);
     const ab = above(v);
-    const enterTilt = index === 0 ? 0 : (1 - a) * 7;
-    const stackTilt = -ab * 3.5;
+    const enterTilt = index === 0 ? 0 : (1 - a) * -16;
+    const stackTilt = Math.min(3, ab * 1.5);
     return enterTilt + stackTilt;
   });
 
   const overlayDim = useTransform(progress, (v) => {
     if (reducedMotion) return 0;
     const ab = above(v);
-    return Math.min(0.38, ab * 0.15);
+    return Math.min(0.36, ab * 0.16);
   });
 
   const handleAction = () => {
@@ -142,6 +139,7 @@ function DeckCard({
 
   return (
     <motion.article
+      data-deck-card={index}
       style={{
         y,
         scale,
@@ -154,170 +152,128 @@ function DeckCard({
       className={cn(
         "ellik-deck-card group/card relative w-full overflow-hidden cursor-pointer select-none flex flex-col",
         "bg-[#09090C] text-[#F4F1EA] border border-white/[0.14]",
-        "shadow-[0_28px_72px_rgba(5,5,5,0.4)] will-change-transform",
+        "shadow-[0_24px_64px_rgba(5,5,5,0.34)] will-change-transform",
         reducedMotion
-          ? "relative mb-8 min-h-[500px]"
-          : "absolute inset-x-0 bottom-0 h-[72svh] min-h-[500px] max-h-[680px]"
+          ? "relative mb-8 min-h-[460px]"
+          : "absolute inset-x-0 bottom-0 h-[64svh] sm:h-[66svh] lg:h-[68svh] min-h-[430px] max-h-[620px]"
       )}
     >
-      {/* Oscurecimiento progresivo cuando entran tarjetas encima */}
+      {/* Oscurecimiento progresivo por opacidad (sin filter: blur para 60fps en GPU) */}
       <motion.div
         aria-hidden="true"
         style={{ opacity: overlayDim }}
         className="pointer-events-none absolute inset-0 z-30 bg-black"
       />
 
-      {/* Resplandor superior sutil con el color de acento de la tarjeta */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-28 right-10 h-64 w-96 opacity-20 blur-2xl"
-        style={{
-          background: `radial-gradient(circle, ${item.accent} 0%, transparent 70%)`,
-        }}
-      />
-
-      {/* Franja superior visible cuando la tarjeta queda apilada detrás (-5.2svh) */}
-      <div className="relative z-20 shrink-0 flex items-center justify-between gap-3 border-b border-white/[0.09] px-6 sm:px-9 md:px-12 h-12 sm:h-14">
-        <div className="flex items-center gap-3.5 min-w-0">
-          <span
-            className="ellik-deck-badge inline-flex h-6 sm:h-7 px-3 items-center justify-center font-sans font-semibold tabular-nums text-[11px] sm:text-xs tracking-[0.16em] text-[#050505] shrink-0"
-            style={{ backgroundColor: item.accent }}
-          >
+      {/* Solapa superior sutil y compacta (h-10): solo índice + nombre */}
+      <div className="relative z-20 shrink-0 flex items-center justify-between gap-4 border-b border-white/[0.08] px-5 sm:px-8 h-10">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="font-sans font-medium tabular-nums text-[11px] tracking-[0.14em] text-white/45 shrink-0">
             {item.index}
           </span>
-          <span className="font-sans font-medium text-[11px] sm:text-xs uppercase tracking-[0.16em] text-[#F4F1EA]/85 truncate">
-            {item.eyebrow}
+          <span className="font-sans font-medium text-xs tracking-[0.04em] text-[#F4F1EA]/85 truncate">
+            {item.name}
           </span>
         </div>
 
-        <span className="hidden sm:inline-block font-sans font-medium tabular-nums text-xs uppercase tracking-[0.14em] text-white/45 shrink-0">
-          MODALIDAD {item.index} / 0{total}
+        <span className="hidden md:inline-block font-sans text-[11px] uppercase tracking-[0.08em] text-white/35 truncate">
+          {item.eyebrow}
         </span>
       </div>
 
       {/* Cuerpo principal de la tarjeta */}
-      <div className="relative z-20 flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 xl:gap-12 p-6 sm:p-9 md:p-11 xl:p-14 pb-8 sm:pb-11">
-        {/* Columna izquierda: Título, Resumen, Entregables y CTA */}
-        <div className="lg:col-span-6 flex flex-col justify-between min-h-0 pr-0 sm:pr-2">
-          <div>
-            <h3 className="font-display text-3xl sm:text-4xl md:text-5xl xl:text-[54px] font-semibold tracking-[-0.03em] leading-[1.0] text-white">
-              {item.name}
-            </h3>
+      <div className="relative z-20 flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 px-5 sm:px-8 lg:px-10 pt-5 sm:pt-7 pb-20 sm:pb-24 lg:pb-12">
+        {/* Columna izquierda: Título, Resumen y 3 entregables (sin botón duplicado) */}
+        <div className="lg:col-span-6 flex flex-col justify-start min-h-0">
+          <h3 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-[40px] font-semibold tracking-[-0.03em] leading-[1.02] text-white">
+            {item.name}
+          </h3>
 
-            <p className="mt-3.5 sm:mt-4 font-sans text-sm sm:text-base md:text-lg xl:text-[19px] leading-relaxed text-[#F4F1EA]/80 max-w-2xl">
-              {item.summary}
-            </p>
+          <p className="mt-3 sm:mt-4 font-sans text-sm sm:text-base leading-relaxed text-[#F4F1EA]/75 max-w-xl">
+            {item.summary}
+          </p>
 
-            {/* Lista de 3 entregables concretos */}
-            <ul className="mt-5 sm:mt-7 space-y-2.5 sm:space-y-3.5 border-t border-white/[0.09] pt-4 sm:pt-6">
-              {item.deliverables.map((point, idx) => (
-                <li
-                  key={idx}
-                  className="flex items-start gap-3 font-sans text-sm sm:text-base md:text-[17px] leading-snug text-[#F4F1EA]/90"
+          <ul className="mt-5 sm:mt-6 space-y-2.5 border-t border-white/[0.08] pt-4 sm:pt-5">
+            {item.deliverables.map((point, idx) => (
+              <li
+                key={idx}
+                className="flex items-start gap-2.5 font-sans text-xs sm:text-sm md:text-[15px] leading-snug text-[#F4F1EA]/85"
+              >
+                <span
+                  className="ellik-deck-orb mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center border border-white/20 bg-white/[0.05]"
+                  style={{ color: item.accent }}
                 >
-                  <span
-                    className="ellik-deck-orb mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center border border-white/25 bg-white/[0.06]"
-                    style={{ color: item.accent }}
-                  >
-                    <Check className="h-3 w-3" strokeWidth={2.5} />
-                  </span>
-                  <span>{point}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Botón CTA directo al ContactDrawer + subtítulo en Satoshi */}
-          <div className="flex flex-wrap items-center gap-3.5 sm:gap-5 pt-4 pr-16 sm:pr-20 lg:pr-0">
-            <button
-              type="button"
-              data-cursor="action"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAction();
-              }}
-              className="group/btn relative inline-flex min-h-[48px] sm:min-h-[52px] items-center gap-2.5 overflow-hidden border border-white/30 bg-white/[0.04] px-5 sm:px-7 py-3 font-sans font-medium text-xs sm:text-[13px] uppercase tracking-[0.15em] text-white transition-colors duration-300 hover:border-white"
-            >
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 translate-y-[102%] bg-white transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-y-0 group-hover/card:translate-y-0"
-              />
-              <span className="relative z-10 inline-flex items-center gap-2 transition-colors duration-300 group-hover/btn:text-[#050505] group-hover/card:text-[#050505]">
-                <span>{item.ctaLabel}</span>
-                <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover/card:translate-x-0.5 group-hover/card:-translate-y-0.5" />
-              </span>
-            </button>
-
-            <span className="hidden sm:inline-block font-sans font-medium text-[11px] sm:text-xs uppercase tracking-[0.14em] text-white/50">
-              {item.ctaSublabel}
-            </span>
-          </div>
+                  <Check className="h-2.5 w-2.5" strokeWidth={2.5} />
+                </span>
+                <span>{point}</span>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        {/* Columna derecha: Vista previa amplia de caso real ELLIK (en desktop lg+) */}
-        <div className="hidden lg:flex lg:col-span-6 flex-col justify-center lg:pr-6 xl:pr-10 min-h-0">
-          <div className="ellik-deck-media relative aspect-[16/10] w-full overflow-hidden border border-white/15 bg-[#121217] shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
+        {/* Columna derecha: Captura limpia de producción (sin badge encima) */}
+        <div className="hidden lg:flex lg:col-span-6 flex-col justify-center min-h-0 pb-14">
+          <div className="ellik-deck-media relative aspect-[16/10] w-full overflow-hidden border border-white/12 bg-[#121217] shadow-[0_18px_48px_rgba(0,0,0,0.55)]">
             <Image
               src={item.image}
               alt={item.name}
               fill
-              sizes="(min-width: 1280px) 620px, 480px"
+              sizes="(min-width: 1280px) 480px, 400px"
               className="h-full w-full object-cover object-top transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/card:scale-[1.03]"
             />
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#09090C]/75 via-transparent to-transparent"
-            />
-            <div className="absolute bottom-3.5 left-3.5 right-3.5 flex items-center justify-between">
-              <span className="font-sans font-medium text-[11px] uppercase tracking-[0.16em] text-[#F4F1EA]/90 bg-[#09090C]/85 px-3 py-1.5 border border-white/15">
-                CASO REAL EN PRODUCCIÓN
-              </span>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Recorte cóncavo inferior derecho relleno con `ground` (#F4F1EA) + botón circular */}
+      {/* Único CTA en la esquina inferior derecha troquelada (ground #F4F1EA, R=20) */}
       <div
-        className="ellik-deck-notch absolute bottom-0 right-0 z-20 flex h-[76px] w-[76px] sm:h-[96px] sm:w-[96px] items-end justify-end p-2 sm:p-3"
+        className="ellik-deck-notch absolute bottom-0 right-0 z-20"
         style={{ backgroundColor: ground }}
       >
-        {/* Filete cóncavo superior sobre el borde derecho */}
+        {/* Filete cóncavo superior derecho (R=20) */}
         <svg
           aria-hidden="true"
-          viewBox="0 0 24 24"
-          className="pointer-events-none absolute -top-6 right-0 h-6 w-6"
+          viewBox="0 0 20 20"
+          className="pointer-events-none absolute -top-[20px] right-0 h-[20px] w-[20px]"
         >
-          <path
-            d="M24 0v24H0C13.255 24 24 13.255 24 0Z"
-            fill={ground}
-          />
+          <path d="M20 0v20H0C11.046 20 20 11.046 20 0Z" fill={ground} />
         </svg>
 
-        {/* Filete cóncavo izquierdo sobre el borde inferior */}
+        {/* Filete cóncavo inferior izquierdo (R=20) */}
         <svg
           aria-hidden="true"
-          viewBox="0 0 24 24"
-          className="pointer-events-none absolute bottom-0 -left-6 h-6 w-6"
+          viewBox="0 0 20 20"
+          className="pointer-events-none absolute bottom-0 -left-[20px] h-[20px] w-[20px]"
         >
-          <path
-            d="M24 0v24H0C13.255 24 24 13.255 24 0Z"
-            fill={ground}
-          />
+          <path d="M20 0v20H0C11.046 20 20 11.046 20 0Z" fill={ground} />
         </svg>
 
         <button
           type="button"
+          data-deck-cta={item.id}
           data-cursor="action"
           aria-label={`${item.ctaLabel} — ${item.name}`}
           onClick={(e) => {
             e.stopPropagation();
             handleAction();
           }}
-          style={{ backgroundColor: item.accent }}
-          className="ellik-deck-orb relative flex h-14 w-14 sm:h-[72px] sm:w-[72px] items-center justify-center text-[#050505] shadow-[0_10px_24px_rgba(0,0,0,0.28)] transition-transform duration-300 ease-[cubic-bezier(0.22,1.25,0.36,1)] group-hover/card:scale-105 group-hover/card:rotate-12"
+          className="group/cta relative flex items-center gap-3.5 sm:gap-4 pl-5 pr-3 pt-3.5 pb-2.5 sm:pl-6 sm:pr-4 sm:pt-4 sm:pb-3 text-left focus:outline-none"
         >
-          <ArrowUpRight className="h-5 w-5 sm:h-7 sm:w-7 stroke-[2.2]" />
+          <div>
+            <span className="block font-display font-semibold text-[#050505] text-[15px] sm:text-[17px] leading-tight whitespace-nowrap">
+              {item.ctaLabel}
+            </span>
+            <span className="block font-sans text-[#52525B] text-[12px] sm:text-[13px] leading-snug whitespace-nowrap">
+              {item.ctaSublabel}
+            </span>
+          </div>
+
+          <span
+            style={{ backgroundColor: item.accent }}
+            className="ellik-deck-orb flex h-12 w-12 shrink-0 items-center justify-center text-white shadow-[0_8px_20px_rgba(0,0,0,0.22)]"
+          >
+            <ArrowUpRight className="h-5 w-5 text-white stroke-[2] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/card:rotate-45 group-hover/cta:rotate-45" />
+          </span>
         </button>
       </div>
     </motion.article>
@@ -339,9 +295,9 @@ export function ProjectDeck({
   });
 
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 380,
-    damping: 48,
-    mass: 0.35,
+    stiffness: 520,
+    damping: 46,
+    mass: 0.15,
   });
 
   if (!items.length) return null;
@@ -352,7 +308,7 @@ export function ProjectDeck({
       <div
         ref={containerRef}
         style={{
-          height: reducedMotion ? "auto" : `${items.length * 90}svh`,
+          height: reducedMotion ? "auto" : `${items.length * 115}svh`,
         }}
         className={cn("relative w-full", className)}
       >
@@ -361,7 +317,7 @@ export function ProjectDeck({
             "w-full",
             reducedMotion
               ? "relative"
-              : "sticky top-16 sm:top-20 lg:top-[84px] h-[82svh] min-h-[580px] max-h-[780px] flex items-end"
+              : "sticky top-0 h-[100svh] pt-14 pb-20 lg:pb-8 flex items-end justify-center"
           )}
           style={
             reducedMotion
