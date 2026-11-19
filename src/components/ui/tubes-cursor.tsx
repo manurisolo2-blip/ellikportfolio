@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
 const NUM_TUBES = 5;
-const POINTS = 26;
+const POINTS = 20;
 
 /**
  * 4 Paletas curadas que rotan suavemente al hacer clic (interpolación RGB en 0.5s)
@@ -33,27 +33,24 @@ const PALETTE_RGB: RGB[][] = PALETTES.map((palette) =>
 
 /**
  * Perfil de grosor a lo largo del filamento:
- * fino en la punta (t=0), pico ancho en el tercio frontal (t≈0.26), afinándose a 0 en la cola (t=1).
+ * fino en la punta (t=0), pico suave en el tercio frontal (t≈0.26), afinándose a 0 en la cola (t=1).
  */
 function thicknessProfile(t: number): number {
   if (t <= 0.26) {
     const u = t / 0.26;
-    return 0.36 + 0.64 * Math.sin(u * (Math.PI * 0.5));
+    return 0.38 + 0.62 * Math.sin(u * (Math.PI * 0.5));
   }
   const u = (t - 0.26) / 0.74;
-  return Math.pow(Math.max(0, 1 - u), 1.35);
+  return Math.pow(Math.max(0, 1 - u), 1.4);
 }
 
 interface TubeState {
-  stiffness: number;
-  damping: number;
+  headRate: number;
   peakHaloWidth: number;
   peakCoreWidth: number;
   haloAlpha: number;
   x: Float32Array;
   y: Float32Array;
-  vx: Float32Array;
-  vy: Float32Array;
   rx: Float32Array;
   ry: Float32Array;
   mx: Float32Array;
@@ -107,19 +104,16 @@ export function TubesCursor() {
 
     resizeCanvas();
 
-    // Inicializar los 5 filamentos con parámetros físicos escalonados
+    // Inicializar los 5 filamentos con tasas exponenciales cohesionadas (sin resortes con rebote)
     const tubes: TubeState[] = Array.from({ length: NUM_TUBES }, (_, idx) => {
       const ratio = idx / (NUM_TUBES - 1); // 0..1
       return {
-        stiffness: 0.16 + ratio * 0.10, // 0.16 a 0.26
-        damping: 0.78 - ratio * 0.10, // 0.68 a 0.78
-        peakHaloWidth: 16 - ratio * 6, // 10px a 16px en el pico
-        peakCoreWidth: 5.0 - ratio * 1.5, // 3.5px a 5px
-        haloAlpha: 0.22 - ratio * 0.08, // 0.14 a 0.22
+        headRate: 10.5 + ratio * 3.0, // Tasas cercanas entre 10.5 y 13.5
+        peakHaloWidth: 11.0 - ratio * 3.0, // Pico refinado de 8px a 11px
+        peakCoreWidth: 3.2 - ratio * 0.8, // Pico refinado de 2.4px a 3.2px
+        haloAlpha: 0.13, // Opacidad suave constante 0.13
         x: new Float32Array(POINTS),
         y: new Float32Array(POINTS),
-        vx: new Float32Array(POINTS),
-        vy: new Float32Array(POINTS),
         rx: new Float32Array(POINTS),
         ry: new Float32Array(POINTS),
         mx: new Float32Array(POINTS),
@@ -127,7 +121,7 @@ export function TubesCursor() {
       };
     });
 
-    // Precalcular perfiles por segmento para evitar cálculos redundantes en 60fps
+    // Precalcular perfiles por segmento (20 nodos)
     const segThickness = new Float32Array(POINTS);
     const segBell = new Float32Array(POINTS);
     const segAlpha = new Float32Array(POINTS);
@@ -135,19 +129,21 @@ export function TubesCursor() {
       const t = i / (POINTS - 1);
       segThickness[i] = thicknessProfile(t);
       segBell[i] = Math.sin(t * Math.PI);
-      segAlpha[i] = Math.pow(Math.max(0, 1 - t), 0.78);
+      segAlpha[i] = Math.pow(Math.max(0, 1 - t), 0.85);
     }
 
     let mouseX = width * 0.5;
     let mouseY = height * 0.5;
-    let prevMouseX = mouseX;
-    let prevMouseY = mouseY;
+    let guideX = mouseX;
+    let guideY = mouseY;
+    let prevGuideX = guideX;
+    let prevGuideY = guideY;
     let pointerInitialized = false;
-    let pointerSpeed = 0;
+    let smoothSpeed = 0;
     let lastMoveTimestamp = 0;
     let idleOpacity = 0;
     let rafId: number | null = null;
-    let lastFrameTime = performance.now();
+    let lastTime = performance.now();
 
     // Estado de interpolación de paletas (0.5s al hacer clic)
     let currentPaletteIdx = 0;
@@ -163,7 +159,7 @@ export function TubesCursor() {
     let serviciosBottom = -1;
     let lastRectUpdate = 0;
     let isOverLightSection = false;
-    let lightSectionBlend = 0; // 0 = oscuro (lighter), 1 = claro (#servicios, source-over)
+    let lightSectionBlend = 0;
 
     const updateServiciosBounds = (now: number) => {
       if (now - lastRectUpdate < 120) return;
@@ -183,13 +179,16 @@ export function TubesCursor() {
     };
 
     const snapAllNodesTo = (x: number, y: number) => {
+      guideX = x;
+      guideY = y;
+      prevGuideX = x;
+      prevGuideY = y;
+      smoothSpeed = 0;
       for (let t = 0; t < NUM_TUBES; t++) {
         const tube = tubes[t];
         for (let i = 0; i < POINTS; i++) {
           tube.x[i] = x;
           tube.y[i] = y;
-          tube.vx[i] = 0;
-          tube.vy[i] = 0;
           tube.rx[i] = x;
           tube.ry[i] = y;
         }
@@ -197,15 +196,19 @@ export function TubesCursor() {
     };
 
     const renderFrame = (now: number) => {
-      const dt = Math.min((now - lastFrameTime) / 1000, 0.05);
-      lastFrameTime = now;
-      const timeSec = now * 0.001;
+      // Delta time independiente de 60Hz / 120Hz / 144Hz
+      const dt = Math.min(Math.max((now - lastTime) / 1000, 0.001), 0.033);
+      lastTime = now;
+      const time = now * 0.001;
+
+      // Suavizado exponencial sin rebote (critically damped lerp)
+      const factor = (rate: number) => 1 - Math.exp(-rate * dt);
 
       updateServiciosBounds(now);
 
-      // Transición suave entre modo oscuro y sección clara #servicios
+      // Transición suave entre secciones oscuras y sección clara #servicios
       const targetLightBlend = isOverLightSection ? 1 : 0;
-      lightSectionBlend += (targetLightBlend - lightSectionBlend) * Math.min(1, dt * 12);
+      lightSectionBlend += (targetLightBlend - lightSectionBlend) * factor(10);
 
       // Interpolación RGB suave de 0.5s al cambiar paleta con clic
       if (isTransitioningPalette) {
@@ -218,7 +221,6 @@ export function TubesCursor() {
             activeColors[t][2] = targetColors[t][2];
           }
         } else {
-          // Ease out cubic
           const ease = 1 - Math.pow(1 - elapsed, 3);
           for (let t = 0; t < NUM_TUBES; t++) {
             activeColors[t][0] =
@@ -231,52 +233,58 @@ export function TubesCursor() {
         }
       }
 
-      // Calcular velocidad instantánea del puntero y decaimiento suave
-      const instDx = mouseX - prevMouseX;
-      const instDy = mouseY - prevMouseY;
-      prevMouseX = mouseX;
-      prevMouseY = mouseY;
-      const instSpeed = Math.hypot(instDx, instDy);
-      pointerSpeed = pointerSpeed * 0.86 + instSpeed * 0.14;
+      // Puntero virtual suavizado (guideX, guideY) con factor(14)
+      const guideAlpha = factor(14);
+      guideX += (mouseX - guideX) * guideAlpha;
+      guideY += (mouseY - guideY) * guideAlpha;
 
-      // Desvanecimiento inteligente en reposo (~0.9s hasta 0)
+      // Velocidad normalizada a 60fps equivalente con techo duro en 18
+      const frameScale = dt * 60;
+      const instSpeed =
+        Math.hypot(guideX - prevGuideX, guideY - prevGuideY) /
+        Math.max(frameScale, 0.25);
+      prevGuideX = guideX;
+      prevGuideY = guideY;
+
+      smoothSpeed += (instSpeed - smoothSpeed) * factor(10);
+      const cappedSpeed = Math.min(smoothSpeed, 18);
+
+      // Desvanecimiento progresivo en reposo (~0.65s hasta 0)
       const timeSinceMove = now - lastMoveTimestamp;
-      if (timeSinceMove > 45) {
-        idleOpacity = Math.max(0, idleOpacity - dt / 0.9);
+      if (timeSinceMove > 40) {
+        idleOpacity = Math.max(0, idleOpacity - dt / 0.65);
       } else {
-        idleOpacity = Math.min(1, idleOpacity + dt * 9.5);
+        idleOpacity = Math.min(1, idleOpacity + dt * 8.5);
       }
 
-      let maxNodeMotion = 0;
-      const speedNorm = Math.min(pointerSpeed / 22, 1.35);
+      // Separación máxima controlada: entre 2.5px en movimiento lento y tope estricto de 11px
+      const maxSpread = Math.min(11, 2.5 + cappedSpeed * 0.45);
+      const chainAlpha = factor(18);
+      let maxTailDist = 0;
 
-      // 1. Actualizar física de resortes, cadena con inercia y torsión helicoidal
+      // 1. Actualizar cadena de nodos con lerp exponencial sin rebote + torsión lenta tipo cinta de seda
       for (let t = 0; t < NUM_TUBES; t++) {
         const tube = tubes[t];
-        const { x, y, vx, vy, rx, ry, mx, my, stiffness, damping } = tube;
+        const { x, y, rx, ry, mx, my, headRate } = tube;
 
-        // Nodo 0 (cabeza): resorte hacia (mouseX, mouseY)
-        vx[0] = (vx[0] + (mouseX - x[0]) * stiffness) * damping;
-        vy[0] = (vy[0] + (mouseY - y[0]) * stiffness) * damping;
-        x[0] += vx[0];
-        y[0] += vy[0];
+        // Nodo 0 sigue a (guideX, guideY) con rate entre 10.5 y 13.5
+        const headAlpha = factor(headRate);
+        x[0] += (guideX - x[0]) * headAlpha;
+        y[0] += (guideY - y[0]) * headAlpha;
 
-        // Nodos 1..POINTS-1: seguimiento en cadena con lerp decreciente e inercia de velocidad
+        // Cada nodo i sigue al nodo i - 1 con factor(18) sin inercia de latigueo
         for (let i = 1; i < POINTS; i++) {
-          const ratio = i / (POINTS - 1);
-          const follow = 0.54 - ratio * 0.22; // Lerp decreciente hacia la cola
-          const inertia = 0.36 + ratio * 0.08; // Conservación de inercia para látigos sedosos
-
-          vx[i] = vx[i] * inertia + (x[i - 1] - x[i]) * follow;
-          vy[i] = vy[i] * inertia + (y[i - 1] - y[i]) * follow;
-          x[i] += vx[i];
-          y[i] += vy[i];
-
-          const motion = Math.abs(vx[i]) + Math.abs(vy[i]);
-          if (motion > maxNodeMotion) maxNodeMotion = motion;
+          x[i] += (x[i - 1] - x[i]) * chainAlpha;
+          y[i] += (y[i - 1] - y[i]) * chainAlpha;
         }
 
-        // Torsión helicoidal 3D perpendicular a la dirección del movimiento
+        const tailDist = Math.hypot(mouseX - x[POINTS - 1], mouseY - y[POINTS - 1]);
+        if (tailDist > maxTailDist) maxTailDist = tailDist;
+
+        // Torsión helicoidal lenta y sedosa (time * 1.4)
+        let prevPerpX = 0;
+        let prevPerpY = 0;
+
         for (let i = 0; i < POINTS; i++) {
           if (i === 0 || i === POINTS - 1) {
             rx[i] = x[i];
@@ -288,18 +296,24 @@ export function TubesCursor() {
           const dy = y[i - 1] - y[i + 1];
           const len = Math.hypot(dx, dy);
 
-          if (len > 0.001) {
+          if (len > 0.15) {
             const nx = dx / len;
             const ny = dy / len;
-            // Vector perpendicular normalizado (-ny, nx)
-            const perpX = -ny;
-            const perpY = nx;
+            // Suavizar la normal con el segmento previo para evitar quiebres bruscos
+            const rawPerpX = -ny;
+            const rawPerpY = nx;
+            const perpX =
+              i === 1 ? rawPerpX : prevPerpX * 0.35 + rawPerpX * 0.65;
+            const perpY =
+              i === 1 ? rawPerpY : prevPerpY * 0.35 + rawPerpY * 0.65;
+            prevPerpX = perpX;
+            prevPerpY = perpY;
 
-            // Spread dinámico con velocidad y curva de campana a lo largo de la cola
-            const spread =
-              (2.6 + speedNorm * 10.5) * segBell[i] * (0.35 + 0.65 * idleOpacity);
+            // Atenuar torsión cuando los nodos están muy cerca entre sí al frenar
+            const segReach = Math.min(1, len / 4.5);
+            const spread = maxSpread * segBell[i] * segReach;
             const offset =
-              Math.sin(timeSec * 3.2 - i * 0.34 + t * 1.25) * spread;
+              Math.sin(time * 1.4 - i * 0.26 + t * 1.25) * spread;
 
             rx[i] = x[i] + perpX * offset;
             ry[i] = y[i] + perpY * offset;
@@ -309,25 +323,25 @@ export function TubesCursor() {
           }
         }
 
-        // Calcular puntos medios para quadraticCurveTo continuo
+        // Puntos medios para curvas cuadráticas suaves
         for (let i = 0; i < POINTS - 1; i++) {
           mx[i] = (rx[i] + rx[i + 1]) * 0.5;
           my[i] = (ry[i] + ry[i + 1]) * 0.5;
         }
       }
 
-      // 2. Limpiar canvas y dibujar las dos capas luminosas
+      // 2. Limpiar canvas y renderizar doble capa refinada
       ctx.clearRect(0, 0, width, height);
 
       if (idleOpacity > 0.004) {
         const useSourceOver = lightSectionBlend > 0.45;
         const luminanceScale = 1 - 0.25 * lightSectionBlend; // Oscurece 25% sobre #servicios
-        const haloWidthScale = 1 - 0.28 * lightSectionBlend;
+        const haloWidthScale = 1 - 0.25 * lightSectionBlend;
 
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
 
-        // CAPA 1: Halo Volumétrico (10px a 16px en el pico, baja opacidad 0.14 a 0.22)
+        // CAPA 1: Halo Volumétrico suave (pico de 8px a 11px, opacidad 0.13)
         ctx.globalCompositeOperation = useSourceOver ? "source-over" : "lighter";
 
         for (let t = 0; t < NUM_TUBES; t++) {
@@ -340,7 +354,7 @@ export function TubesCursor() {
           for (let i = 0; i < POINTS - 2; i++) {
             const w = peakHaloWidth * haloWidthScale * segThickness[i];
             const a = haloAlpha * idleOpacity * segAlpha[i];
-            if (w < 0.35 || a < 0.005) continue;
+            if (w < 0.3 || a < 0.004) continue;
 
             ctx.beginPath();
             if (i === 0) {
@@ -355,7 +369,7 @@ export function TubesCursor() {
           }
         }
 
-        // CAPA 2A: Tubo Principal saturado (3.5px a 5px en el pico)
+        // CAPA 2A: Tubo Principal refinado (pico de 2.4px a 3.2px)
         for (let t = 0; t < NUM_TUBES; t++) {
           const tube = tubes[t];
           const { rx, ry, mx, my, peakCoreWidth } = tube;
@@ -365,8 +379,8 @@ export function TubesCursor() {
 
           for (let i = 0; i < POINTS - 2; i++) {
             const w = peakCoreWidth * segThickness[i];
-            const a = 0.86 * idleOpacity * segAlpha[i];
-            if (w < 0.25 || a < 0.008) continue;
+            const a = 0.84 * idleOpacity * segAlpha[i];
+            if (w < 0.2 || a < 0.006) continue;
 
             ctx.beginPath();
             if (i === 0) {
@@ -381,17 +395,17 @@ export function TubesCursor() {
           }
         }
 
-        // CAPA 2B: Núcleo Blanco ultrafino (1.2px) para brillo cilíndrico 3D
+        // CAPA 2B: Núcleo Blanco fino (0.9px, opacidad 0.7)
         const coreWhiteChannel = Math.round(255 - 25 * lightSectionBlend);
         for (let t = 0; t < NUM_TUBES; t++) {
           const tube = tubes[t];
           const { rx, ry, mx, my } = tube;
 
-          for (let i = 0; i < POINTS - 4; i++) {
-            const w = 1.2 * segThickness[i];
+          for (let i = 0; i < POINTS - 3; i++) {
+            const w = 0.9 * segThickness[i];
             const a =
-              (0.85 - 0.22 * lightSectionBlend) * idleOpacity * segAlpha[i];
-            if (w < 0.2 || a < 0.01) continue;
+              (0.7 - 0.18 * lightSectionBlend) * idleOpacity * segAlpha[i];
+            if (w < 0.15 || a < 0.008) continue;
 
             ctx.beginPath();
             if (i === 0) {
@@ -407,10 +421,10 @@ export function TubesCursor() {
         }
       }
 
-      // Detener requestAnimationFrame cuando la estela se desvaneció y está en reposo (0% CPU en idle)
+      // Detener requestAnimationFrame al quedar quieto (0% CPU en idle)
       if (
         idleOpacity <= 0.004 &&
-        maxNodeMotion < 0.08 &&
+        maxTailDist < 1.2 &&
         !isTransitioningPalette
       ) {
         ctx.clearRect(0, 0, width, height);
@@ -423,25 +437,31 @@ export function TubesCursor() {
 
     const ensureLoopRunning = () => {
       if (rafId === null) {
-        lastFrameTime = performance.now();
+        lastTime = performance.now();
         rafId = window.requestAnimationFrame(renderFrame);
       }
     };
 
     const handlePointerMove = (e: PointerEvent) => {
       const now = performance.now();
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      lastMoveTimestamp = now;
+      const nextX = e.clientX;
+      const nextY = e.clientY;
 
-      if (!pointerInitialized) {
+      // Si es el primer movimiento o saltó >260px tras estar en reposo, anclar nodos directo al cursor
+      const jumpDist = Math.hypot(nextX - guideX, nextY - guideY);
+      if (
+        !pointerInitialized ||
+        (idleOpacity <= 0.05 && jumpDist > 260) ||
+        (rafId === null && jumpDist > 260)
+      ) {
         pointerInitialized = true;
-        prevMouseX = mouseX;
-        prevMouseY = mouseY;
-        snapAllNodesTo(mouseX, mouseY);
+        snapAllNodesTo(nextX, nextY);
       }
 
-      // Actualizar inmediatamente si entramos o salimos de #servicios con los bounds cacheados
+      mouseX = nextX;
+      mouseY = nextY;
+      lastMoveTimestamp = now;
+
       if (serviciosTop !== -1 || serviciosBottom !== -1) {
         isOverLightSection =
           mouseY >= serviciosTop && mouseY <= serviciosBottom;
@@ -458,12 +478,12 @@ export function TubesCursor() {
       paletteTransitionStart = now;
       isTransitioningPalette = true;
       lastMoveTimestamp = now;
-      idleOpacity = Math.max(idleOpacity, 0.75);
+      idleOpacity = Math.max(idleOpacity, 0.7);
       ensureLoopRunning();
     };
 
     const handleScroll = () => {
-      lastRectUpdate = 0; // Forzar actualización de rect en el próximo frame activo
+      lastRectUpdate = 0;
     };
 
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
