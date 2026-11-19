@@ -184,7 +184,7 @@ export function MissionsSection() {
           />
 
           {/* Encabezado compacto dentro del escenario fullscreen */}
-          <header className="relative z-20 shrink-0 flex items-center justify-between gap-4 border-b border-white/10 bg-[#050505]/95 px-6 md:px-12 py-4 md:py-5">
+          <header className="relative z-20 shrink-0 flex items-center justify-between gap-4 border-b border-white/10 bg-[#050505]/95 pt-[76px] lg:pt-[92px] pb-3.5 md:pb-4 px-6 sm:px-10 lg:pl-32 lg:pr-12">
             <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-white leading-none">
               Obra reciente.
             </h2>
@@ -219,7 +219,7 @@ export function MissionsSection() {
           </div>
 
           {/* Dock inferior minimalista: ficha editorial del proyecto activo + CTA en una sola fila */}
-          <div className="relative z-20 shrink-0 border-t border-white/10 bg-[#050505]/95 px-6 md:px-12 py-4">
+          <div className="relative z-20 shrink-0 border-t border-white/10 bg-[#050505]/95 px-6 sm:px-10 lg:pl-32 lg:pr-12 pt-4 pb-20 lg:pb-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <AnimatePresence mode="wait">

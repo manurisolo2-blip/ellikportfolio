@@ -156,8 +156,8 @@ function DeckCard({
         "bg-[#09090C] text-[#F4F1EA] border border-white/[0.14]",
         "shadow-[0_28px_72px_rgba(5,5,5,0.4)] will-change-transform",
         reducedMotion
-          ? "relative mb-8 min-h-[540px]"
-          : "absolute inset-x-0 bottom-0 h-[76svh] min-h-[540px] max-h-[720px]"
+          ? "relative mb-8 min-h-[500px]"
+          : "absolute inset-x-0 bottom-0 h-[72svh] min-h-[500px] max-h-[680px]"
       )}
     >
       {/* Oscurecimiento progresivo cuando entran tarjetas encima */}
@@ -361,7 +361,7 @@ export function ProjectDeck({
             "w-full",
             reducedMotion
               ? "relative"
-              : "sticky top-12 sm:top-16 h-[86svh] min-h-[620px] max-h-[820px] flex items-end"
+              : "sticky top-16 sm:top-20 lg:top-[84px] h-[82svh] min-h-[580px] max-h-[780px] flex items-end"
           )}
           style={
             reducedMotion
