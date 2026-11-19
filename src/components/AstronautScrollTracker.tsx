@@ -13,19 +13,7 @@ import {
   useVelocity,
 } from "framer-motion";
 
-interface StarSparkState {
-  active: boolean;
-  life: number;
-  maxLife: number;
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  rot: number;
-  scale: number;
-}
-
-const STAR_SPARK_COUNT = 3;
+const CLICK_STAR_ANGLES = [0, 58, 122, 180, 238, 302] as const;
 
 function clamp(val: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, val));
@@ -44,63 +32,45 @@ export function AstronautScrollTracker() {
   const rigRootRef = useRef<SVGGElement | null>(null);
   const torsoRef = useRef<SVGGElement | null>(null);
   const headRef = useRef<SVGGElement | null>(null);
-  const visorGlintRef = useRef<SVGGElement | null>(null);
-  const clickOrbitalGroupRef = useRef<SVGGElement | null>(null);
-
-  const cordLeftRef = useRef<SVGPathElement | null>(null);
-  const cordLeftInnerRef = useRef<SVGPathElement | null>(null);
-  const cordLeftAgletRef = useRef<SVGCircleElement | null>(null);
-  const cordRightRef = useRef<SVGPathElement | null>(null);
-  const cordRightInnerRef = useRef<SVGPathElement | null>(null);
-  const cordRightAgletRef = useRef<SVGCircleElement | null>(null);
-
-  const backUpperArmRef = useRef<SVGGElement | null>(null);
-  const backForearmRef = useRef<SVGGElement | null>(null);
-  const frontUpperArmRef = useRef<SVGGElement | null>(null);
-  const frontForearmRef = useRef<SVGGElement | null>(null);
-  const relaxedHandRef = useRef<SVGGElement | null>(null);
-  const peaceHandRef = useRef<SVGGElement | null>(null);
-
-  const backThighRef = useRef<SVGGElement | null>(null);
-  const backShinRef = useRef<SVGGElement | null>(null);
-  const frontThighRef = useRef<SVGGElement | null>(null);
+  const farArmRef = useRef<SVGGElement | null>(null);
+  const upperArmRef = useRef<SVGGElement | null>(null);
+  const forearmRef = useRef<SVGGElement | null>(null);
+  const frontLegRef = useRef<SVGGElement | null>(null);
   const frontShinRef = useRef<SVGGElement | null>(null);
+  const backLegRef = useRef<SVGGElement | null>(null);
+  const backShinRef = useRef<SVGGElement | null>(null);
 
-  const thrusterGroupRef = useRef<SVGGElement | null>(null);
-  const plumeOuterRef = useRef<SVGPathElement | null>(null);
-  const plumeInnerRef = useRef<SVGPathElement | null>(null);
-  const starSparkRefs = useRef<Array<SVGPathElement | null>>([]);
+  const flowGroupRef = useRef<SVGGElement | null>(null);
+  const flowLineRefs = useRef<Array<SVGPathElement | null>>([]);
+  const clickStarRefs = useRef<Array<SVGLineElement | null>>([]);
 
   const trackHeightRef = useRef<number>(520);
   const hoveredRef = useRef<boolean>(false);
-  const hoverEnterTimeRef = useRef<number>(-10);
 
-  // Estado cinemático mutable suavizado por dt exponencial
+  // Estado cinemático mutable suavizado exponencialmente con dt
   const kinRef = useRef({
     smoothVel: 0,
-    rootTilt: -10,
-    headTilt: 4,
+    rootTilt: 0,
+    headTilt: 0,
     hoverBlend: 0,
-    backShoulder: 0,
-    backElbow: 0,
-    frontShoulder: 0,
-    frontElbow: 0,
-    backHip: 0,
-    backKnee: 0,
-    frontHip: 0,
-    frontKnee: 0,
-    cordLift: 0,
-    thrusterAlpha: 0,
-    thrusterAngle: 120,
+    farArmRot: 0,
+    shoulderRot: 0,
+    elbowRot: 0,
+    frontHipRot: 0,
+    frontKneeRot: 0,
+    backHipRot: 0,
+    backKneeRot: 0,
+    flowAlpha: 0,
+    flowAngle: 120,
     lightBlend: 0,
   });
 
-  // Giro limpio de 360° en clic + destello orbital del casco
+  // Mortal 360° en clic + trazos estelares radiales de tinta
   const spinActiveRef = useRef<boolean>(false);
   const spinStartTimeRef = useRef<number>(-10);
-  const orbitalBurstTimeRef = useRef<number>(-10);
+  const starBurstTimeRef = useRef<number>(-10);
 
-  // Cache liviana de #servicios (#F4F1EA) para adaptar cable umbilical
+  // Detección cacheada de #servicios (#F4F1EA) para inversión limpia del cable umbilical
   const serviciosCacheRef = useRef<{
     el: HTMLElement | null;
     lastCheck: number;
@@ -110,22 +80,6 @@ export function AstronautScrollTracker() {
     lastCheck: 0,
     overLight: false,
   });
-
-  // 3 micro-destellos en forma de rombo/estrella
-  const sparksRef = useRef<StarSparkState[]>(
-    Array.from({ length: STAR_SPARK_COUNT }, () => ({
-      active: false,
-      life: 0,
-      maxLife: 0.45,
-      x: 22,
-      y: 55,
-      vx: 0,
-      vy: 0,
-      rot: 0,
-      scale: 1,
-    }))
-  );
-  const sparkSpawnAccRef = useRef<number>(0);
 
   const [trackHeight, setTrackHeight] = useState<number>(520);
   const [scrollPct, setScrollPct] = useState<number>(0);
@@ -143,7 +97,7 @@ export function AstronautScrollTracker() {
 
   const astroY = useTransform(smoothProgress, [0, 1], [
     0,
-    Math.max(trackHeight - 104, 1),
+    Math.max(trackHeight - 112, 1),
   ]);
 
   const floatX = useMotionValue(0);
@@ -151,12 +105,9 @@ export function AstronautScrollTracker() {
 
   useEffect(() => {
     hoveredRef.current = isHovered;
-    if (isHovered) {
-      hoverEnterTimeRef.current = performance.now() * 0.001;
-    }
   }, [isHovered]);
 
-  // Altura del carril para cálculo del cable Bézier
+  // Medición responsiva de la altura del carril
   useEffect(() => {
     const el = trackRef.current;
     if (!el) return;
@@ -185,8 +136,9 @@ export function AstronautScrollTracker() {
 
   const handleAstronautClick = () => {
     spinActiveRef.current = true;
-    spinStartTimeRef.current = performance.now() * 0.001;
-    orbitalBurstTimeRef.current = spinStartTimeRef.current;
+    const now = performance.now() * 0.001;
+    spinStartTimeRef.current = now;
+    starBurstTimeRef.current = now;
   };
 
   useAnimationFrame((timeMs, deltaMs) => {
@@ -206,67 +158,61 @@ export function AstronautScrollTracker() {
     const upStrength = clamp(-k.smoothVel / 0.34, 0, 1);
     const scrollStrength = Math.max(downStrength, upStrength);
 
-    const travel = Math.max(trackHeightRef.current - 104, 1);
+    const travel = Math.max(trackHeightRef.current - 112, 1);
     const currentAstroY = clamp(smoothProgress.get(), 0, 1) * travel;
 
-    // 1. Flotación Lo-Fi en gravedad cero (y ±5px suave)
-    const fx = Math.sin(t * 1.05) * 2.8;
-    const fy = Math.cos(t * 1.35) * 5.0;
+    // 1. Gravedad cero orgánica (y: ±6px, deriva lateral sutil)
+    const fx = Math.sin(t * 0.95) * 2.8;
+    const fy = Math.cos(t * 1.25) * 6.0;
     floatX.set(fx);
     floatY.set(fy);
 
-    // 2. Giro limpio de 360° con ease-out sedoso al hacer clic
+    // 2. Giro limpio de 360° con ease-out suave al hacer clic
     let spinDeg = 0;
     if (spinActiveRef.current) {
       const elapsedSpin = nowSec - spinStartTimeRef.current;
-      const spinDuration = 0.92;
+      const spinDuration = 0.95;
       if (elapsedSpin >= spinDuration) {
         spinActiveRef.current = false;
         spinDeg = 0;
       } else {
         const p = clamp(elapsedSpin / spinDuration, 0, 1);
         const easedOut = 1 - Math.pow(1 - p, 3);
-        spinDeg = 360 * easedOut;
+        spinDeg = -360 * easedOut;
       }
     }
 
-    // 3. Inclinación del torso y cabeza (recostado -10deg ±4deg en reposo, drop abajo, boost arriba)
-    const idleTilt = -10 + Math.sin(t * 1.1) * 4.0;
-    const dropTilt = 16 + downStrength * 7;
-    const boostTilt = -3 - upStrength * 4;
+    // 3. Torso (±3.5deg reposo, +14 a +26deg en picada abajo, -16deg mirando arriba)
+    const idleTilt = Math.sin(t * 0.9) * 3.5;
+    const dropTilt = 14 + downStrength * 12;
+    const boostTilt = -16 * upStrength;
     const targetRootTilt =
       idleTilt * (1 - scrollStrength) +
       dropTilt * downStrength +
       boostTilt * upStrength;
     k.rootTilt += (targetRootTilt - k.rootTilt) * ease(8.5);
 
-    const hoverAge = nowSec - hoverEnterTimeRef.current;
-    const hoverNod =
-      hoveredRef.current && hoverAge >= 0 && hoverAge < 0.45
-        ? Math.sin((hoverAge / 0.45) * Math.PI) * 6.5
-        : 0;
-    const idleHeadTilt = 3.5 + Math.sin(t * 1.1 - 0.55) * 4.5;
-    const dropHeadTilt = 9 + downStrength * 5;
-    const boostHeadTilt = -12 - upStrength * 5;
-    const targetHeadTilt =
-      idleHeadTilt * (1 - scrollStrength) +
-      dropHeadTilt * downStrength +
-      boostHeadTilt * upStrength +
-      hoverNod;
-    k.headTilt += (targetHeadTilt - k.headTilt) * ease(7.0);
+    k.hoverBlend += ((hoveredRef.current ? 1 : 0) - k.hoverBlend) * ease(8.0);
 
-    k.hoverBlend += ((hoveredRef.current ? 1 : 0) - k.hoverBlend) * ease(8.5);
+    // Cabeza / casco con micro-cabeceo lento y giro leve hacia el usuario en hover
+    const idleHead = Math.sin(t * 0.9 - 0.65) * 4.2;
+    const targetHead =
+      idleHead * (1 - scrollStrength) +
+      downStrength * 8 -
+      upStrength * 11 +
+      k.hoverBlend * 9.5;
+    k.headTilt += (targetHead - k.headTilt) * ease(7.0);
 
     const totalRootRot = k.rootTilt + spinDeg;
     if (rigRootRef.current) {
       rigRootRef.current.setAttribute(
         "transform",
-        `rotate(${totalRootRot.toFixed(2)} 42 50)`
+        `rotate(${totalRootRot.toFixed(2)} 54 78)`
       );
     }
 
     if (torsoRef.current) {
-      const torsoBreath = Math.sin(t * 1.45) * 0.7;
+      const torsoBreath = Math.sin(t * 1.3) * 0.8;
       torsoRef.current.setAttribute(
         "transform",
         `translate(0 ${torsoBreath.toFixed(2)})`
@@ -276,281 +222,106 @@ export function AstronautScrollTracker() {
     if (headRef.current) {
       headRef.current.setAttribute(
         "transform",
-        `rotate(${k.headTilt.toFixed(2)} 42 31)`
+        `rotate(${k.headTilt.toFixed(2)} 55 39)`
       );
     }
 
-    // 4. Destello plateado deslizante en el visor (barrido cada 4s + reacción a velocidad)
-    if (visorGlintRef.current) {
-      const cycle = (t % 4.0) / 4.0;
-      let sweepX = -18;
-      if (cycle < 0.36) {
-        const s = cycle / 0.36;
-        const smoothS = s * s * (3 - 2 * s);
-        sweepX = -16 + smoothS * 38;
-      } else {
-        sweepX = 24;
-      }
-      const velShift = clamp(k.smoothVel * 14, -6, 6);
-      visorGlintRef.current.setAttribute(
-        "transform",
-        `translate(${(sweepX + velShift).toFixed(2)} 0)`
+    // 4. Brazo principal y mano abierta con follow-through + saludo suave en hover
+    const armWave = Math.sin(t * 1.35 - 0.75);
+    const forearmWave = Math.sin(t * 1.35 - 1.65);
+
+    const idleShoulder = armWave * 7.5;
+    const idleElbow = forearmWave * 11.5;
+
+    // En scroll abajo se extiende atrás por inercia; en hover se eleva suave con vaivén de mano
+    const targetShoulder =
+      lerp(
+        idleShoulder * (1 - scrollStrength) + downStrength * 34 - upStrength * 14,
+        -24 + Math.sin(t * 2.4) * 4,
+        k.hoverBlend
       );
-    }
-
-    // 5. Destello orbital fino alrededor del casco al hacer clic
-    if (clickOrbitalGroupRef.current) {
-      const burstAge = nowSec - orbitalBurstTimeRef.current;
-      const burstDuration = 0.72;
-      if (burstAge >= 0 && burstAge < burstDuration) {
-        const bp = burstAge / burstDuration;
-        const bEase = 1 - Math.pow(1 - bp, 2);
-        const s = 0.85 + bEase * 0.38;
-        const rot = -18 + bEase * 42;
-        const op = (1 - bp) * 0.92;
-        clickOrbitalGroupRef.current.setAttribute("opacity", op.toFixed(2));
-        clickOrbitalGroupRef.current.setAttribute(
-          "transform",
-          `translate(43 18.5) rotate(${rot.toFixed(1)}) scale(${s.toFixed(3)}) translate(-43 -18.5)`
-        );
-      } else {
-        clickOrbitalGroupRef.current.setAttribute("opacity", "0");
-      }
-    }
-
-    // 6. Cordones sueltos del hoodie con follow-through y flotación hacia arriba al caer
-    const targetCordLift = downStrength * 11 - upStrength * 4;
-    k.cordLift += (targetCordLift - k.cordLift) * ease(7.5);
-
-    const swayL = Math.sin(t * 1.9 - 1.1) * (2.6 + scrollStrength * 2.0);
-    const swayR = Math.cos(t * 1.75 - 1.35) * (2.6 + scrollStrength * 2.0);
-    const lTipX = 44.5 + swayL - downStrength * 2.5;
-    const lTipY = 47.0 - k.cordLift + Math.cos(t * 1.9 - 1.1) * 1.4;
-    const rTipX = 49.5 + swayR - downStrength * 2.0;
-    const rTipY = 46.2 - k.cordLift * 0.95 + Math.sin(t * 1.75 - 1.35) * 1.4;
-
-    const dLeft = `M 45.2 36.0 Q ${(44.2 + swayL * 0.55).toFixed(1)} ${(
-      41.8 -
-      k.cordLift * 0.45
-    ).toFixed(1)} ${lTipX.toFixed(1)} ${lTipY.toFixed(1)}`;
-    const dRight = `M 48.8 36.0 Q ${(49.4 + swayR * 0.55).toFixed(1)} ${(
-      41.2 -
-      k.cordLift * 0.45
-    ).toFixed(1)} ${rTipX.toFixed(1)} ${rTipY.toFixed(1)}`;
-
-    if (cordLeftRef.current && cordLeftInnerRef.current && cordLeftAgletRef.current) {
-      cordLeftRef.current.setAttribute("d", dLeft);
-      cordLeftInnerRef.current.setAttribute("d", dLeft);
-      cordLeftAgletRef.current.setAttribute("cx", lTipX.toFixed(1));
-      cordLeftAgletRef.current.setAttribute("cy", lTipY.toFixed(1));
-    }
-    if (cordRightRef.current && cordRightInnerRef.current && cordRightAgletRef.current) {
-      cordRightRef.current.setAttribute("d", dRight);
-      cordRightInnerRef.current.setAttribute("d", dRight);
-      cordRightAgletRef.current.setAttribute("cx", rTipX.toFixed(1));
-      cordRightAgletRef.current.setAttribute("cy", rTipY.toFixed(1));
-    }
-
-    // 7. Brazos con follow-through (retraso de fase -0.8) + saludo chill en hover
-    const armWave = Math.sin(t * 1.5 - 0.8);
-    const armWave2 = Math.cos(t * 1.5 - 0.8);
-
-    const targetBackShoulder =
-      lerp(armWave * 8, -24, downStrength) + upStrength * 10;
-    const targetBackElbow =
-      lerp(armWave2 * 10 - 6, -16, downStrength) + upStrength * 8;
-
-    const baseFrontShoulder =
-      lerp(Math.sin(t * 1.5 - 1.1) * 7, -18, downStrength) + upStrength * 8;
-    const baseFrontElbow =
-      lerp(Math.sin(t * 1.5 - 1.85) * 9 + 4, -12, downStrength) +
-      upStrength * 6;
-
-    const hoverShoulder = -56 + Math.sin(t * 2.8) * 4;
-    const hoverElbow = -32 + Math.sin(t * 3.6 - 0.6) * 7;
-
-    const targetFrontShoulder = lerp(
-      baseFrontShoulder,
-      hoverShoulder,
-      k.hoverBlend
-    );
-    const targetFrontElbow = lerp(baseFrontElbow, hoverElbow, k.hoverBlend);
-
-    k.backShoulder += (targetBackShoulder - k.backShoulder) * ease(8.5);
-    k.backElbow += (targetBackElbow - k.backElbow) * ease(8.5);
-    k.frontShoulder += (targetFrontShoulder - k.frontShoulder) * ease(9.0);
-    k.frontElbow += (targetFrontElbow - k.frontElbow) * ease(9.0);
-
-    if (backUpperArmRef.current) {
-      backUpperArmRef.current.setAttribute(
-        "transform",
-        `rotate(${k.backShoulder.toFixed(2)} 28 38)`
+    const targetElbow =
+      lerp(
+        idleElbow * (1 - scrollStrength) + downStrength * 18 - upStrength * 12,
+        -26 + Math.sin(t * 3.2 - 0.6) * 8,
+        k.hoverBlend
       );
-    }
-    if (backForearmRef.current) {
-      backForearmRef.current.setAttribute(
-        "transform",
-        `rotate(${k.backElbow.toFixed(2)} 21 46.5)`
-      );
-    }
-    if (frontUpperArmRef.current) {
-      frontUpperArmRef.current.setAttribute(
-        "transform",
-        `rotate(${k.frontShoulder.toFixed(2)} 35.5 39.5)`
-      );
-    }
-    if (frontForearmRef.current) {
-      frontForearmRef.current.setAttribute(
-        "transform",
-        `rotate(${k.frontElbow.toFixed(2)} 38.5 50.2)`
-      );
-    }
-    if (relaxedHandRef.current && peaceHandRef.current) {
-      relaxedHandRef.current.setAttribute(
-        "opacity",
-        clamp(1 - k.hoverBlend * 1.4, 0, 1).toFixed(2)
-      );
-      peaceHandRef.current.setAttribute(
-        "opacity",
-        clamp((k.hoverBlend - 0.18) * 1.35, 0, 1).toFixed(2)
-      );
-    }
-
-    // 8. Piernas asimétricas en contrafase con follow-through en rodillas
-    const legPhase = t * 1.35;
-    const idleFrontHip = Math.sin(legPhase) * 6.0;
-    const idleFrontKnee = Math.sin(legPhase - 0.75) * 8.0;
-    const idleBackHip = Math.sin(legPhase + Math.PI) * 6.5;
-    const idleBackKnee = Math.sin(legPhase + Math.PI - 0.75) * 8.5;
-
-    const targetFrontHip =
-      idleFrontHip * (1 - scrollStrength) +
-      downStrength * 16 -
-      upStrength * 14;
-    const targetFrontKnee =
-      idleFrontKnee * (1 - scrollStrength) +
-      downStrength * 18 -
-      upStrength * 8;
-    const targetBackHip =
-      idleBackHip * (1 - scrollStrength) +
-      downStrength * 22 -
-      upStrength * 6;
-    const targetBackKnee =
-      idleBackKnee * (1 - scrollStrength) +
-      downStrength * 20 +
+    const targetFarArm =
+      Math.cos(t * 1.35 - 0.8) * 6 * (1 - scrollStrength) -
+      downStrength * 18 +
       upStrength * 10;
 
-    k.frontHip += (targetFrontHip - k.frontHip) * ease(9.0);
-    k.frontKnee += (targetFrontKnee - k.frontKnee) * ease(9.0);
-    k.backHip += (targetBackHip - k.backHip) * ease(9.0);
-    k.backKnee += (targetBackKnee - k.backKnee) * ease(9.0);
+    k.shoulderRot += (targetShoulder - k.shoulderRot) * ease(8.5);
+    k.elbowRot += (targetElbow - k.elbowRot) * ease(8.5);
+    k.farArmRot += (targetFarArm - k.farArmRot) * ease(8.5);
 
-    if (frontThighRef.current) {
-      frontThighRef.current.setAttribute(
+    if (upperArmRef.current) {
+      upperArmRef.current.setAttribute(
         "transform",
-        `rotate(${k.frontHip.toFixed(2)} 45 58)`
+        `rotate(${k.shoulderRot.toFixed(2)} 49 50)`
+      );
+    }
+    if (forearmRef.current) {
+      forearmRef.current.setAttribute(
+        "transform",
+        `rotate(${k.elbowRot.toFixed(2)} 47 74)`
+      );
+    }
+    if (farArmRef.current) {
+      farArmRef.current.setAttribute(
+        "transform",
+        `rotate(${k.farArmRot.toFixed(2)} 64 52)`
+      );
+    }
+
+    // 5. Piernas dobladas con oscilación asincrónica en cadera y rodilla
+    const legPhase = t * 1.2;
+    const idleFrontHip = Math.sin(legPhase) * 6.5;
+    const idleFrontKnee = Math.sin(legPhase - 0.8) * 9.0;
+    const idleBackHip = Math.sin(legPhase + Math.PI * 0.78) * 7.0;
+    const idleBackKnee = Math.sin(legPhase + Math.PI * 0.78 - 0.8) * 9.5;
+
+    // Abajo: se estiran levemente hacia atrás; Arriba: recoge las rodillas hacia adelante
+    const targetFrontHip =
+      idleFrontHip * (1 - scrollStrength) + downStrength * 18 - upStrength * 16;
+    const targetFrontKnee =
+      idleFrontKnee * (1 - scrollStrength) - downStrength * 22 + upStrength * 16;
+    const targetBackHip =
+      idleBackHip * (1 - scrollStrength) + downStrength * 22 - upStrength * 14;
+    const targetBackKnee =
+      idleBackKnee * (1 - scrollStrength) - downStrength * 20 + upStrength * 18;
+
+    k.frontHipRot += (targetFrontHip - k.frontHipRot) * ease(9.0);
+    k.frontKneeRot += (targetFrontKnee - k.frontKneeRot) * ease(9.0);
+    k.backHipRot += (targetBackHip - k.backHipRot) * ease(9.0);
+    k.backKneeRot += (targetBackKnee - k.backKneeRot) * ease(9.0);
+
+    if (frontLegRef.current) {
+      frontLegRef.current.setAttribute(
+        "transform",
+        `rotate(${k.frontHipRot.toFixed(2)} 52 96)`
       );
     }
     if (frontShinRef.current) {
       frontShinRef.current.setAttribute(
         "transform",
-        `rotate(${k.frontKnee.toFixed(2)} 58.5 58.5)`
+        `rotate(${k.frontKneeRot.toFixed(2)} 70 122)`
       );
     }
-    if (backThighRef.current) {
-      backThighRef.current.setAttribute(
+    if (backLegRef.current) {
+      backLegRef.current.setAttribute(
         "transform",
-        `rotate(${k.backHip.toFixed(2)} 34 58)`
+        `rotate(${k.backHipRot.toFixed(2)} 46 94)`
       );
     }
     if (backShinRef.current) {
       backShinRef.current.setAttribute(
         "transform",
-        `rotate(${k.backKnee.toFixed(2)} 30.5 75)`
+        `rotate(${k.backKneeRot.toFixed(2)} 57 123)`
       );
     }
 
-    // 9. Chorro afilado estilizado + 3 micro-destellos en forma de rombo/estrella
-    const isThrusting = absVel > 0.04;
-    const targetThrusterAlpha = isThrusting ? clamp(scrollStrength * 1.15, 0.35, 1) : 0;
-    k.thrusterAlpha += (targetThrusterAlpha - k.thrusterAlpha) * ease(11);
-
-    const targetThrusterAngle =
-      downStrength >= upStrength ? 124 : 12; // Drop: arriba-atrás; Boost: abajo
-    k.thrusterAngle += (targetThrusterAngle - k.thrusterAngle) * ease(12);
-
-    if (thrusterGroupRef.current && plumeOuterRef.current && plumeInnerRef.current) {
-      if (k.thrusterAlpha > 0.02) {
-        const flicker = 0.88 + 0.12 * Math.sin(t * 28);
-        const lenScale = (0.55 + scrollStrength * 0.65) * flicker;
-        thrusterGroupRef.current.setAttribute("opacity", k.thrusterAlpha.toFixed(2));
-        thrusterGroupRef.current.setAttribute(
-          "transform",
-          `translate(22 54.5) rotate(${k.thrusterAngle.toFixed(1)}) scale(1 ${lenScale.toFixed(
-            2
-          )}) translate(-22 -54.5)`
-        );
-      } else {
-        thrusterGroupRef.current.setAttribute("opacity", "0");
-      }
-    }
-
-    const sparks = sparksRef.current;
-    if (isThrusting) {
-      sparkSpawnAccRef.current += dt * (4.5 + scrollStrength * 5.0);
-      if (sparkSpawnAccRef.current >= 1) {
-        sparkSpawnAccRef.current = 0;
-        const slot = sparks.find((s) => !s.active);
-        if (slot) {
-          slot.active = true;
-          slot.life = 0;
-          slot.maxLife = 0.42 + Math.random() * 0.2;
-          slot.x = 22 + (Math.random() - 0.5) * 4;
-          slot.y = 54.5;
-          const isDrop = downStrength >= upStrength;
-          slot.vx = isDrop ? -24 - Math.random() * 14 : -10 - Math.random() * 8;
-          slot.vy = isDrop ? -20 - Math.random() * 14 : 24 + Math.random() * 14;
-          slot.rot = Math.random() * 45;
-          slot.scale = 0.75 + Math.random() * 0.5;
-        }
-      }
-    } else {
-      sparkSpawnAccRef.current = 0;
-    }
-
-    for (let i = 0; i < STAR_SPARK_COUNT; i++) {
-      const sp = sparks[i];
-      const el = starSparkRefs.current[i];
-      if (!el) continue;
-
-      if (!sp.active) {
-        el.setAttribute("opacity", "0");
-        continue;
-      }
-
-      sp.life += dt;
-      if (sp.life >= sp.maxLife) {
-        sp.active = false;
-        el.setAttribute("opacity", "0");
-        continue;
-      }
-
-      const progress = sp.life / sp.maxLife;
-      sp.x += sp.vx * dt;
-      sp.y += sp.vy * dt;
-      const sc = sp.scale * (1 - progress * 0.65);
-      const op = (1 - progress) * 0.9;
-
-      el.setAttribute(
-        "transform",
-        `translate(${sp.x.toFixed(1)} ${sp.y.toFixed(1)}) rotate(${sp.rot.toFixed(
-          0
-        )}) scale(${sc.toFixed(2)})`
-      );
-      el.setAttribute("opacity", op.toFixed(2));
-    }
-
-    // 10. Cable umbilical ultrafino (1.2px) + adaptación suave sobre #servicios (#F4F1EA)
+    // 6. Detección cacheada de sección clara #servicios (#F4F1EA)
     const cache = serviciosCacheRef.current;
     const nowMs = performance.now();
     if (nowMs - cache.lastCheck >= 110) {
@@ -562,7 +333,7 @@ export function AstronautScrollTracker() {
       if (cache.el && trackEl) {
         const sRect = cache.el.getBoundingClientRect();
         const tRect = trackEl.getBoundingClientRect();
-        const astroViewportY = tRect.top + currentAstroY + 52;
+        const astroViewportY = tRect.top + currentAstroY + 56;
         cache.overLight =
           astroViewportY >= sRect.top && astroViewportY <= sRect.bottom;
       } else {
@@ -572,28 +343,95 @@ export function AstronautScrollTracker() {
 
     k.lightBlend += ((cache.overLight ? 1 : 0) - k.lightBlend) * ease(9);
 
+    // 7. Tres líneas de flujo/velocidad ultrafinas estilo tinta cómic al scrollear
+    const isFlowing = absVel > 0.045;
+    const targetFlowAlpha = isFlowing ? clamp(scrollStrength * 0.9, 0.25, 0.9) : 0;
+    k.flowAlpha += (targetFlowAlpha - k.flowAlpha) * ease(11);
+
+    const targetFlowAngle = downStrength >= upStrength ? 128 : -16;
+    k.flowAngle += (targetFlowAngle - k.flowAngle) * ease(12);
+
+    const inkR = Math.round(lerp(244, 9, k.lightBlend));
+    const inkG = Math.round(lerp(241, 9, k.lightBlend));
+    const inkB = Math.round(lerp(234, 11, k.lightBlend));
+    const flowColor = `rgba(${inkR}, ${inkG}, ${inkB}, 0.72)`;
+
+    if (flowGroupRef.current) {
+      if (k.flowAlpha > 0.02) {
+        const streakStretch = 0.72 + scrollStrength * 0.55;
+        const jitter = Math.sin(t * 24) * 1.4;
+        flowGroupRef.current.setAttribute("opacity", k.flowAlpha.toFixed(2));
+        flowGroupRef.current.setAttribute(
+          "transform",
+          `translate(25 66) rotate(${k.flowAngle.toFixed(1)}) scale(1 ${streakStretch.toFixed(
+            2
+          )}) translate(${jitter.toFixed(2)} 0) translate(-25 -66)`
+        );
+        for (let i = 0; i < flowLineRefs.current.length; i++) {
+          const lineEl = flowLineRefs.current[i];
+          if (lineEl) lineEl.setAttribute("stroke", flowColor);
+        }
+      } else {
+        flowGroupRef.current.setAttribute("opacity", "0");
+      }
+    }
+
+    // 8. Pequeñas líneas de trazo estelar alrededor al hacer clic
+    const burstAge = nowSec - starBurstTimeRef.current;
+    for (let i = 0; i < CLICK_STAR_ANGLES.length; i++) {
+      const lineEl = clickStarRefs.current[i];
+      if (!lineEl) continue;
+
+      if (burstAge < 0 || burstAge > 0.65) {
+        lineEl.setAttribute("opacity", "0");
+        continue;
+      }
+
+      const bp = burstAge / 0.65;
+      const eased = 1 - Math.pow(1 - bp, 2);
+      const rad = (CLICK_STAR_ANGLES[i] * Math.PI) / 180;
+      const rInner = 34 + eased * 18;
+      const rOuter = rInner + 9 * (1 - bp * 0.6);
+
+      const x1 = 54 + Math.cos(rad) * rInner;
+      const y1 = 76 + Math.sin(rad) * rInner;
+      const x2 = 54 + Math.cos(rad) * rOuter;
+      const y2 = 76 + Math.sin(rad) * rOuter;
+
+      lineEl.setAttribute("x1", x1.toFixed(1));
+      lineEl.setAttribute("y1", y1.toFixed(1));
+      lineEl.setAttribute("x2", x2.toFixed(1));
+      lineEl.setAttribute("y2", y2.toFixed(1));
+      lineEl.setAttribute("stroke", `rgba(${inkR}, ${inkG}, ${inkB}, 0.85)`);
+      lineEl.setAttribute("opacity", (1 - bp).toFixed(2));
+    }
+
+    // 9. Cable umbilical de tinta (1.3px) conectado exacto al arnés de la espalda
     const cableEl = cablePathRef.current;
     const anchorEl = cableAnchorRef.current;
     if (cableEl && anchorEl) {
-      const anchorX = 42;
-      // Rotar puerto exacto de la mochila (18.5, 34) alrededor del pivote (42, 50)
+      const anchorX = 48;
+      const sx = 72 / 110;
+      const sy = 112 / 170;
+
+      // Rotar punto de enganche (29, 46) en el SVG alrededor del pivote (54, 78)
       const rad = (totalRootRot * Math.PI) / 180;
-      const dx = 18.5 - 42;
-      const dy = 34 - 50;
-      const portX = 42 + dx * Math.cos(rad) - dy * Math.sin(rad);
-      const portY = 50 + dx * Math.sin(rad) + dy * Math.cos(rad);
+      const dx = 29 - 54;
+      const dy = 46 - 78;
+      const rotX = 54 + dx * Math.cos(rad) - dy * Math.sin(rad);
+      const rotY = 78 + dx * Math.sin(rad) + dy * Math.cos(rad);
 
-      const endX = 6 + portX + fx;
-      const endY = Math.max(10, currentAstroY + portY + fy);
+      const endX = 12 + rotX * sx + fx;
+      const endY = Math.max(10, currentAstroY + rotY * sy + fy);
 
-      const slackFactor = 1 - upStrength * 0.45;
-      const wave1 = (Math.sin(t * 1.55) * 12 + Math.cos(t * 0.95) * 4) * slackFactor;
-      const wave2 = Math.cos(t * 1.35 - 0.8) * 11 * slackFactor;
-      const velWhip = clamp(k.smoothVel * 48, -30, 30);
+      const slackFactor = 1 - upStrength * 0.42;
+      const wave1 = (Math.sin(t * 1.4) * 11 + Math.cos(t * 0.9) * 4) * slackFactor;
+      const wave2 = Math.cos(t * 1.2 - 0.8) * 10 * slackFactor;
+      const velWhip = clamp(k.smoothVel * 44, -26, 26);
 
-      const c1x = clamp(anchorX + wave1 * 0.75 - velWhip * 0.45, 6, 86);
+      const c1x = clamp(anchorX + wave1 * 0.72 - velWhip * 0.4, 8, 88);
       const c1y = Math.max(12, endY * 0.34);
-      const c2x = clamp(anchorX + wave2 + velWhip, 6, 86);
+      const c2x = clamp(anchorX + wave2 + velWhip, 8, 88);
       const c2y = Math.max(24, endY * 0.72);
 
       cableEl.setAttribute(
@@ -603,15 +441,15 @@ export function AstronautScrollTracker() {
         )},${c2y.toFixed(1)} ${endX.toFixed(1)},${endY.toFixed(1)}`
       );
 
-      // Interpolar suavemente de #F4F1EA (fondo oscuro) a #18181B/50 (#servicios)
-      const r = Math.round(lerp(244, 24, k.lightBlend));
-      const g = Math.round(lerp(241, 24, k.lightBlend));
-      const b = Math.round(lerp(234, 27, k.lightBlend));
-      const a = lerp(0.54, 0.5, k.lightBlend).toFixed(2);
-      const cableColor = `rgba(${r}, ${g}, ${b}, ${a})`;
+      // #F4F1EA/55 sobre fondo oscuro -> #09090B/55 sobre #servicios (#F4F1EA)
+      const cableAlpha = lerp(0.55, 0.55, k.lightBlend).toFixed(2);
+      const cableColor = `rgba(${inkR}, ${inkG}, ${inkB}, ${cableAlpha})`;
       cableEl.setAttribute("stroke", cableColor);
       anchorEl.setAttribute("fill", cableColor);
-      anchorEl.setAttribute("stroke", "#111114");
+      anchorEl.setAttribute(
+        "stroke",
+        k.lightBlend > 0.5 ? "#F4F1EA" : "#09090B"
+      );
     }
   });
 
@@ -621,7 +459,7 @@ export function AstronautScrollTracker() {
       aria-hidden="true"
       className="pointer-events-none fixed left-2 md:left-3 top-24 bottom-16 w-[96px] z-40 hidden sm:block select-none"
     >
-      {/* Cable umbilical curvo elástico (1.2px) */}
+      {/* Cable umbilical de tinta curvo (strokeWidth 1.3px) */}
       <svg
         width="96"
         height={trackHeight}
@@ -631,27 +469,27 @@ export function AstronautScrollTracker() {
       >
         <circle
           ref={cableAnchorRef}
-          cx="42"
+          cx="48"
           cy="1"
           r="2"
-          fill="rgba(244, 241, 234, 0.54)"
-          stroke="#111114"
+          fill="rgba(244, 241, 234, 0.55)"
+          stroke="#09090B"
           strokeWidth="1"
         />
         <path
           ref={cablePathRef}
-          d="M 42,0 C 42,10 30,20 24.5,34"
-          stroke="rgba(244, 241, 234, 0.54)"
-          strokeWidth="1.2"
+          d="M 48,0 C 48,10 38,20 31,30"
+          stroke="rgba(244, 241, 234, 0.55)"
+          strokeWidth="1.3"
           strokeLinecap="round"
           fill="none"
         />
       </svg>
 
-      {/* Posición global GPU (spring vertical + flotación Lo-Fi) */}
+      {/* Contenedor GPU vertical + flotación en gravedad cero */}
       <motion.div
         style={{ y: astroY }}
-        className="pointer-events-none absolute left-[6px] top-0 will-change-transform"
+        className="pointer-events-none absolute left-[12px] top-0 will-change-transform"
       >
         <motion.div
           style={{ x: floatX, y: floatY }}
@@ -660,598 +498,600 @@ export function AstronautScrollTracker() {
           <button
             type="button"
             data-cursor="action"
-            aria-label={`Astronauta streetwear en gravedad cero: ${scrollPct}% del recorrido`}
+            aria-label={`Astronauta editorial: ${scrollPct}% del recorrido`}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onFocus={() => setIsHovered(true)}
             onBlur={() => setIsHovered(false)}
             onClick={handleAstronautClick}
-            className="pointer-events-auto relative flex h-[104px] w-[84px] items-center justify-center bg-transparent p-0 focus:outline-none"
+            className="pointer-events-auto relative flex h-[112px] w-[72px] items-center justify-center bg-transparent p-0 focus:outline-none"
           >
             <svg
-              width="84"
-              height="104"
-              viewBox="0 0 84 104"
+              width="72"
+              height="112"
+              viewBox="0 0 110 170"
               fill="none"
               className="block overflow-visible"
             >
-              <defs>
-                {/* Visor oscuro espejado (#09090B -> #1E293B -> #050505) */}
-                <linearGradient
-                  id="ellik-street-visor-grad"
-                  x1="38"
-                  y1="10"
-                  x2="57"
-                  y2="27"
-                  gradientUnits="userSpaceOnUse"
-                >
-                  <stop offset="0%" stopColor="#09090B" />
-                  <stop offset="48%" stopColor="#1E293B" />
-                  <stop offset="100%" stopColor="#050505" />
-                </linearGradient>
-
-                {/* Destello plateado deslizante */}
-                <linearGradient
-                  id="ellik-visor-silver-glint"
-                  x1="0%"
-                  y1="0%"
-                  x2="100%"
-                  y2="0%"
-                >
-                  <stop offset="0%" stopColor="rgba(255,255,255,0)" />
-                  <stop offset="50%" stopColor="rgba(226,232,240,0.34)" />
-                  <stop offset="100%" stopColor="rgba(255,255,255,0)" />
-                </linearGradient>
-
-                <clipPath id="ellik-street-visor-clip">
-                  <path d="M 42.2 10.6 C 48.2 10.4, 54.4 12.0, 56.2 16.8 C 57.0 19.2, 56.2 23.6, 52.6 25.5 C 48.2 27.6, 41.2 26.8, 39.2 22.8 C 37.6 19.6, 38.0 13.4, 42.2 10.6 Z" />
-                </clipPath>
-              </defs>
-
-              {/* Micro-destellos en forma de rombo/estrella del propulsor */}
+              {/* 6 Trazos estelares radiales al hacer clic */}
               <g>
-                {Array.from({ length: STAR_SPARK_COUNT }, (_, idx) => (
-                  <path
-                    key={idx}
+                {CLICK_STAR_ANGLES.map((angle, idx) => (
+                  <line
+                    key={angle}
                     ref={(el) => {
-                      starSparkRefs.current[idx] = el;
+                      clickStarRefs.current[idx] = el;
                     }}
-                    d="M 0 -3.4 L 0.9 -0.9 L 3.4 0 L 0.9 0.9 L 0 3.4 L -0.9 0.9 L -3.4 0 L -0.9 -0.9 Z"
-                    fill="#F4F1EA"
-                    stroke="#111114"
-                    strokeWidth="0.6"
+                    x1="54"
+                    y1="76"
+                    x2="54"
+                    y2="76"
+                    stroke="#F4F1EA"
+                    strokeWidth="1.4"
+                    strokeLinecap="round"
                     opacity="0"
                   />
                 ))}
               </g>
 
-              {/* Esqueleto articulado 3/4 asimétrico (Zero-G Chill) */}
+              {/* Esqueleto realista estilo tinta / novela gráfica (perfil 3/4) */}
               <g ref={rigRootRef}>
-                {/* 1. Chorro fino estilizado de propulsión (detrás de la mochila) */}
-                <g ref={thrusterGroupRef} opacity="0">
+                {/* 3 Líneas ultrafinas de flujo / velocidad detrás de la mochila */}
+                <g ref={flowGroupRef} opacity="0">
                   <path
-                    ref={plumeOuterRef}
-                    d="M 19.6 54.5 L 22.0 74.0 L 24.4 54.5 Z"
-                    fill="#F4F1EA"
-                    stroke="#111114"
-                    strokeWidth="0.9"
-                    strokeLinejoin="round"
+                    ref={(el) => {
+                      flowLineRefs.current[0] = el;
+                    }}
+                    d="M 20 64 Q 17 82 15 98"
+                    stroke="#F4F1EA"
+                    strokeWidth="1.3"
+                    strokeLinecap="round"
+                    fill="none"
                   />
                   <path
-                    ref={plumeInnerRef}
-                    d="M 20.9 54.5 L 22.0 67.5 L 23.1 54.5 Z"
-                    fill="#FFFFFF"
+                    ref={(el) => {
+                      flowLineRefs.current[1] = el;
+                    }}
+                    d="M 26 68 Q 24 90 22 110"
+                    stroke="#F4F1EA"
+                    strokeWidth="0.95"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  <path
+                    ref={(el) => {
+                      flowLineRefs.current[2] = el;
+                    }}
+                    d="M 32 66 Q 31 83 30 96"
+                    stroke="#F4F1EA"
+                    strokeWidth="0.85"
+                    strokeLinecap="round"
+                    fill="none"
                   />
                 </g>
 
-                {/* 2. Mochila propulsora compacta y angulosa (grafito #27272A) */}
-                <g>
+                {/* Brazo lejano sutil asomando al frente para dar volumen 3/4 */}
+                <g ref={farArmRef}>
                   <path
-                    d="M 19.5 32.0 L 28.5 32.0 L 28.5 52.0 L 18.0 52.0 L 16.0 48.5 L 16.0 35.8 Z"
-                    fill="#27272A"
-                    stroke="#111114"
-                    strokeWidth="1.5"
+                    d="M 62 49 C 69 54, 73 61, 72 68 L 66 71 C 65 65, 62 59, 58 55 Z"
+                    fill="#F4F1EA"
+                    stroke="#09090B"
+                    strokeWidth="1.8"
                     strokeLinejoin="round"
                   />
-                  {/* Faceta de sombra */}
                   <path
-                    d="M 16.6 36.2 L 21.0 36.2 L 21.0 51.3 L 18.4 51.3 L 16.6 48.3 Z"
-                    fill="#18181B"
-                  />
-                  {/* Rejilla / detalle técnico metálico */}
-                  <rect
-                    x="22.4"
-                    y="36.2"
-                    width="3.6"
-                    height="9.0"
-                    rx="0.8"
-                    fill="#3F3F46"
-                    stroke="#111114"
+                    d="M 63 54 L 68 57 M 64 59 L 69 62"
+                    stroke="#09090B"
                     strokeWidth="0.9"
+                    strokeLinecap="round"
                   />
-                  {/* Puerto umbilical en (18.5, 34) */}
-                  <circle
-                    cx="18.5"
-                    cy="34.0"
-                    r="1.7"
-                    fill="#E4E4E7"
-                    stroke="#111114"
-                    strokeWidth="1.1"
-                  />
-                  {/* Toberas metálicas inferiores */}
+                  {/* Guante lejano con recorte #F4F1EA */}
                   <path
-                    d="M 18.6 52.0 L 25.4 52.0 L 26.2 54.8 L 17.8 54.8 Z"
-                    fill="#52525B"
-                    stroke="#111114"
+                    d="M 66 69 C 69 69, 73 71, 74 75 C 74.5 77.5, 72 79, 70 78 L 69 75 L 67 77 C 65 76.5, 64.5 72.5, 66 69 Z"
+                    fill="#09090B"
+                    stroke="#F4F1EA"
                     strokeWidth="1.2"
                     strokeLinejoin="round"
                   />
                 </g>
 
-                {/* 3. Brazo trasero descansando relajado hacia atrás/arriba */}
-                <g ref={backUpperArmRef}>
+                {/* Pierna trasera (doblada hacia atrás en flotación natural) */}
+                <g ref={backLegRef}>
+                  {/* Borde exterior de recorte sobre sombra de muslo */}
                   <path
-                    d="M 28.5 35.5 C 24.2 37.2, 20.6 41.2, 19.2 45.6 C 18.8 47.4, 21.8 49.0, 23.6 47.6 C 25.8 45.4, 28.2 42.0, 30.6 39.2 Z"
-                    fill="#CFCAC0"
-                    stroke="#111114"
-                    strokeWidth="1.5"
+                    d="M 39 94 L 54 94 L 62 121 L 49 124 Z"
+                    fill="#F4F1EA"
+                    stroke="#09090B"
+                    strokeWidth="2"
                     strokeLinejoin="round"
                   />
-                  <g ref={backForearmRef}>
-                    <path
-                      d="M 19.8 45.2 C 16.8 48.6, 14.8 52.4, 15.0 55.0 C 15.4 57.4, 18.6 57.8, 20.4 56.0 C 21.8 54.2, 22.8 50.2, 23.4 47.0 Z"
-                      fill="#CFCAC0"
-                      stroke="#111114"
-                      strokeWidth="1.5"
-                      strokeLinejoin="round"
-                    />
-                    {/* Puño oscuro */}
-                    <path
-                      d="M 15.2 52.6 L 20.8 53.2 L 20.2 55.4 L 14.8 54.8 Z"
-                      fill="#27272A"
-                      stroke="#111114"
-                      strokeWidth="1.2"
-                      strokeLinejoin="round"
-                    />
-                    {/* Guante relajado */}
-                    <path
-                      d="M 14.8 54.6 C 14.4 57.6, 16.6 59.8, 19.2 59.0 C 21.0 58.4, 21.4 55.6, 20.0 54.4 Z"
-                      fill="#18181B"
-                      stroke="#111114"
-                      strokeWidth="1.4"
-                      strokeLinejoin="round"
-                    />
-                  </g>
-                </g>
-
-                {/* 4. Pierna trasera extendida hacia abajo (Cargo #18181B + Bota chunky #F4F1EA) */}
-                <g ref={backThighRef}>
+                  {/* Sombra dura interna de muslo */}
                   <path
-                    d="M 29.0 56.5 L 40.8 56.5 L 36.2 75.5 C 34.0 76.4, 26.2 76.2, 25.8 74.4 Z"
-                    fill="#18181B"
-                    stroke="#111114"
-                    strokeWidth="1.5"
-                    strokeLinejoin="round"
-                  />
-                  {/* Sombra cargo trasera */}
-                  <path
-                    d="M 29.6 57.4 L 33.4 57.4 L 29.6 74.6 L 26.8 74.2 Z"
+                    d="M 40.5 96 L 47 96 L 52 122 L 49.5 123 Z"
                     fill="#09090B"
                   />
-                  {/* Costura cargo sutil */}
+                  {/* Pliegues en tinta */}
                   <path
-                    d="M 35.4 58.5 L 32.0 73.8"
-                    stroke="#3F3F46"
+                    d="M 48 103 L 55 101 M 49 111 L 57 109"
+                    stroke="#09090B"
                     strokeWidth="0.9"
                     strokeLinecap="round"
+                  />
+                  {/* Banda oscura en rodilla trasera con filete exterior #F4F1EA */}
+                  <path
+                    d="M 49 118 L 61.5 117 L 62.5 123.5 L 49.5 124.5 Z"
+                    fill="#09090B"
+                    stroke="#F4F1EA"
+                    strokeWidth="1.2"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M 49 118 L 61.5 117 L 62.5 123.5 L 49.5 124.5 Z"
+                    fill="none"
+                    stroke="#09090B"
+                    strokeWidth="1.1"
+                    strokeLinejoin="round"
                   />
 
                   <g ref={backShinRef}>
+                    {/* Pantorrilla flexionada atrás */}
                     <path
-                      d="M 25.8 74.2 L 35.8 74.2 L 34.4 89.2 L 24.8 89.2 Z"
-                      fill="#18181B"
-                      stroke="#111114"
-                      strokeWidth="1.5"
+                      d="M 50 123 L 61 122 L 49 146 L 38 143 Z"
+                      fill="#F4F1EA"
+                      stroke="#09090B"
+                      strokeWidth="2"
                       strokeLinejoin="round"
                     />
                     <path
-                      d="M 30.8 75.5 L 30.0 87.8"
-                      stroke="#3F3F46"
+                      d="M 50 124 L 54 124 L 44 144.5 L 39 143 Z"
+                      fill="#09090B"
+                    />
+                    <path
+                      d="M 48 131 L 55 133 M 44 137 L 52 139"
+                      stroke="#09090B"
                       strokeWidth="0.9"
                       strokeLinecap="round"
                     />
-                    {/* Bota / zapatilla chunky trasera */}
+
+                    {/* Bota espacial trasera + suela acanalada visible */}
                     <path
-                      d="M 25.0 88.2 L 34.0 88.2 L 35.6 92.2 C 37.8 92.6, 39.4 93.8, 39.4 95.6 L 24.4 95.6 Z"
+                      d="M 38 142 L 49 145 L 53 151 C 55 153, 55 156, 52 157 L 35 152 Z"
                       fill="#F4F1EA"
-                      stroke="#111114"
-                      strokeWidth="1.5"
+                      stroke="#09090B"
+                      strokeWidth="1.9"
                       strokeLinejoin="round"
                     />
+                    {/* Puntera y contrafuerte en tinta negra */}
                     <path
-                      d="M 25.8 89.0 L 29.8 89.0 L 29.2 94.8 L 25.4 94.8 Z"
-                      fill="#CFCAC0"
-                    />
-                    {/* Suela gruesa marcada #09090B */}
-                    <path
-                      d="M 23.8 95.0 L 39.8 95.0 C 40.4 95.0, 40.4 98.4, 39.0 98.4 L 24.2 98.4 C 23.4 98.4, 23.2 96.2, 23.8 95.0 Z"
+                      d="M 36.5 144 L 40.5 145 L 38.5 152 L 35.5 151 Z"
                       fill="#09090B"
-                      stroke="#111114"
-                      strokeWidth="1.3"
+                    />
+                    {/* Suela acanalada en tinta con recorte #F4F1EA */}
+                    <path
+                      d="M 34.2 151.4 L 53.5 156.6 L 52.6 159.8 L 33.4 154.6 Z"
+                      fill="#09090B"
+                      stroke="#F4F1EA"
+                      strokeWidth="1.2"
                       strokeLinejoin="round"
                     />
+                    {/* Rayitas paralelas de la suela acanalada */}
                     <path
-                      d="M 26.2 96.8 L 37.6 96.8"
-                      stroke="#3F3F46"
-                      strokeWidth="0.8"
+                      d="M 37 154.2 L 38 152.2 M 41 155.3 L 42 153.3 M 45 156.4 L 46 154.4 M 49 157.5 L 50 155.5"
+                      stroke="#F4F1EA"
+                      strokeWidth="0.9"
                       strokeLinecap="round"
                     />
                   </g>
                 </g>
 
-                {/* 5. Pierna delantera flexionada arriba (muslo elevado + rodilla doblada relajada) */}
-                <g ref={frontThighRef}>
+                {/* Pierna delantera (ligeramente adelantada para profundidad 3D) */}
+                <g ref={frontLegRef}>
                   <path
-                    d="M 41.2 55.0 C 48.6 52.8, 56.0 52.6, 61.2 54.6 C 62.8 55.2, 62.4 62.0, 59.4 62.8 C 52.6 64.2, 44.5 63.8, 40.0 61.5 Z"
-                    fill="#18181B"
-                    stroke="#111114"
-                    strokeWidth="1.5"
+                    d="M 47 93 C 54 91, 61 93, 64 98 L 73 119 L 60 124 L 48 103 Z"
+                    fill="#F4F1EA"
+                    stroke="#09090B"
+                    strokeWidth="2"
                     strokeLinejoin="round"
                   />
-                  {/* Bolsillo lateral tipo cargo + costura */}
+                  {/* Sombra inferior de muslo y achurado sutil */}
                   <path
-                    d="M 47.0 55.8 L 54.8 55.6 L 54.4 61.2 L 46.8 61.4 Z"
-                    fill="#27272A"
-                    stroke="#3F3F46"
+                    d="M 48.5 101 L 56 101 L 64 121 L 60.5 123 Z"
+                    fill="#09090B"
+                  />
+                  <path
+                    d="M 55 102 L 62 99 M 57 107 L 65 104 M 59 112 L 67 109"
+                    stroke="#09090B"
                     strokeWidth="0.9"
+                    strokeLinecap="round"
+                  />
+                  {/* Banda oscura en rodilla delantera con recorte #F4F1EA */}
+                  <path
+                    d="M 59 116 L 72.5 114.5 L 74 121 L 60.5 123 Z"
+                    fill="#09090B"
+                    stroke="#F4F1EA"
+                    strokeWidth="1.2"
                     strokeLinejoin="round"
                   />
-                  <line
-                    x1="47.2"
-                    y1="57.4"
-                    x2="54.6"
-                    y2="57.2"
-                    stroke="#3F3F46"
-                    strokeWidth="0.9"
+                  <path
+                    d="M 59 116 L 72.5 114.5 L 74 121 L 60.5 123 Z"
+                    fill="none"
+                    stroke="#09090B"
+                    strokeWidth="1.1"
+                    strokeLinejoin="round"
                   />
 
                   <g ref={frontShinRef}>
+                    {/* Pantorrilla delantera flexionada atrás */}
                     <path
-                      d="M 54.4 57.5 L 62.6 58.2 L 59.6 74.8 L 50.8 74.0 Z"
-                      fill="#18181B"
-                      stroke="#111114"
-                      strokeWidth="1.5"
+                      d="M 61 122 L 73 119 L 63 145 L 51 142 Z"
+                      fill="#F4F1EA"
+                      stroke="#09090B"
+                      strokeWidth="2"
                       strokeLinejoin="round"
                     />
                     <path
-                      d="M 57.4 59.5 L 55.2 73.0"
-                      stroke="#3F3F46"
+                      d="M 61 122 L 65.5 121.5 L 55.5 142.5 L 51.5 141.5 Z"
+                      fill="#09090B"
+                    />
+                    <path
+                      d="M 60 129 L 68 131 M 57 135 L 65 137"
+                      stroke="#09090B"
                       strokeWidth="0.9"
                       strokeLinecap="round"
                     />
-                    {/* Bota / zapatilla chunky delantera */}
+
+                    {/* Bota espacial delantera + suela acanalada visible */}
                     <path
-                      d="M 51.4 73.8 L 59.4 74.2 L 61.6 77.8 C 64.0 78.2, 65.6 79.4, 65.6 81.2 L 50.6 80.8 Z"
+                      d="M 51 141 L 63 144 L 68 150 C 70.5 152, 70 155.5, 67 156 L 48 151 Z"
                       fill="#F4F1EA"
-                      stroke="#111114"
-                      strokeWidth="1.5"
+                      stroke="#09090B"
+                      strokeWidth="1.9"
                       strokeLinejoin="round"
                     />
                     <path
-                      d="M 52.0 74.6 L 55.8 74.8 L 55.0 80.0 L 51.4 80.0 Z"
-                      fill="#CFCAC0"
-                    />
-                    {/* Suela gruesa #09090B */}
-                    <path
-                      d="M 50.0 80.4 L 66.0 80.8 C 66.6 80.8, 66.6 83.8, 65.2 83.8 L 50.2 83.4 C 49.4 83.4, 49.4 81.4, 50.0 80.4 Z"
+                      d="M 49.8 143 L 54.5 144.2 L 52.5 151 L 48.8 150 Z"
                       fill="#09090B"
-                      stroke="#111114"
-                      strokeWidth="1.3"
+                    />
+                    <path
+                      d="M 49 147 L 60 149.8"
+                      stroke="#09090B"
+                      strokeWidth="0.9"
+                      strokeLinecap="round"
+                    />
+                    {/* Suela acanalada en tinta con contorno #F4F1EA */}
+                    <path
+                      d="M 47.2 150.4 L 68.5 155.6 L 67.6 159.0 L 46.4 153.8 Z"
+                      fill="#09090B"
+                      stroke="#F4F1EA"
+                      strokeWidth="1.2"
                       strokeLinejoin="round"
                     />
                     <path
-                      d="M 52.2 82.1 L 64.0 82.4"
-                      stroke="#3F3F46"
-                      strokeWidth="0.8"
+                      d="M 50.2 153.2 L 51.2 151.2 M 54.4 154.2 L 55.4 152.2 M 58.6 155.3 L 59.6 153.3 M 62.8 156.3 L 63.8 154.3"
+                      stroke="#F4F1EA"
+                      strokeWidth="0.9"
                       strokeLinecap="round"
                     />
                   </g>
                 </g>
 
-                {/* 6. Torso: Campera Puffer / Hoodie Oversize (#F4F1EA + #CFCAC0 + cordones cero-G) */}
+                {/* Torso esbelto arqueado, mochila PLSS redondeada y arneses */}
                 <g ref={torsoRef}>
+                  {/* Mochila PLSS con contorno #F4F1EA en su sombra oscura trasera */}
                   <path
-                    d="M 31.2 31.6 C 35.8 29.8, 46.2 29.8, 50.8 31.6 C 53.8 33.4, 55.2 37.6, 54.6 43.2 L 53.6 56.4 C 53.4 58.8, 49.0 60.2, 41.8 60.2 C 34.4 60.2, 28.4 58.6, 28.2 56.2 L 27.6 41.4 C 27.4 36.2, 29.0 32.8, 31.2 31.6 Z"
+                    d="M 24 44 C 24.5 40.5, 27 38.5, 31 38.5 L 43 39 L 44 80 C 44 83.5, 41 85, 36 85 L 27.5 83.5 C 24 82.5, 23 78.5, 23.5 72 Z"
                     fill="#F4F1EA"
-                    stroke="#111114"
+                    stroke="#09090B"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                  />
+                  {/* Sombra trasera de tinta con halo limpio #F4F1EA contra fondo negro */}
+                  <path
+                    d="M 24 44 C 24.4 41.5, 25.8 39.8, 28 39.2 L 32.5 39.2 L 32.5 84 L 27.5 83.2 C 24.4 82.2, 23.4 78.5, 23.8 72 Z"
+                    fill="#09090B"
+                    stroke="#F4F1EA"
+                    strokeWidth="1.2"
+                    strokeLinejoin="round"
+                  />
+                  {/* Achurado de transición en mochila */}
+                  <path
+                    d="M 33 46 L 37.5 46 M 33 50 L 36.5 50 M 33 54 L 38 54 M 33 68 L 37 68 M 33 72 L 36.5 72"
+                    stroke="#09090B"
+                    strokeWidth="0.9"
+                    strokeLinecap="round"
+                  />
+                  {/* Módulo inferior / salida PLSS */}
+                  <rect
+                    x="27"
+                    y="83.5"
+                    width="11"
+                    height="3.5"
+                    rx="1"
+                    fill="#09090B"
+                    stroke="#F4F1EA"
+                    strokeWidth="1"
+                  />
+                  {/* Argolla/nudo de enganche del cable umbilical en (29, 46) */}
+                  <circle
+                    cx="29"
+                    cy="46"
+                    r="2.4"
+                    fill="#F4F1EA"
+                    stroke="#09090B"
+                    strokeWidth="1.4"
+                  />
+                  <circle cx="29" cy="46" r="0.9" fill="#09090B" />
+
+                  {/* Silueta esbelta del torso arqueado en ingravidez */}
+                  <path
+                    d="M 42 40 C 48 38, 59 38.5, 64 43.5 C 67.5 49, 67 61, 63 74 L 61.5 94 C 55.5 97, 45 96.5, 39.5 92 L 39 74 C 37.5 60, 39 46, 42 40 Z"
+                    fill="#F4F1EA"
+                    stroke="#09090B"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                  />
+                  {/* Sombra dura en espalda baja y bajo el brazo */}
+                  <path
+                    d="M 39.8 68 L 46 70 L 46.5 94.5 C 43 94, 40.5 92.8, 39.8 91 Z"
+                    fill="#09090B"
+                  />
+                  {/* Pliegues y achurado sutil en costado */}
+                  <path
+                    d="M 47 74 L 51 75 M 47 78 L 52 79 M 47 82 L 50.5 83 M 55 56 L 63 54 M 56 62 L 62.5 60"
+                    stroke="#09090B"
+                    strokeWidth="0.9"
+                    strokeLinecap="round"
+                  />
+
+                  {/* Correas de arnés cruzadas + cinturón con rayas de costura */}
+                  <path
+                    d="M 41 43 L 61.5 76"
+                    stroke="#09090B"
+                    strokeWidth="3.2"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M 62 44 L 40.5 75"
+                    stroke="#09090B"
+                    strokeWidth="2.6"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M 39.2 76 Q 51 79 62.6 75.5"
+                    stroke="#09090B"
+                    strokeWidth="3.0"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  {/* Costuras transversales sobre las correas */}
+                  <path
+                    d="M 44 48 L 46 46.5 M 48 54 L 50 52.5 M 52 60 L 54 58.5 M 56 66 L 58 64.5"
+                    stroke="#F4F1EA"
+                    strokeWidth="0.9"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M 43 76.5 L 43 78.8 M 48 77.2 L 48 79.5 M 57 76.8 L 57 79.0"
+                    stroke="#F4F1EA"
+                    strokeWidth="0.85"
+                    strokeLinecap="round"
+                  />
+
+                  {/* Pequeño módulo de control rectangular en la cadera */}
+                  <rect
+                    x="49"
+                    y="72"
+                    width="9.5"
+                    height="11.5"
+                    rx="1"
+                    fill="#F4F1EA"
+                    stroke="#09090B"
+                    strokeWidth="1.6"
+                  />
+                  <path
+                    d="M 49.5 80.5 L 58 80.5 L 58 83 L 49.5 83 Z"
+                    fill="#09090B"
+                  />
+                  <path
+                    d="M 51.5 75 L 56 75 M 51.5 77.8 L 54.5 77.8"
+                    stroke="#09090B"
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                  />
+
+                  {/* Bolsillo lateral con volumen en cadera delantera */}
+                  <path
+                    d="M 55 85 L 62.5 84 L 62 93 L 54.5 93.5 Z"
+                    fill="#F4F1EA"
+                    stroke="#09090B"
                     strokeWidth="1.5"
                     strokeLinejoin="round"
                   />
-                  {/* Sombra dura cel-shaded */}
                   <path
-                    d="M 28.4 38.4 L 35.2 38.4 L 35.8 59.2 C 32.0 58.9, 29.1 57.6, 29.0 55.8 Z"
-                    fill="#CFCAC0"
+                    d="M 55 87.5 L 62.2 86.8 M 54.5 92 L 62 91.5"
+                    stroke="#09090B"
+                    strokeWidth="1"
                   />
-                  {/* Costuras horizontales acolchadas de puffer */}
+                </g>
+
+                {/* Casco realista perfil 3/4 mirando arriba/adelante en diagonal */}
+                <g ref={headRef}>
+                  {/* Cuello anillado */}
                   <path
-                    d="M 28.8 44.2 Q 41.5 46.2 53.8 43.8"
-                    stroke="#CFCAC0"
-                    strokeWidth="1.2"
+                    d="M 45 36.5 Q 55 41.5 64 38"
+                    stroke="#09090B"
+                    strokeWidth="3.6"
                     strokeLinecap="round"
                     fill="none"
                   />
                   <path
-                    d="M 28.9 51.8 Q 41.5 53.6 53.2 51.4"
-                    stroke="#CFCAC0"
-                    strokeWidth="1.2"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  {/* Línea de cierre frontal 3/4 */}
-                  <path
-                    d="M 47.0 36.0 L 46.4 59.4"
-                    stroke="#27272A"
-                    strokeWidth="1.3"
-                    strokeLinecap="round"
-                  />
-                  {/* Dobladillo inferior ajustado oscuro */}
-                  <path
-                    d="M 28.5 56.6 Q 41.0 58.8 53.3 56.6"
-                    stroke="#111114"
+                    d="M 46 36.5 Q 55 41 63 38"
+                    stroke="#F4F1EA"
                     strokeWidth="1.6"
                     strokeLinecap="round"
                     fill="none"
                   />
-
-                  {/* Cuello alto acolchado */}
                   <path
-                    d="M 33.4 31.4 C 37.0 28.6, 47.2 28.6, 50.8 31.4 C 51.8 33.8, 49.8 36.5, 42.6 36.8 C 35.2 36.5, 32.6 33.8, 33.4 31.4 Z"
+                    d="M 50 38.5 L 49.5 40.2 M 54.5 39.2 L 54.5 41.0 M 59 38.8 L 59.5 40.5"
+                    stroke="#09090B"
+                    strokeWidth="0.9"
+                    strokeLinecap="round"
+                  />
+
+                  {/* Ovoidal del casco realista */}
+                  <path
+                    d="M 41.5 25 C 40 16, 46 9.5, 56 9.5 C 66.5 9.5, 72.5 14.8, 72.5 22.8 C 72.5 30, 67 36.2, 57.5 37.2 C 48 38, 42.5 32.5, 41.5 25 Z"
                     fill="#F4F1EA"
-                    stroke="#111114"
-                    strokeWidth="1.5"
+                    stroke="#09090B"
+                    strokeWidth="2"
                     strokeLinejoin="round"
                   />
+
+                  {/* Sombra dura de tinta en base trasera del casco + halo de recorte #F4F1EA */}
                   <path
-                    d="M 34.4 33.0 C 37.4 35.4, 46.8 35.4, 49.8 33.0"
-                    stroke="#CFCAC0"
+                    d="M 42 25.5 C 42.8 32, 48.2 37.2, 57.5 36.5 C 61.5 36.2, 64.5 34.8, 66.8 32.6 C 59.5 34.5, 52 32.2, 48.5 26.8 C 46.2 23.2, 46.5 17.8, 49 13.4 C 44 15.8, 41.4 20.5, 42 25.5 Z"
+                    fill="#09090B"
+                    stroke="#F4F1EA"
+                    strokeWidth="1.15"
+                    strokeLinejoin="round"
+                  />
+
+                  {/* Visor oscuro curvo en diagonal (contorno externo #F4F1EA + achurado + 2 brillos blancos) */}
+                  <path
+                    d="M 53.5 14.5 C 58.8 11.4, 67.2 12.0, 71.2 17.2 C 73.0 20.6, 71.2 26.8, 66.0 29.0 C 59.8 31.4, 53.0 28.6, 51.6 23.0 C 50.8 19.6, 51.6 16.2, 53.5 14.5 Z"
+                    fill="#09090B"
+                    stroke="#F4F1EA"
                     strokeWidth="1.2"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-
-                  {/* Dos cordones sueltos del hoodie con física cero-G */}
-                  <path
-                    ref={cordLeftRef}
-                    d="M 45.2 36.0 Q 44.2 41.8 44.5 47.0"
-                    stroke="#111114"
-                    strokeWidth="2.0"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  <path
-                    ref={cordLeftInnerRef}
-                    d="M 45.2 36.0 Q 44.2 41.8 44.5 47.0"
-                    stroke="#E4E4E7"
-                    strokeWidth="0.9"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  <circle
-                    ref={cordLeftAgletRef}
-                    cx="44.5"
-                    cy="47.0"
-                    r="1.15"
-                    fill="#27272A"
-                    stroke="#111114"
-                    strokeWidth="0.7"
-                  />
-
-                  <path
-                    ref={cordRightRef}
-                    d="M 48.8 36.0 Q 49.4 41.2 49.5 46.2"
-                    stroke="#111114"
-                    strokeWidth="2.0"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  <path
-                    ref={cordRightInnerRef}
-                    d="M 48.8 36.0 Q 49.4 41.2 49.5 46.2"
-                    stroke="#E4E4E7"
-                    strokeWidth="0.9"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  <circle
-                    ref={cordRightAgletRef}
-                    cx="49.5"
-                    cy="46.2"
-                    r="1.15"
-                    fill="#27272A"
-                    stroke="#111114"
-                    strokeWidth="0.7"
-                  />
-                </g>
-
-                {/* 7. Cabeza 3/4: Casco cromado + Visor oscuro espejado + Auriculares */}
-                <g ref={headRef}>
-                  {/* Destello orbital al hacer clic */}
-                  <g ref={clickOrbitalGroupRef} opacity="0">
-                    <ellipse
-                      cx="43"
-                      cy="18.5"
-                      rx="21.5"
-                      ry="7.0"
-                      transform="rotate(-18 43 18.5)"
-                      stroke="#F4F1EA"
-                      strokeWidth="1.05"
-                      fill="none"
-                    />
-                    <path
-                      d="M 22.8 23.8 L 23.4 25.4 L 25.0 26.0 L 23.4 26.6 L 22.8 28.2 L 22.2 26.6 L 20.6 26.0 L 22.2 25.4 Z"
-                      fill="#FFFFFF"
-                    />
-                    <path
-                      d="M 62.5 9.2 L 63.0 10.6 L 64.4 11.1 L 63.0 11.6 L 62.5 13.0 L 62.0 11.6 L 60.6 11.1 L 62.0 10.6 Z"
-                      fill="#FFFFFF"
-                    />
-                  </g>
-
-                  {/* Casco 3/4 levemente inclinado hacia adelante */}
-                  <path
-                    d="M 31.5 18.5 C 31.5 9.5, 38.5 5.5, 45.5 6.2 C 52.8 6.9, 57.2 12.2, 56.8 19.5 C 56.5 26.2, 51.5 30.2, 43.8 30.2 C 35.8 30.2, 31.5 25.5, 31.5 18.5 Z"
-                    fill="#F4F1EA"
-                    stroke="#111114"
-                    strokeWidth="1.5"
                     strokeLinejoin="round"
                   />
-
-                  {/* Sombra cel-shaded trasera e inferior del casco */}
                   <path
-                    d="M 32.3 18.5 C 32.3 24.8, 36.2 29.4, 43.8 29.4 C 46.8 29.4, 49.4 28.6, 51.2 27.3 C 45.2 28.2, 38.8 25.4, 36.2 20.5 C 34.4 17.1, 34.8 13.0, 37.2 9.4 C 33.8 11.4, 32.3 14.8, 32.3 18.5 Z"
-                    fill="#CFCAC0"
-                  />
-
-                  {/* Visor oscuro espejado (perfil 3/4, cero ojos infantiles) */}
-                  <path
-                    d="M 42.2 10.6 C 48.2 10.4, 54.4 12.0, 56.2 16.8 C 57.0 19.2, 56.2 23.6, 52.6 25.5 C 48.2 27.6, 41.2 26.8, 39.2 22.8 C 37.6 19.6, 38.0 13.4, 42.2 10.6 Z"
-                    fill="url(#ellik-street-visor-grad)"
-                  />
-
-                  {/* Reflejos recortados dentro del visor */}
-                  <g clipPath="url(#ellik-street-visor-clip)">
-                    {/* Destello plateado deslizante */}
-                    <g ref={visorGlintRef}>
-                      <rect
-                        x="38"
-                        y="6"
-                        width="8"
-                        height="26"
-                        transform="rotate(-26 42 19)"
-                        fill="url(#ellik-visor-silver-glint)"
-                      />
-                    </g>
-
-                    {/* Dos líneas filosas de reflejo diagonal en blanco puro */}
-                    <path
-                      d="M 41.2 16.8 L 47.4 11.4"
-                      stroke="#FFFFFF"
-                      strokeWidth="1.75"
-                      strokeLinecap="round"
-                      opacity="0.96"
-                    />
-                    <path
-                      d="M 44.2 18.8 L 49.2 14.4"
-                      stroke="#FFFFFF"
-                      strokeWidth="0.9"
-                      strokeLinecap="round"
-                      opacity="0.72"
-                    />
-                  </g>
-
-                  {/* Borde nítido del visor */}
-                  <path
-                    d="M 42.2 10.6 C 48.2 10.4, 54.4 12.0, 56.2 16.8 C 57.0 19.2, 56.2 23.6, 52.6 25.5 C 48.2 27.6, 41.2 26.8, 39.2 22.8 C 37.6 19.6, 38.0 13.4, 42.2 10.6 Z"
-                    stroke="#111114"
-                    strokeWidth="1.5"
+                    d="M 53.5 14.5 C 58.8 11.4, 67.2 12.0, 71.2 17.2 C 73.0 20.6, 71.2 26.8, 66.0 29.0 C 59.8 31.4, 53.0 28.6, 51.6 23.0 C 50.8 19.6, 51.6 16.2, 53.5 14.5 Z"
                     fill="none"
-                  />
-
-                  {/* Auriculares minimalistas con detalle cromado */}
-                  <path
-                    d="M 32.8 16.2 C 33.4 8.8, 38.8 5.2, 44.6 5.2"
-                    stroke="#18181B"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  <rect
-                    x="29.4"
-                    y="14.2"
-                    width="6.0"
-                    height="9.4"
-                    rx="2.6"
-                    fill="#27272A"
-                    stroke="#111114"
+                    stroke="#09090B"
                     strokeWidth="1.4"
                   />
-                  <rect
-                    x="30.9"
-                    y="16.2"
-                    width="2.6"
-                    height="5.4"
-                    rx="1.3"
-                    fill="#E4E4E7"
-                    stroke="#111114"
-                    strokeWidth="0.7"
+
+                  {/* 3 Líneas cortas de achurado dentro del visor */}
+                  <path
+                    d="M 54.5 25.2 L 58.0 27.6 M 56.8 24.4 L 60.4 26.8 M 59.4 23.8 L 62.6 25.9"
+                    stroke="#F4F1EA"
+                    strokeOpacity="0.45"
+                    strokeWidth="0.9"
+                    strokeLinecap="round"
+                  />
+
+                  {/* 2 Brillos curvos blancos nítidos (cero ojos) */}
+                  <path
+                    d="M 55.2 18.2 Q 59.8 14.2 65.4 15.0"
+                    stroke="#F4F1EA"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  <path
+                    d="M 54.2 21.4 Q 55.5 23.2 57.6 24.2"
+                    stroke="#F4F1EA"
+                    strokeWidth="1.0"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+
+                  {/* Bisagra circular mecánica lateral */}
+                  <circle
+                    cx="49.5"
+                    cy="25.8"
+                    r="4.2"
+                    fill="#F4F1EA"
+                    stroke="#09090B"
+                    strokeWidth="1.6"
+                  />
+                  <circle cx="49.5" cy="25.8" r="1.9" fill="#09090B" />
+                  <path
+                    d="M 47.6 25.8 L 51.4 25.8"
+                    stroke="#F4F1EA"
+                    strokeWidth="0.8"
                   />
                 </g>
 
-                {/* 8. Brazo delantero (manga puffer suelta + mano relajada / gesto chill peace en hover) */}
-                <g ref={frontUpperArmRef}>
-                  <path
-                    d="M 32.0 37.5 C 35.8 36.8, 39.2 39.0, 40.8 45.2 L 41.8 50.2 C 41.2 52.0, 36.4 52.4, 34.8 50.6 L 32.2 44.2 C 31.0 41.2, 30.8 38.5, 32.0 37.5 Z"
+                {/* Brazo principal articulado + guante sombreado palma abierta */}
+                <g ref={upperArmRef}>
+                  {/* Costura circular del hombro */}
+                  <circle
+                    cx="49"
+                    cy="50"
+                    r="6.2"
                     fill="#F4F1EA"
-                    stroke="#111114"
-                    strokeWidth="1.5"
+                    stroke="#09090B"
+                    strokeWidth="1.6"
+                  />
+                  {/* Manga superior con pliegues en tinta */}
+                  <path
+                    d="M 44 50.5 C 42 57, 42 66, 43 74 L 52.5 74 C 53 66, 53.5 57, 54 50 Z"
+                    fill="#F4F1EA"
+                    stroke="#09090B"
+                    strokeWidth="2"
                     strokeLinejoin="round"
                   />
                   <path
-                    d="M 32.8 39.0 L 35.2 49.4 L 38.2 50.4 L 35.0 43.2 Z"
-                    fill="#CFCAC0"
+                    d="M 43 52 L 46.5 52 L 46 73 L 43.4 73 Z"
+                    fill="#09090B"
+                  />
+                  <path
+                    d="M 46 57 L 52 55 M 46.5 63 L 52.5 61 M 46.5 69 L 51.5 68"
+                    stroke="#09090B"
+                    strokeWidth="0.9"
+                    strokeLinecap="round"
                   />
 
-                  <g ref={frontForearmRef}>
+                  <g ref={forearmRef}>
+                    {/* Antebrazo articulado */}
                     <path
-                      d="M 35.5 49.0 C 39.5 48.0, 44.5 49.5, 49.0 51.4 L 48.2 55.8 C 43.2 55.2, 38.2 54.4, 34.8 52.0 Z"
+                      d="M 43 73 L 52.5 73 C 55 80, 56.5 87, 57 92 L 48 93 C 46 87, 44.5 80, 43 73 Z"
                       fill="#F4F1EA"
-                      stroke="#111114"
-                      strokeWidth="1.5"
+                      stroke="#09090B"
+                      strokeWidth="2"
                       strokeLinejoin="round"
                     />
-                    {/* Puño acanalado */}
                     <path
-                      d="M 47.4 51.0 L 50.2 51.6 L 49.4 56.0 L 46.6 55.6 Z"
-                      fill="#27272A"
-                      stroke="#111114"
+                      d="M 43.8 74 L 47 74 L 50.5 92.2 L 48.4 92.4 Z"
+                      fill="#09090B"
+                    />
+                    <path
+                      d="M 48 80 L 54 78.5 M 49 85 L 55 83.5"
+                      stroke="#09090B"
+                      strokeWidth="0.9"
+                      strokeLinecap="round"
+                    />
+                    {/* Anillo de muñeca */}
+                    <path
+                      d="M 47.5 91.5 L 57.5 90.5 L 57.8 93.2 L 47.8 94.2 Z"
+                      fill="#09090B"
+                      stroke="#F4F1EA"
+                      strokeWidth="1"
+                    />
+
+                    {/* Guante negro de tinta con palma abierta y dedos relajados colgando (+ halo #F4F1EA 1.2px) */}
+                    <path
+                      d="M 48.2 93.6 C 46.5 96.5, 46.2 100.5, 47.8 103.5 C 48.8 105.2, 50.6 104.2, 50.5 101.8 L 51.2 106.2 C 51.4 107.8, 53.2 107.8, 53.4 105.8 L 53.6 101.8 L 54.4 106.4 C 54.8 107.8, 56.4 107.4, 56.4 105.5 L 56.2 101.0 L 57.4 104.6 C 58.0 105.8, 59.4 105.2, 59.0 103.2 L 57.6 97.6 C 59.2 98.4, 60.8 97.4, 60.4 95.8 C 60.0 94.4, 58.2 93.4, 57.0 92.8 Z"
+                      fill="#09090B"
+                      stroke="#F4F1EA"
                       strokeWidth="1.2"
                       strokeLinejoin="round"
                     />
-
-                    {/* Estado normal: mano relajada */}
-                    <g ref={relaxedHandRef} opacity="1">
-                      <path
-                        d="M 49.8 51.6 C 52.4 51.4, 54.8 52.8, 54.6 54.8 C 54.4 56.8, 51.6 57.2, 49.2 56.0 Z"
-                        fill="#18181B"
-                        stroke="#111114"
-                        strokeWidth="1.4"
-                        strokeLinejoin="round"
-                      />
-                    </g>
-
-                    {/* Estado hover: gesto chill / peace */}
-                    <g ref={peaceHandRef} opacity="0">
-                      <path
-                        d="M 49.6 51.6 L 52.8 46.2 C 53.4 45.2, 54.8 45.8, 54.4 47.0 L 52.8 51.2 L 56.2 47.8 C 57.0 47.0, 58.2 48.0, 57.4 49.0 L 53.8 53.2 C 54.2 55.2, 52.4 56.8, 49.2 55.8 Z"
-                        fill="#18181B"
-                        stroke="#F4F1EA"
-                        strokeWidth="0.9"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M 49.6 51.6 L 52.8 46.2 C 53.4 45.2, 54.8 45.8, 54.4 47.0 L 52.8 51.2 L 56.2 47.8 C 57.0 47.0, 58.2 48.0, 57.4 49.0 L 53.8 53.2 C 54.2 55.2, 52.4 56.8, 49.2 55.8 Z"
-                        fill="none"
-                        stroke="#111114"
-                        strokeWidth="1.35"
-                        strokeLinejoin="round"
-                      />
-                    </g>
+                    {/* Trazos finos de pliegue en palma abierta del guante */}
+                    <path
+                      d="M 50.8 97.2 Q 53.6 96.4 55.8 97.8 M 51.8 99.6 L 55.2 99.6"
+                      stroke="#F4F1EA"
+                      strokeOpacity="0.65"
+                      strokeWidth="0.85"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
                   </g>
                 </g>
               </g>
             </svg>
 
-            {/* Tag minimalista en Satoshi al hacer hover */}
+            {/* Etiqueta limpia en Satoshi */}
             <AnimatePresence>
               {isHovered && (
                 <motion.span
