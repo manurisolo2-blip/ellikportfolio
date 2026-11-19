@@ -66,6 +66,7 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
   const [activeId, setActiveId] = useState<string>(NAV_SECTIONS[0].id);
   const [isOverLightSection, setIsOverLightSection] = useState<boolean>(false);
   const programmaticLockUntilRef = useRef<number>(0);
+  const programmaticTargetTopRef = useRef<number | null>(null);
 
   const navItems = useMemo<LiquidNavItem[]>(
     () =>
@@ -102,9 +103,21 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
   const updateActiveByPosition = useCallback(() => {
     if (typeof window === "undefined") return;
     syncLightTone();
-    if (performance.now() < programmaticLockUntilRef.current) return;
 
-    if (window.scrollY < 80) {
+    const now = performance.now();
+    if (now < programmaticLockUntilRef.current) {
+      if (
+        programmaticTargetTopRef.current !== null &&
+        Math.abs(window.scrollY - programmaticTargetTopRef.current) <= 8
+      ) {
+        programmaticLockUntilRef.current = 0;
+        programmaticTargetTopRef.current = null;
+      } else {
+        return;
+      }
+    }
+
+    if (window.scrollY < 100) {
       setActiveId(NAV_SECTIONS[0].id);
       return;
     }
@@ -112,14 +125,14 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
     const docEl = document.documentElement;
     if (
       window.scrollY + window.innerHeight >=
-      docEl.scrollHeight - 120
+      docEl.scrollHeight - 160
     ) {
       const last = NAV_SECTIONS[NAV_SECTIONS.length - 1];
       if (last) setActiveId(last.id);
       return;
     }
 
-    const triggerY = window.innerHeight * 0.38;
+    const triggerY = window.innerHeight * 0.45;
     let currentId = NAV_SECTIONS[0].id;
 
     for (const section of NAV_SECTIONS) {
@@ -168,9 +181,18 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
       lightObserver.observe(serviciosEl);
     }
 
+    const clearLockOnManualScroll = () => {
+      programmaticLockUntilRef.current = 0;
+      programmaticTargetTopRef.current = null;
+    };
+
     sectionElements.forEach((el) => observer.observe(el));
     window.addEventListener("scroll", updateActiveByPosition, { passive: true });
     window.addEventListener("resize", updateActiveByPosition, { passive: true });
+    window.addEventListener("wheel", clearLockOnManualScroll, { passive: true });
+    window.addEventListener("touchmove", clearLockOnManualScroll, {
+      passive: true,
+    });
     updateActiveByPosition();
 
     return () => {
@@ -178,32 +200,59 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
       lightObserver?.disconnect();
       window.removeEventListener("scroll", updateActiveByPosition);
       window.removeEventListener("resize", updateActiveByPosition);
+      window.removeEventListener("wheel", clearLockOnManualScroll);
+      window.removeEventListener("touchmove", clearLockOnManualScroll);
     };
   }, [syncLightTone, updateActiveByPosition]);
 
   const scrollToSection = useCallback((id: string) => {
-    programmaticLockUntilRef.current = performance.now() + 850;
+    if (typeof window === "undefined") return;
+
     setActiveId(id);
 
-    if (id === "inicio") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
+    const maxScroll = Math.max(
+      0,
+      document.documentElement.scrollHeight - window.innerHeight
+    );
+    let targetTop = 0;
+
+    if (id !== "inicio") {
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      const sectionTop = el.getBoundingClientRect().top + window.scrollY;
+
+      if (id === "proyectos") {
+        // Aterrizar directamente dentro de la meseta fullscreen (scale = 1, opacity = 1)
+        const scrollRange = Math.max(0, el.offsetHeight - window.innerHeight);
+        const holdOffset = Math.round(scrollRange * 0.38);
+        targetTop = Math.min(maxScroll, Math.max(0, sectionTop + holdOffset));
+      } else if (id === "servicios") {
+        // Encuadrar título + primera tarjeta apilable completa en pantalla
+        targetTop = Math.min(maxScroll, Math.max(0, Math.round(sectionTop + 36)));
+      } else {
+        // Contacto (#contacto)
+        targetTop = Math.min(maxScroll, Math.max(0, Math.round(sectionTop - 20)));
+      }
     }
 
-    const el = document.getElementById(id);
-    if (!el) return;
+    programmaticTargetTopRef.current = targetTop;
+    programmaticLockUntilRef.current = performance.now() + 1300;
 
-    if (id === "proyectos") {
-      const top = el.getBoundingClientRect().top + window.scrollY;
-      const holdOffset = Math.min(
-        200,
-        Math.round(Math.max(0, el.offsetHeight - window.innerHeight) * 0.15)
-      );
-      window.scrollTo({ top: top + holdOffset, behavior: "smooth" });
-      return;
+    const lenis = window.__ellikLenis;
+    if (lenis) {
+      lenis.scrollTo(targetTop, {
+        duration: 1.05,
+        force: true,
+        lock: false,
+        onComplete: () => {
+          programmaticLockUntilRef.current = 0;
+          programmaticTargetTopRef.current = null;
+        },
+      });
+    } else {
+      window.scrollTo({ top: targetTop, behavior: "smooth" });
     }
-
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
   const handleNavChange = useCallback(
@@ -226,13 +275,13 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
           scrollToSection("inicio");
         }}
         aria-label="ELLIK — Volver al inicio"
-        className="fixed top-4 left-6 lg:top-8 lg:left-10 z-40 inline-flex min-h-[44px] items-center text-white mix-blend-difference transition-opacity hover:opacity-80"
+        className="fixed top-4 left-6 lg:top-8 lg:left-10 z-[48] inline-flex min-h-[44px] items-center text-white mix-blend-difference transition-opacity hover:opacity-80"
       >
         <EllikLogo />
       </a>
 
       {/* Esquina Superior Derecha: Acción magnética de contacto directo */}
-      <div className="fixed top-4 right-6 lg:top-8 lg:right-10 z-40 mix-blend-difference text-white">
+      <div className="fixed top-4 right-6 lg:top-8 lg:right-10 z-[48] mix-blend-difference text-white">
         <MagneticButton
           onClick={() => onOpenDrawer()}
           className="inline-flex min-h-[44px] items-center border border-white/35 bg-transparent px-4 py-2.5 font-sans font-medium text-[11px] tracking-[0.18em] uppercase text-white transition-colors duration-200 hover:border-white"
@@ -244,7 +293,7 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
       {/* Desktop (>= 1024px): Liquid Glass Navbar vertical en el margen derecho */}
       <div
         data-cursor="action"
-        className="hidden lg:flex fixed right-6 xl:right-8 top-1/2 -translate-y-1/2 z-40"
+        className="hidden lg:flex fixed right-6 xl:right-8 top-1/2 -translate-y-1/2 z-[48]"
       >
         <LiquidNavbar
           items={navItems}
@@ -261,7 +310,7 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
       {/* Móvil (< 1024px): Píldora flotante horizontal inferior */}
       <div
         data-cursor="action"
-        className="flex lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40"
+        className="flex lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-[48]"
       >
         <LiquidNavbar
           items={navItems}

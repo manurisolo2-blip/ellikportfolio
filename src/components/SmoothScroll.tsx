@@ -3,6 +3,12 @@
 import React, { useEffect } from "react";
 import Lenis from "lenis";
 
+declare global {
+  interface Window {
+    __ellikLenis?: Lenis;
+  }
+}
+
 interface SmoothScrollProps {
   children: React.ReactNode;
 }
@@ -15,6 +21,8 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
       smoothWheel: true,
       touchMultiplier: 1.5,
     });
+
+    window.__ellikLenis = lenis;
 
     let rafId = 0;
 
@@ -52,6 +60,9 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       stopLoop();
+      if (window.__ellikLenis === lenis) {
+        delete window.__ellikLenis;
+      }
       lenis.destroy();
     };
   }, []);
