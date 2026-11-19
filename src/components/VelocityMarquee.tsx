@@ -8,8 +8,12 @@ import {
   useVelocity,
 } from "framer-motion";
 
-const MARQUEE_PHRASE =
-  "DISEÑO A MEDIDA  ✦  ANIMACIÓN 3D  ✦  CÓDIGO PROPIO  ✦  PRODUCCIÓN  ✦";
+const MARQUEE_ITEMS = [
+  "DISEÑO A MEDIDA",
+  "ANIMACIÓN 3D",
+  "CÓDIGO PROPIO",
+  "PRODUCCIÓN",
+] as const;
 
 export function VelocityMarquee() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -97,12 +101,16 @@ export function VelocityMarquee() {
             className="flex shrink-0 items-center"
           >
             {[0, 1, 2].map((repeatIdx) => (
-              <span
-                key={`${copyIdx}-${repeatIdx}`}
-                className="font-display text-4xl md:text-6xl font-medium uppercase tracking-[-0.02em] text-white/90 whitespace-nowrap pr-10"
-              >
-                {MARQUEE_PHRASE}
-              </span>
+              <React.Fragment key={`${copyIdx}-${repeatIdx}`}>
+                {MARQUEE_ITEMS.map((item, itemIdx) => (
+                  <span
+                    key={`${copyIdx}-${repeatIdx}-${itemIdx}`}
+                    className="font-display text-4xl md:text-6xl font-medium uppercase tracking-[-0.02em] text-white/90 whitespace-nowrap pr-14 md:pr-20"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </React.Fragment>
             ))}
           </div>
         ))}

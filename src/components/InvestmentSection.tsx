@@ -99,13 +99,13 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
   return (
     <section
       id="servicios"
-      className="relative w-full bg-[#F4F1EA] text-[#050505] py-24 md:py-32 selection:bg-[#050505] selection:text-[#F4F1EA]"
+      className="relative w-full bg-[#F4F1EA] text-[#050505] pt-20 md:pt-28 pb-12 md:pb-16 selection:bg-[#050505] selection:text-[#F4F1EA]"
     >
       <div className="px-6 sm:px-10 lg:px-28 xl:px-32">
         <div className="mx-auto w-full max-w-[1100px]">
           <div
             ref={headerRef}
-            className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 md:mb-12"
+            className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-4 md:mb-6"
           >
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
@@ -129,14 +129,14 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
               DESLIZÁ PARA APILAR / TOCÁ PARA CONSULTAR
             </motion.p>
           </div>
-
-          <ProjectDeck
-            items={deckItems}
-            ground="#F4F1EA"
-            onSelectItem={handleSelectItem}
-          />
         </div>
       </div>
+
+      <ProjectDeck
+        items={deckItems}
+        ground="#F4F1EA"
+        onSelectItem={handleSelectItem}
+      />
     </section>
   );
 }

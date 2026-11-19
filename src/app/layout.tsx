@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { CustomCursor } from "@/components/CustomCursor";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { TabTitleManager } from "@/components/TabTitleManager";
 import { TubesCursor } from "@/components/ui/tubes-cursor";
@@ -52,7 +51,6 @@ export default function RootLayout({
       <body className="bg-[var(--bg-void)] text-[var(--text-primary)] antialiased">
         <TabTitleManager />
         <TubesCursor />
-        <CustomCursor />
 
         <SmoothScroll>{children}</SmoothScroll>
       </body>

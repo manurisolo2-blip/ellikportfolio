@@ -26,14 +26,6 @@
   box-sizing: border-box;
 }
 
-@media (pointer: fine) {
-  *,
-  *::before,
-  *::after {
-    cursor: none !important;
-  }
-}
-
 html {
   scroll-behavior: auto;
   background-color: var(--bg-void);
