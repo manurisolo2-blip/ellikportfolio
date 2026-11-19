@@ -40,17 +40,19 @@ export default function HomePage() {
       <FixedFrameNav onOpenDrawer={handleOpenDrawer} />
       <AstronautScrollTracker />
 
-      <main className="relative z-10 overflow-x-clip">
-        <div className="pl-6 lg:pl-60 pr-6 lg:pr-16">
+      <main className="relative overflow-x-clip">
+        <div className="relative z-10 pl-6 lg:pl-60 pr-6 lg:pr-16">
           <HeroSection onOpenDrawer={handleOpenDrawer} />
-          <MissionsSection />
         </div>
 
-        <VelocityMarquee />
+        <MissionsSection />
 
-        <InvestmentSection onOpenDrawer={handleOpenDrawer} />
+        <div className="relative z-10">
+          <VelocityMarquee />
+          <InvestmentSection onOpenDrawer={handleOpenDrawer} />
+        </div>
 
-        <div className="pl-6 lg:pl-60 pr-6 lg:pr-16">
+        <div className="relative z-10 pl-6 lg:pl-60 pr-6 lg:pr-16">
           <FinalCtaSection onOpenDrawer={handleOpenDrawer} />
         </div>
       </main>

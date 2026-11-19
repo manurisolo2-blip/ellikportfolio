@@ -52,7 +52,7 @@ body {
   background-color: var(--bg-void);
   color: var(--text-primary);
   font-family: 'Satoshi', sans-serif !important;
-  overflow-x: hidden;
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

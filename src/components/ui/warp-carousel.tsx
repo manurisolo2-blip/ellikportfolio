@@ -18,6 +18,8 @@ export interface WarpCard {
   href?: string;
   /** Small numeric/editorial tag in the top-left corner ("01" .. "04"). */
   tag?: string;
+  /** Render pure screenshot frame without stamping overlaid title/tag text. */
+  hideOverlay?: boolean;
   /** Optional big thin numeral for stat cards. */
   value?: string;
   /** Small superscript unit after the numeral. */
@@ -515,6 +517,19 @@ function paintCard(
   const cream: [number, number, number] = [244, 241, 234];
 
   if (card.image) {
+    if (card.hideOverlay) {
+      const topHighlight = ctx.createLinearGradient(0, 0, 0, 3);
+      topHighlight.addColorStop(0, "rgba(255, 255, 255, 0.14)");
+      topHighlight.addColorStop(1, "rgba(255, 255, 255, 0)");
+      ctx.fillStyle = topHighlight;
+      ctx.fillRect(0, 0, CW, 3);
+
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(0.5, 0.5, CW - 1, CH - 1);
+      return;
+    }
+
     // Degradado oscuro sutil solo en la franja superior y tercio inferior
     const topGrad = ctx.createLinearGradient(0, 0, 0, CH * 0.24);
     topGrad.addColorStop(0, "rgba(5, 5, 5, 0.62)");
@@ -925,7 +940,8 @@ vec3 render(vec2 pu, float halfH, int base){
     c.rgb = min(c.rgb * gain, vec3(c.a));
     acc[ch] = (c.rgb + (1.0 - c.a) * bg)[ch];
   }
-  return acc;
+  float edgeFade = 1.0 - smoothstep(332.0, 428.0, abs(pu.x));
+  return mix(bg, acc, edgeFade);
 }
 
 void main(){
@@ -1312,23 +1328,23 @@ export function WarpCarousel({
     const prev = lastIndex.current;
     lastIndex.current = current;
     if (prev === current) return;
-    let delta = current - prev;
-    if (props.current.controlled && Math.abs(delta) > realCount / 2)
-      delta -= Math.sign(delta) * realCount;
+    const targetMod = mod(current, realCount);
+    let diff = mod(targetMod - L.P, realCount);
+    if (diff > realCount / 2) diff -= realCount;
+    const targetSlot = Math.round(L.P + diff);
     const now = performance.now() / 1000;
     const fromAuto = L.autoPending;
     L.autoPending = false;
     if (props.current.reduced) {
       L.fadeFrom = L.P;
-      L.P = Math.round(L.P) + delta;
+      L.P = targetSlot;
       L.mode = "fade";
       L.fadeT0 = now;
-    } else if (L.mode !== "spring") {
-      const base = Math.round(L.P - DRIFT) + delta;
+    } else {
       L.from = L.P;
-      L.to = base + DRIFT;
+      L.to = fromAuto ? targetSlot + DRIFT : targetSlot;
       L.t0 = now;
-      L.n = fromAuto ? props.current.gap * 30 : STEP_FRAMES;
+      L.n = fromAuto ? props.current.gap * 30 : 36;
       L.mode = "spin";
     }
     if (!fromAuto) L.nextAuto = now + props.current.gap;
@@ -1669,7 +1685,7 @@ export function WarpCarousel({
     const r = wrapEl.getBoundingClientRect();
     const unitCss = Math.min(r.width / 720, r.height / 440);
     const now = performance.now() / 1000;
-    const P = L.dragP - (e.clientX - L.dragX) / (unitCss * 300);
+    const P = L.dragP - (e.clientX - L.dragX) / (unitCss * 210);
     const dt = Math.max(1 / 240, now - L.lastT);
     L.v = 0.6 * L.v + 0.4 * ((P - L.P) / dt);
     L.P = P;
@@ -1701,17 +1717,22 @@ export function WarpCarousel({
       return;
     }
     if (now - L.lastT > 0.08) L.v = 0;
-    const target = Math.round(L.P + L.v * 0.16);
-    const from = Math.round(L.dragP - DRIFT);
+    const dragOrigin = Math.round(L.dragP);
+    const velBoost = Math.max(-0.32, Math.min(0.32, L.v * 0.12));
+    let target = Math.round(L.P + velBoost);
+    if (target === dragOrigin && Math.abs(L.P - L.dragP) >= 0.28) {
+      target = dragOrigin + Math.sign(L.P - L.dragP);
+    }
     L.to = target;
     L.mode = "spring";
     L.lastT = now;
-    const next = lastIndex.current + (target - from);
-    if (next !== lastIndex.current) {
-      lastIndex.current = next;
-      const p = props.current;
-      if (p.onIndexChange) p.onIndexChange(mod(next, p.realCount));
-      if (!p.controlled) setInner(next);
+    const p = props.current;
+    const nextMod = mod(target, p.realCount);
+    const nextStored = p.controlled ? nextMod : target;
+    if (nextStored !== lastIndex.current) {
+      lastIndex.current = nextStored;
+      if (p.onIndexChange) p.onIndexChange(nextMod);
+      if (!p.controlled) setInner(target);
     }
     handles.current.kick();
   };
