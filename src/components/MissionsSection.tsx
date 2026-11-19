@@ -34,7 +34,7 @@ const PROJECT_CARD_META: Record<string, ProjectCardVisualMeta> = {
   },
   "lung-yai": {
     title: "Lung Yai\nThai Tapas",
-    shortCategory: "Michelin · Miami",
+    shortCategory: "Michelin, Miami",
     glow: "#C84B31",
     accent: "#E07A5F",
   },
@@ -231,9 +231,14 @@ export function MissionsSection() {
                     transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                     className="space-y-1"
                   >
-                    <p className="font-sans font-medium text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/90 leading-snug">
-                      {activeMission.category} · {activeMission.highlight}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-sans font-medium text-[11px] uppercase tracking-[0.14em] leading-snug">
+                      <span className="text-[#F4F1EA]">
+                        {activeMission.category}
+                      </span>
+                      <span className="text-white/55">
+                        {activeMission.highlight}
+                      </span>
+                    </div>
                     <p className="hidden sm:block text-sm leading-relaxed text-white/75 line-clamp-1 max-w-3xl">
                       {activeMission.description}
                     </p>

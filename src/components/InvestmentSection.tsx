@@ -28,7 +28,7 @@ const DECK_VISUAL_META: Record<
 > = {
   "01": {
     id: "pedidos-carta",
-    eyebrow: "GASTRONOMÍA · PEDIDOS DIRECTOS A WHATSAPP",
+    eyebrow: "GASTRONOMÍA / PEDIDOS DIRECTOS A WHATSAPP",
     image: "/previews/mojo-desktop.webp",
     accent: "#E06D3B",
     ctaLabel: "Consultar alcance",
@@ -36,7 +36,7 @@ const DECK_VISUAL_META: Record<
   },
   "02": {
     id: "catalogo-tienda",
-    eyebrow: "INDUMENTARIA & COMERCIOS · VENTA DESDE EL CELULAR",
+    eyebrow: "INDUMENTARIA & COMERCIOS / VENTA DESDE EL CELULAR",
     image: "/previews/dopamine-desktop.webp",
     accent: "#D9A45B",
     ctaLabel: "Consultar alcance",
@@ -44,7 +44,7 @@ const DECK_VISUAL_META: Record<
   },
   "03": {
     id: "desarrollo-medida",
-    eyebrow: "INSTITUCIONES & PROYECTOS ESPECIALES · CÓDIGO PROPIO",
+    eyebrow: "INSTITUCIONES & PROYECTOS ESPECIALES / CÓDIGO PROPIO",
     image: "/previews/rio3-desktop.webp",
     accent: "#5B9BD5",
     ctaLabel: "Consultar alcance",
@@ -125,7 +125,7 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
             }}
             className="font-sans font-medium text-[11px] uppercase tracking-[0.16em] text-[#050505]/60 shrink-0"
           >
-            DESLIZÁ PARA APILAR · TOCÁ PARA CONSULTAR
+            DESLIZÁ PARA APILAR / TOCÁ PARA CONSULTAR
           </motion.p>
         </div>
 

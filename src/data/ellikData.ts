@@ -106,7 +106,7 @@ export const MISSIONS: Mission[] = [
     id: "mojo-grille",
     index: "01",
     shortTitle: "Mojo Grille",
-    category: "Gastronomía · Miami",
+    category: "Gastronomía, Miami",
     title: "Mojo Grille",
     location: "Miami, FL",
     description:
@@ -122,7 +122,7 @@ export const MISSIONS: Mission[] = [
     id: "dopamine",
     index: "02",
     shortTitle: "Dopamine",
-    category: "E-Commerce · Buenos Aires",
+    category: "E-Commerce, Buenos Aires",
     title: "Dopamine Streetwear",
     location: "Buenos Aires, AR",
     description:
@@ -138,7 +138,7 @@ export const MISSIONS: Mission[] = [
     id: "lung-yai",
     index: "03",
     shortTitle: "Lung Yai",
-    category: "Restaurante · Guía Michelin",
+    category: "Restaurante, Guía Michelin",
     title: "Lung Yai Thai Tapas",
     location: "Calle Ocho, Miami",
     description:
@@ -154,7 +154,7 @@ export const MISSIONS: Mission[] = [
     id: "deportistas-rio3",
     index: "04",
     shortTitle: "Capital del Deportista",
-    category: "Institucional · Río Tercero",
+    category: "Institucional, Río Tercero",
     title: "Capital Nacional del Deportista",
     location: "Río Tercero, Córdoba",
     description:
