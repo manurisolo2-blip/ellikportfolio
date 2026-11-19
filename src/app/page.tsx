@@ -6,6 +6,7 @@ import { OrbitalBackground } from "@/components/OrbitalBackground";
 import { FixedFrameNav } from "@/components/FixedFrameNav";
 import { AstronautScrollTracker } from "@/components/AstronautScrollTracker";
 import { HeroSection } from "@/components/HeroSection";
+import { ProblemSequenceSection } from "@/components/ProblemSequenceSection";
 import { MissionsSection } from "@/components/MissionsSection";
 import { VelocityMarquee } from "@/components/VelocityMarquee";
 import { InvestmentSection } from "@/components/InvestmentSection";
@@ -44,6 +45,8 @@ export default function HomePage() {
         <div className="relative z-10 px-6 sm:px-10 lg:pl-32 lg:pr-24 xl:pl-36 xl:pr-28">
           <HeroSection onOpenDrawer={handleOpenDrawer} />
         </div>
+
+        <ProblemSequenceSection />
 
         <MissionsSection />
 

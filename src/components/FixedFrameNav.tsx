@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { CircleDot, Compass, Layers, Orbit, Send } from "lucide-react";
+import { Activity, CircleDot, Compass, Layers, Orbit, Send } from "lucide-react";
 import { NAV_SECTIONS, type BusinessCategory } from "@/data/ellikData";
 import { MagneticButton } from "./AnimatedHeading";
 import { EllikLogo } from "./EllikLogo";
@@ -34,6 +34,12 @@ function buildNavItemMeta(sectionId: string, fallbackLabel: string): {
         label: "Inicio",
         icon: <Orbit {...ICON_PROPS} />,
         fx: "spin",
+      };
+    case "problema":
+      return {
+        label: "El problema",
+        icon: <Activity {...ICON_PROPS} />,
+        fx: "pop",
       };
     case "proyectos":
       return {
@@ -222,7 +228,9 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
 
       const sectionTop = el.getBoundingClientRect().top + window.scrollY;
 
-      if (id === "proyectos") {
+      if (id === "problema") {
+        targetTop = Math.min(maxScroll, Math.max(0, Math.round(sectionTop + 2)));
+      } else if (id === "proyectos") {
         // Aterrizar directamente dentro de la meseta fullscreen (scale = 1, opacity = 1)
         const scrollRange = Math.max(0, el.offsetHeight - window.innerHeight);
         const holdOffset = Math.round(scrollRange * 0.38);

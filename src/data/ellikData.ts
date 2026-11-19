@@ -56,6 +56,7 @@ export const ELLIK_CONFIG = {
 
 export const NAV_SECTIONS: NavSection[] = [
   { id: "inicio", label: "Index" },
+  { id: "problema", label: "El problema" },
   { id: "proyectos", label: "Obra (04)" },
   { id: "servicios", label: "Qué hago" },
   { id: "contacto", label: "Contacto" },
