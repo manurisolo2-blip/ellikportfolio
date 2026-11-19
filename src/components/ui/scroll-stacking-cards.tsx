@@ -104,8 +104,8 @@ function DeckCard({
   const y = useTransform(progress, (v) => {
     if (reducedMotion) return "0svh";
     const a = arrived(index, v, total);
-    const enterY = index === 0 ? 0 : (1 - a) * 92;
-    const stackY = -above(v) * 5;
+    const enterY = index === 0 ? 0 : (1 - a) * 94;
+    const stackY = -above(v) * 5.2;
     return `${(enterY + stackY).toFixed(3)}svh`;
   });
 
@@ -154,10 +154,10 @@ function DeckCard({
       className={cn(
         "ellik-deck-card group/card relative w-full overflow-hidden cursor-pointer select-none flex flex-col",
         "bg-[#09090C] text-[#F4F1EA] border border-white/[0.14]",
-        "shadow-[0_24px_64px_rgba(5,5,5,0.36)] will-change-transform",
+        "shadow-[0_28px_72px_rgba(5,5,5,0.4)] will-change-transform",
         reducedMotion
-          ? "relative mb-8 min-h-[430px]"
-          : "absolute inset-x-0 bottom-0 h-[65svh] min-h-[430px] max-h-[550px]"
+          ? "relative mb-8 min-h-[540px]"
+          : "absolute inset-x-0 bottom-0 h-[76svh] min-h-[540px] max-h-[720px]"
       )}
     >
       {/* Oscurecimiento progresivo cuando entran tarjetas encima */}
@@ -170,56 +170,56 @@ function DeckCard({
       {/* Resplandor superior sutil con el color de acento de la tarjeta */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-28 right-10 h-56 w-80 opacity-20 blur-2xl"
+        className="pointer-events-none absolute -top-28 right-10 h-64 w-96 opacity-20 blur-2xl"
         style={{
           background: `radial-gradient(circle, ${item.accent} 0%, transparent 70%)`,
         }}
       />
 
-      {/* Franja superior de ~5svh visible cuando la tarjeta queda apilada detrás (-5svh) */}
-      <div className="relative z-20 shrink-0 flex items-center justify-between gap-3 border-b border-white/[0.09] px-5 sm:px-8 md:px-10 h-11 sm:h-12">
-        <div className="flex items-center gap-3 min-w-0">
+      {/* Franja superior visible cuando la tarjeta queda apilada detrás (-5.2svh) */}
+      <div className="relative z-20 shrink-0 flex items-center justify-between gap-3 border-b border-white/[0.09] px-6 sm:px-9 md:px-12 h-12 sm:h-14">
+        <div className="flex items-center gap-3.5 min-w-0">
           <span
-            className="ellik-deck-badge inline-flex h-5 sm:h-6 px-2.5 items-center justify-center font-sans font-semibold tabular-nums text-[10px] sm:text-[11px] tracking-[0.16em] text-[#050505] shrink-0"
+            className="ellik-deck-badge inline-flex h-6 sm:h-7 px-3 items-center justify-center font-sans font-semibold tabular-nums text-[11px] sm:text-xs tracking-[0.16em] text-[#050505] shrink-0"
             style={{ backgroundColor: item.accent }}
           >
             {item.index}
           </span>
-          <span className="font-sans font-medium text-[10px] sm:text-[11px] uppercase tracking-[0.16em] text-[#F4F1EA]/80 truncate">
+          <span className="font-sans font-medium text-[11px] sm:text-xs uppercase tracking-[0.16em] text-[#F4F1EA]/85 truncate">
             {item.eyebrow}
           </span>
         </div>
 
-        <span className="hidden sm:inline-block font-sans font-medium tabular-nums text-[11px] uppercase tracking-[0.14em] text-white/45 shrink-0">
+        <span className="hidden sm:inline-block font-sans font-medium tabular-nums text-xs uppercase tracking-[0.14em] text-white/45 shrink-0">
           MODALIDAD {item.index} / 0{total}
         </span>
       </div>
 
       {/* Cuerpo principal de la tarjeta */}
-      <div className="relative z-20 flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-9 p-5 sm:p-7 md:p-9 pb-6 sm:pb-8">
+      <div className="relative z-20 flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 xl:gap-12 p-6 sm:p-9 md:p-11 xl:p-14 pb-8 sm:pb-11">
         {/* Columna izquierda: Título, Resumen, Entregables y CTA */}
-        <div className="lg:col-span-7 flex flex-col justify-between min-h-0 pr-0 sm:pr-4">
+        <div className="lg:col-span-6 flex flex-col justify-between min-h-0 pr-0 sm:pr-2">
           <div>
-            <h3 className="font-display text-2xl sm:text-3xl md:text-4xl xl:text-[42px] font-semibold tracking-[-0.03em] leading-[1.02] text-white">
+            <h3 className="font-display text-3xl sm:text-4xl md:text-5xl xl:text-[54px] font-semibold tracking-[-0.03em] leading-[1.0] text-white">
               {item.name}
             </h3>
 
-            <p className="mt-2.5 sm:mt-3.5 font-sans text-xs sm:text-sm md:text-base leading-relaxed text-[#F4F1EA]/80 max-w-2xl">
+            <p className="mt-3.5 sm:mt-4 font-sans text-sm sm:text-base md:text-lg xl:text-[19px] leading-relaxed text-[#F4F1EA]/80 max-w-2xl">
               {item.summary}
             </p>
 
             {/* Lista de 3 entregables concretos */}
-            <ul className="mt-4 sm:mt-5 space-y-2 border-t border-white/[0.08] pt-3.5 sm:pt-4">
+            <ul className="mt-5 sm:mt-7 space-y-2.5 sm:space-y-3.5 border-t border-white/[0.09] pt-4 sm:pt-6">
               {item.deliverables.map((point, idx) => (
                 <li
                   key={idx}
-                  className="flex items-start gap-2.5 font-sans text-xs sm:text-sm md:text-[15px] leading-snug text-[#F4F1EA]/90"
+                  className="flex items-start gap-3 font-sans text-sm sm:text-base md:text-[17px] leading-snug text-[#F4F1EA]/90"
                 >
                   <span
-                    className="ellik-deck-orb mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center border border-white/25 bg-white/[0.06]"
+                    className="ellik-deck-orb mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center border border-white/25 bg-white/[0.06]"
                     style={{ color: item.accent }}
                   >
-                    <Check className="h-2.5 w-2.5" strokeWidth={2.5} />
+                    <Check className="h-3 w-3" strokeWidth={2.5} />
                   </span>
                   <span>{point}</span>
                 </li>
@@ -228,7 +228,7 @@ function DeckCard({
           </div>
 
           {/* Botón CTA directo al ContactDrawer + subtítulo en Satoshi */}
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-3 pr-16 sm:pr-20 lg:pr-0">
+          <div className="flex flex-wrap items-center gap-3.5 sm:gap-5 pt-4 pr-16 sm:pr-20 lg:pr-0">
             <button
               type="button"
               data-cursor="action"
@@ -236,7 +236,7 @@ function DeckCard({
                 e.stopPropagation();
                 handleAction();
               }}
-              className="group/btn relative inline-flex min-h-[44px] items-center gap-2.5 overflow-hidden border border-white/30 bg-white/[0.04] px-4 sm:px-5 py-2.5 font-sans font-medium text-[11px] sm:text-xs uppercase tracking-[0.14em] text-white transition-colors duration-300 hover:border-white"
+              className="group/btn relative inline-flex min-h-[48px] sm:min-h-[52px] items-center gap-2.5 overflow-hidden border border-white/30 bg-white/[0.04] px-5 sm:px-7 py-3 font-sans font-medium text-xs sm:text-[13px] uppercase tracking-[0.15em] text-white transition-colors duration-300 hover:border-white"
             >
               <span
                 aria-hidden="true"
@@ -248,28 +248,28 @@ function DeckCard({
               </span>
             </button>
 
-            <span className="hidden sm:inline-block font-sans font-medium text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/50">
+            <span className="hidden sm:inline-block font-sans font-medium text-[11px] sm:text-xs uppercase tracking-[0.14em] text-white/50">
               {item.ctaSublabel}
             </span>
           </div>
         </div>
 
-        {/* Columna derecha: Vista previa real de caso ELLIK (en desktop lg+) */}
-        <div className="hidden lg:flex lg:col-span-5 flex-col justify-center lg:pr-10 xl:pr-14 min-h-0">
-          <div className="ellik-deck-media relative aspect-[16/10] w-full overflow-hidden border border-white/15 bg-[#121217] shadow-[0_16px_40px_rgba(0,0,0,0.55)]">
+        {/* Columna derecha: Vista previa amplia de caso real ELLIK (en desktop lg+) */}
+        <div className="hidden lg:flex lg:col-span-6 flex-col justify-center lg:pr-6 xl:pr-10 min-h-0">
+          <div className="ellik-deck-media relative aspect-[16/10] w-full overflow-hidden border border-white/15 bg-[#121217] shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
             <Image
               src={item.image}
               alt={item.name}
               fill
-              sizes="420px"
+              sizes="(min-width: 1280px) 620px, 480px"
               className="h-full w-full object-cover object-top transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/card:scale-[1.03]"
             />
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#09090C]/75 via-transparent to-transparent"
             />
-            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-              <span className="font-sans font-medium text-[10px] uppercase tracking-[0.16em] text-[#F4F1EA]/90 bg-[#09090C]/85 px-2.5 py-1 border border-white/15">
+            <div className="absolute bottom-3.5 left-3.5 right-3.5 flex items-center justify-between">
+              <span className="font-sans font-medium text-[11px] uppercase tracking-[0.16em] text-[#F4F1EA]/90 bg-[#09090C]/85 px-3 py-1.5 border border-white/15">
                 CASO REAL EN PRODUCCIÓN
               </span>
             </div>
@@ -279,7 +279,7 @@ function DeckCard({
 
       {/* Recorte cóncavo inferior derecho relleno con `ground` (#F4F1EA) + botón circular */}
       <div
-        className="ellik-deck-notch absolute bottom-0 right-0 z-20 flex h-[70px] w-[70px] sm:h-[86px] sm:w-[86px] items-end justify-end p-2 sm:p-2.5"
+        className="ellik-deck-notch absolute bottom-0 right-0 z-20 flex h-[76px] w-[76px] sm:h-[96px] sm:w-[96px] items-end justify-end p-2 sm:p-3"
         style={{ backgroundColor: ground }}
       >
         {/* Filete cóncavo superior sobre el borde derecho */}
@@ -315,9 +315,9 @@ function DeckCard({
             handleAction();
           }}
           style={{ backgroundColor: item.accent }}
-          className="ellik-deck-orb relative flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center text-[#050505] shadow-[0_10px_24px_rgba(0,0,0,0.28)] transition-transform duration-300 ease-[cubic-bezier(0.22,1.25,0.36,1)] group-hover/card:scale-105 group-hover/card:rotate-12"
+          className="ellik-deck-orb relative flex h-14 w-14 sm:h-[72px] sm:w-[72px] items-center justify-center text-[#050505] shadow-[0_10px_24px_rgba(0,0,0,0.28)] transition-transform duration-300 ease-[cubic-bezier(0.22,1.25,0.36,1)] group-hover/card:scale-105 group-hover/card:rotate-12"
         >
-          <ArrowUpRight className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2.2]" />
+          <ArrowUpRight className="h-5 w-5 sm:h-7 sm:w-7 stroke-[2.2]" />
         </button>
       </div>
     </motion.article>
@@ -361,7 +361,7 @@ export function ProjectDeck({
             "w-full",
             reducedMotion
               ? "relative"
-              : "sticky top-20 sm:top-24 h-[78svh] min-h-[520px] max-h-[670px] flex items-end"
+              : "sticky top-12 sm:top-16 h-[86svh] min-h-[620px] max-h-[820px] flex items-end"
           )}
           style={
             reducedMotion

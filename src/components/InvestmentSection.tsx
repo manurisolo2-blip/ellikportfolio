@@ -101,7 +101,7 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
       id="servicios"
       className="relative w-full bg-[#F4F1EA] text-[#050505] py-24 md:py-32 selection:bg-[#050505] selection:text-[#F4F1EA]"
     >
-      <div className="px-6 sm:px-10 lg:pl-32 lg:pr-24 xl:pl-36 xl:pr-28">
+      <div className="px-5 sm:px-8 lg:pl-28 lg:pr-20 xl:pl-32 xl:pr-24">
         <div
           ref={headerRef}
           className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 md:mb-16"
