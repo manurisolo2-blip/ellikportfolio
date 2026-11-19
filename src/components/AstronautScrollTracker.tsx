@@ -558,10 +558,10 @@ export function AstronautScrollTracker() {
         <path
           ref={cableOutlineRef}
           d="M 42,0 C 42,10 30,20 22,38"
-          stroke="#050505"
-          strokeWidth="3.6"
+          stroke="#18181B"
+          strokeWidth="4.2"
           strokeLinecap="round"
-          opacity="0.7"
+          opacity="0.95"
           fill="none"
         />
         <path

@@ -12,10 +12,12 @@ const MARQUEE_PHRASE =
   "DISEÑO A MEDIDA  ✦  ANIMACIÓN 3D  ✦  CÓDIGO PROPIO  ✦  PRODUCCIÓN  ✦";
 
 export function VelocityMarquee() {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const offsetPctRef = useRef<number>(0);
   const directionRef = useRef<1 | -1>(-1);
   const prefersReducedMotionRef = useRef<boolean>(false);
+  const isInViewRef = useRef<boolean>(true);
 
   const { scrollY } = useScroll();
   const rawVelocity = useVelocity(scrollY);
@@ -35,8 +37,26 @@ export function VelocityMarquee() {
     return () => mq.removeEventListener("change", sync);
   }, []);
 
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        isInViewRef.current = entries[0] ? entries[0].isIntersecting : true;
+      },
+      { threshold: 0.01 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   useAnimationFrame((_, deltaMs) => {
-    if (document.hidden || prefersReducedMotionRef.current) return;
+    if (
+      document.hidden ||
+      prefersReducedMotionRef.current ||
+      !isInViewRef.current
+    )
+      return;
     const trackEl = trackRef.current;
     if (!trackEl) return;
 
@@ -62,6 +82,7 @@ export function VelocityMarquee() {
 
   return (
     <div
+      ref={containerRef}
       aria-label="Capacidades de estudio"
       className="relative w-full border-y border-white/15 py-5 overflow-hidden bg-[#050505] select-none"
     >

@@ -75,8 +75,10 @@ export interface WarpCarouselProps {
   style?: React.CSSProperties;
 }
 
-const DEFAULT_FONT =
-  '"Clash Display", "Satoshi", -apple-system, BlinkMacSystemFont, system-ui, sans-serif';
+const DISPLAY_FONT = "'Clash Display', sans-serif";
+const SANS_FONT = "'Satoshi', sans-serif";
+const MONO_FONT = "'Azeret Mono', monospace";
+const DEFAULT_FONT = DISPLAY_FONT;
 
 export const WARP_CAROUSEL_CARDS: WarpCard[] = [
   {
@@ -551,16 +553,16 @@ function paintCard(
 
     // Arriba a la izquierda: índice "01" .. "04"
     if (card.tag) {
-      const tagPx = sizeForCap(ctx, 500, family, 9.5, "0");
-      ctx.font = fontStr(500, tagPx, family);
+      const tagPx = sizeForCap(ctx, 500, MONO_FONT, 9.5, "0");
+      ctx.font = fontStr(500, tagPx, MONO_FONT);
       ctx.fillStyle = rgba(cream, 0.78);
       ctx.fillText(card.tag, 18, 30);
     }
 
     // Abajo a la izquierda: nombre de la web y categoría
     const lines = (card.title || "").split("\n").slice(0, 2);
-    const catPx = sizeForCap(ctx, 400, family, 7.2, "H");
-    const titlePx = sizeForCap(ctx, 600, family, 14.5, "H");
+    const catPx = sizeForCap(ctx, 400, SANS_FONT, 7.2, "H");
+    const titlePx = sizeForCap(ctx, 500, DISPLAY_FONT, 14.5, "H");
     const hasCat = Boolean(card.category);
     const lineStep = 19;
     const baseTitleY = hasCat
@@ -570,7 +572,7 @@ function paintCard(
     ctx.save();
     ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
     ctx.shadowBlur = 8 * k;
-    ctx.font = fontStr(600, titlePx, family);
+    ctx.font = fontStr(500, titlePx, DISPLAY_FONT);
     ctx.fillStyle = rgba(white, 0.98);
     lines.forEach((ln, idx) => {
       ctx.fillText(ln, 18, baseTitleY + idx * lineStep);
@@ -578,7 +580,7 @@ function paintCard(
     ctx.restore();
 
     if (card.category) {
-      ctx.font = fontStr(400, catPx, family);
+      ctx.font = fontStr(400, catPx, SANS_FONT);
       ctx.fillStyle = rgba(cream, 0.78);
       ctx.fillText(card.category, 18, 301);
     }
@@ -588,22 +590,24 @@ function paintCard(
 
   // Modo tarjeta estadística sin imagen
   const accent = parseColor(card.accent || "#ffffff");
-  const small = sizeForCap(ctx, 300, family, 7.9, "H");
-  ctx.font = fontStr(300, small, family);
+  const small = sizeForCap(ctx, 500, DISPLAY_FONT, 7.9, "H");
+  ctx.font = fontStr(500, small, DISPLAY_FONT);
   ctx.fillStyle = rgba(white, 0.9);
   const lines = (card.title || "").split("\n");
   lines.slice(0, 2).forEach((ln, i) => ctx.fillText(ln, 17, 37 + i * 14));
   if (card.footer) {
+    const footerPx = sizeForCap(ctx, 400, SANS_FONT, 7.9, "H");
+    ctx.font = fontStr(400, footerPx, SANS_FONT);
     ctx.fillStyle = rgba(white, 0.88);
     ctx.fillText(card.footer, 17, 295);
   }
 
-  const big = sizeForCap(ctx, 300, family, 50);
+  const big = sizeForCap(ctx, 500, DISPLAY_FONT, 50);
   const unitPx = big * 0.31;
-  ctx.font = fontStr(300, big, family);
+  ctx.font = fontStr(500, big, DISPLAY_FONT);
   const value = card.value || "";
   const vw = ctx.measureText(value).width;
-  ctx.font = fontStr(300, unitPx, family);
+  ctx.font = fontStr(500, unitPx, DISPLAY_FONT);
   const uw = card.unit ? ctx.measureText(card.unit).width + 4 : 0;
   const detail = card.detail || "none";
   const centre = detail === "wave" ? 112 : detail === "cross" ? 106 : 127;
@@ -656,8 +660,8 @@ function paintCard(
     ctx.fill();
     ctx.restore();
     const lab = card.labels || [];
-    const lpx = sizeForCap(ctx, 400, family, 5.2, "H");
-    ctx.font = fontStr(400, lpx, family);
+    const lpx = sizeForCap(ctx, 400, SANS_FONT, 5.2, "H");
+    ctx.font = fontStr(400, lpx, SANS_FONT);
     ctx.fillStyle = rgba(white, 0.6);
     if (lab[0]) ctx.fillText(lab[0], 14, 208);
     if (lab[1]) {
@@ -700,7 +704,7 @@ function paintCard(
     ctx.fillRect(105.5, 66, 0.8, 182);
     ctx.fillRect(12, 156.5, 186, 0.8);
     const lab = card.labels || [];
-    ctx.font = fontStr(300, big * 0.72, family);
+    ctx.font = fontStr(500, big * 0.72, DISPLAY_FONT);
     ctx.fillStyle = rgba(white, 0.07);
     ctx.textAlign = "center";
     ctx.fillText(String(Math.max(0, (parseFloat(value) || 0) - 8)), 106, 122);
@@ -711,7 +715,7 @@ function paintCard(
       ctx.arc(x, y, 6.5, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = rgba(white, 0.7);
-      ctx.font = fontStr(500, 4.2, family);
+      ctx.font = fontStr(500, 4.2, MONO_FONT);
       ctx.textAlign = "center";
       ctx.fillText(t, x, y + 1.5);
       ctx.textAlign = "left";
@@ -719,7 +723,7 @@ function paintCard(
     if (lab[1]) badge(28, 137, lab[1]);
     if (lab[2]) badge(181, 170, lab[2]);
     if (lab[0]) {
-      ctx.font = fontStr(400, 5.2, family);
+      ctx.font = fontStr(400, 5.2, SANS_FONT);
       const tw = ctx.measureText(lab[0]).width;
       const px = 208 - tw - 10;
       ctx.fillStyle = rgba(white, 0.1);
@@ -734,11 +738,11 @@ function paintCard(
   ctx.save();
   ctx.shadowColor = rgba(n1, 0.35);
   ctx.shadowBlur = 10 * k;
-  ctx.font = fontStr(300, big, family);
+  ctx.font = fontStr(500, big, DISPLAY_FONT);
   ctx.fillStyle = grad;
   ctx.fillText(value, x0, 186);
   if (card.unit) {
-    ctx.font = fontStr(300, unitPx, family);
+    ctx.font = fontStr(500, unitPx, DISPLAY_FONT);
     ctx.fillStyle = rgba(n1, 1);
     ctx.fillText(card.unit, x0 + vw + 4, 186 - 50 + unitPx * 0.72);
   }
@@ -1613,6 +1617,9 @@ export function WarpCarousel({
       if (vis) {
         draw(now);
         kick();
+      } else if (raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
       }
     };
     let inView = true;
@@ -1648,6 +1655,7 @@ export function WarpCarousel({
       resize();
       draw(performance.now() / 1000);
     };
+    fonts?.ready?.then?.(repaint);
     fonts?.addEventListener?.("loadingdone", repaint);
 
     draw(t0);

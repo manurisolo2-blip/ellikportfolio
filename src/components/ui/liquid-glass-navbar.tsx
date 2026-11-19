@@ -359,6 +359,11 @@ export function LiquidNavbar({
   const wakeRef = useRef<() => void>(() => {});
   const pulseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  useEffect(() => {
+    stateRef.current.dark = tone === "dark";
+    wakeRef.current();
+  }, [tone]);
+
   const triggerPulse = useCallback((idx: number) => {
     setPulseIdx(idx);
     if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
@@ -662,10 +667,11 @@ export function LiquidNavbar({
 
     let rafId = 0;
     let lastTs = 0;
+    let inView = true;
 
     const frame = (ts: number) => {
       rafId = 0;
-      if (document.hidden || !s.ready) return;
+      if (document.hidden || !inView || !s.ready) return;
 
       const dt = lastTs
         ? Math.min(0.032, Math.max(0.004, (ts - lastTs) / 1000))
@@ -675,7 +681,7 @@ export function LiquidNavbar({
       const keepAlive = step(dt);
       draw(ts / 1000);
 
-      if (keepAlive) {
+      if (keepAlive && inView) {
         rafId = window.requestAnimationFrame(frame);
       } else {
         lastTs = 0;
@@ -683,9 +689,10 @@ export function LiquidNavbar({
     };
 
     const wake = () => {
-      if (document.hidden) return;
+      if (document.hidden || !inView) return;
       if (!s.ready) measure();
       if (!s.ready || !glb) return;
+      draw(performance.now() / 1000);
       if (!rafId) {
         lastTs = 0;
         rafId = window.requestAnimationFrame(frame);
@@ -699,9 +706,21 @@ export function LiquidNavbar({
       wake();
     }
 
+    const io = new IntersectionObserver((entries) => {
+      inView = entries[0] ? entries[0].isIntersecting : true;
+      if (inView) {
+        measure();
+        wake();
+      } else if (rafId) {
+        window.cancelAnimationFrame(rafId);
+        rafId = 0;
+      }
+    });
+    io.observe(nav);
+
     const ro = new ResizeObserver(() => {
       measure();
-      if (s.ready) {
+      if (s.ready && inView) {
         draw(performance.now() / 1000);
         wake();
       }
@@ -709,7 +728,7 @@ export function LiquidNavbar({
     ro.observe(nav);
 
     const onVis = () => {
-      if (!document.hidden) {
+      if (!document.hidden && inView) {
         measure();
         wake();
       } else if (rafId) {
@@ -731,6 +750,7 @@ export function LiquidNavbar({
 
     return () => {
       if (rafId) window.cancelAnimationFrame(rafId);
+      io.disconnect();
       ro.disconnect();
       document.removeEventListener("visibilitychange", onVis);
       canvas?.removeEventListener("webglcontextlost", onContextLost);

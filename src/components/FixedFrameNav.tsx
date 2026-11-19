@@ -64,6 +64,7 @@ function buildNavItemMeta(sectionId: string, fallbackLabel: string): {
 
 export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
   const [activeId, setActiveId] = useState<string>(NAV_SECTIONS[0].id);
+  const [isOverLightSection, setIsOverLightSection] = useState<boolean>(false);
   const programmaticLockUntilRef = useRef<number>(0);
 
   const navItems = useMemo<LiquidNavItem[]>(
@@ -85,8 +86,22 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
     return idx >= 0 ? idx : 0;
   }, [activeId]);
 
+  const syncLightTone = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const serviciosEl = document.getElementById("servicios");
+    if (!serviciosEl) return;
+    const sRect = serviciosEl.getBoundingClientRect();
+    const zoneY =
+      window.innerWidth >= 1024
+        ? window.innerHeight * 0.5
+        : window.innerHeight - 44;
+    const overLight = sRect.top <= zoneY && sRect.bottom >= zoneY;
+    setIsOverLightSection((prev) => (prev === overLight ? prev : overLight));
+  }, []);
+
   const updateActiveByPosition = useCallback(() => {
     if (typeof window === "undefined") return;
+    syncLightTone();
     if (performance.now() < programmaticLockUntilRef.current) return;
 
     if (window.scrollY < 80) {
@@ -117,7 +132,7 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
     }
 
     setActiveId((prev) => (prev === currentId ? prev : currentId));
-  }, []);
+  }, [syncLightTone]);
 
   useEffect(() => {
     const sectionElements = NAV_SECTIONS.map((s) =>
@@ -136,6 +151,23 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
       }
     );
 
+    const serviciosEl = document.getElementById("servicios");
+    const lightObserver = serviciosEl
+      ? new IntersectionObserver(
+          () => {
+            syncLightTone();
+          },
+          {
+            rootMargin: "-35% 0px -35% 0px",
+            threshold: [0, 0.05, 0.5, 1],
+          }
+        )
+      : null;
+
+    if (serviciosEl && lightObserver) {
+      lightObserver.observe(serviciosEl);
+    }
+
     sectionElements.forEach((el) => observer.observe(el));
     window.addEventListener("scroll", updateActiveByPosition, { passive: true });
     window.addEventListener("resize", updateActiveByPosition, { passive: true });
@@ -143,10 +175,11 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
 
     return () => {
       observer.disconnect();
+      lightObserver?.disconnect();
       window.removeEventListener("scroll", updateActiveByPosition);
       window.removeEventListener("resize", updateActiveByPosition);
     };
-  }, [updateActiveByPosition]);
+  }, [syncLightTone, updateActiveByPosition]);
 
   const scrollToSection = useCallback((id: string) => {
     programmaticLockUntilRef.current = performance.now() + 850;
@@ -199,10 +232,10 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
       </a>
 
       {/* Esquina Superior Derecha: Acción magnética de contacto directo */}
-      <div className="fixed top-4 right-6 lg:top-8 lg:right-10 z-40">
+      <div className="fixed top-4 right-6 lg:top-8 lg:right-10 z-40 mix-blend-difference text-white">
         <MagneticButton
           onClick={() => onOpenDrawer()}
-          className="inline-flex min-h-[44px] items-center border border-[rgba(255,255,255,0.20)] bg-[#050505] px-4 py-2.5 font-mono text-[11px] tracking-[0.18em] uppercase text-[var(--text-primary)] transition-colors duration-200 hover:border-[#FFFFFF]"
+          className="inline-flex min-h-[44px] items-center border border-white/35 bg-transparent px-4 py-2.5 font-mono text-[11px] tracking-[0.18em] uppercase text-white transition-colors duration-200 hover:border-white"
         >
           INICIAR CONTACTO ↗
         </MagneticButton>
@@ -218,7 +251,7 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
           active={activeIndex}
           onChange={handleNavChange}
           orientation="vertical"
-          tone="dark"
+          tone={isOverLightSection ? "light" : "dark"}
           compact={true}
           sound={false}
           ariaLabel="Navegación principal"
@@ -235,7 +268,7 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
           active={activeIndex}
           onChange={handleNavChange}
           orientation="horizontal"
-          tone="dark"
+          tone={isOverLightSection ? "light" : "dark"}
           compact={true}
           sound={false}
           ariaLabel="Navegación principal"

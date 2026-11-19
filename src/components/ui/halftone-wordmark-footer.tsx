@@ -86,10 +86,8 @@ const DEFAULT_COLUMNS: FooterColumn[] = [
   },
 ];
 
-const SANS_STACK =
-  '"Space Grotesk", "Inter Tight", "Inter", "Helvetica Neue", Arial, system-ui, sans-serif';
-const MONO_STACK =
-  '"JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace';
+const SANS_STACK = "var(--font-display), 'Clash Display', sans-serif";
+const MONO_STACK = "var(--font-mono), 'Azeret Mono', monospace";
 
 // #region halftone
 

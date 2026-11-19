@@ -270,8 +270,8 @@ export function LoadingScreen() {
           </motion.svg>
         </div>
 
-        {/* Contador limpio en Space Grotesk light (44px, tabular-nums) */}
-        <span className="mt-7 font-display text-[44px] font-light leading-none tabular-nums text-[#FFFFFF]">
+        {/* Contador limpio en Clash Display regular (44px, tabular-nums) */}
+        <span className="mt-7 font-display text-[44px] font-normal leading-none tabular-nums text-[#FFFFFF]">
           {formattedCount}
         </span>
       </motion.div>
