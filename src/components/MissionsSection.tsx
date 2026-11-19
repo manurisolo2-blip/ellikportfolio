@@ -87,16 +87,28 @@ export function MissionsSection() {
   );
 
   useEffect(() => {
-    const syncFromHash = () => {
-      const hash = window.location.hash.replace(/^#/, "");
-      if (!hash) return;
-      const found = MISSIONS.findIndex((m) => m.id === hash);
+    const selectById = (id: string) => {
+      if (!id) return;
+      const found = MISSIONS.findIndex((m) => m.id === id);
       if (found >= 0) setActiveIndex(found);
+    };
+
+    const syncFromHash = () => {
+      selectById(window.location.hash.replace(/^#/, ""));
+    };
+
+    const onSelectProject = (event: Event) => {
+      const id = (event as CustomEvent<{ id?: string }>).detail?.id;
+      if (id) selectById(id);
     };
 
     syncFromHash();
     window.addEventListener("hashchange", syncFromHash);
-    return () => window.removeEventListener("hashchange", syncFromHash);
+    window.addEventListener("ellik:select-project", onSelectProject);
+    return () => {
+      window.removeEventListener("hashchange", syncFromHash);
+      window.removeEventListener("ellik:select-project", onSelectProject);
+    };
   }, []);
 
   const cards = useMemo<WarpCard[]>(() => {
@@ -147,6 +159,15 @@ export function MissionsSection() {
       id="proyectos"
       className="relative z-[44] w-full h-[220vh] md:h-[250vh]"
     >
+      {MISSIONS.map((mission) => (
+        <span
+          key={`anchor-${mission.id}`}
+          id={mission.id}
+          aria-hidden="true"
+          className="pointer-events-none absolute left-0 top-[8%] h-px w-px"
+        />
+      ))}
+
       <div className="sticky top-0 h-[100svh] w-full flex items-center justify-center overflow-hidden">
         <motion.div
           style={{
@@ -211,7 +232,7 @@ export function MissionsSection() {
                   return (
                     <button
                       key={mission.id}
-                      id={mission.id}
+                      data-project-tab={mission.id}
                       type="button"
                       role="tab"
                       aria-selected={isActive}

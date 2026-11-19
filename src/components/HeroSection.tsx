@@ -352,6 +352,9 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
       const dx = e.clientX - dragLastXRef.current;
       dragLastXRef.current = e.clientX;
       totalDragDistanceRef.current += Math.abs(dx);
+      if (totalDragDistanceRef.current > 4) {
+        setIsDraggingOrbit(true);
+      }
 
       const angleDelta = dx * 0.34;
       orbitAngleRef.current += angleDelta;
@@ -451,7 +454,6 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
 
   const handleStagePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     isDraggingRef.current = true;
-    setIsDraggingOrbit(true);
     dragLastXRef.current = e.clientX;
     totalDragDistanceRef.current = 0;
     angularVelocityRef.current = 0;
@@ -471,11 +473,23 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
 
   const handleScreenClick = (missionId: string) => {
     if (totalDragDistanceRef.current > 8) return;
-    const target =
-      document.getElementById(missionId) ??
-      document.getElementById("proyectos");
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.dispatchEvent(
+      new CustomEvent("ellik:select-project", { detail: { id: missionId } })
+    );
+    const proyectos = document.getElementById("proyectos");
+    if (proyectos) {
+      const proyectosTop =
+        proyectos.getBoundingClientRect().top + window.scrollY;
+      const holdOffset = Math.min(
+        200,
+        Math.round(
+          Math.max(0, proyectos.offsetHeight - window.innerHeight) * 0.15
+        )
+      );
+      window.scrollTo({
+        top: proyectosTop + holdOffset,
+        behavior: "smooth",
+      });
     }
   };
 
@@ -505,7 +519,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
               rotateX: cameraRotateX,
               rotateY: cameraRotateY,
             }}
-            className="preserve-3d relative flex h-[400px] sm:h-[540px] md:h-[640px] w-full items-center justify-center"
+            className="preserve-3d pointer-events-none relative flex h-[400px] sm:h-[540px] md:h-[640px] w-full items-center justify-center"
           >
             {/* A. EL SOL DEL SISTEMA: EMBLEMA 3D WEBGL EN PLANO CENTRAL (zIndex: 10, Z=0) */}
             <motion.div

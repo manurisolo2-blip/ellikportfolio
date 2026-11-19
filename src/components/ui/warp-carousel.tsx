@@ -1335,7 +1335,15 @@ export function WarpCarousel({
     const now = performance.now() / 1000;
     const fromAuto = L.autoPending;
     L.autoPending = false;
-    if (props.current.reduced) {
+    if (!L.visible) {
+      L.fadeFrom = targetSlot;
+      L.P = targetSlot;
+      L.from = targetSlot;
+      L.to = targetSlot;
+      L.v = 0;
+      L.mode = "rest";
+      handles.current.draw();
+    } else if (props.current.reduced) {
       L.fadeFrom = L.P;
       L.P = targetSlot;
       L.mode = "fade";
@@ -1596,13 +1604,16 @@ export function WarpCarousel({
       if (!vis) L.hiddenAt = now;
       else {
         const dt = now - L.hiddenAt;
-        L.t0 += dt;
-        L.fadeT0 += dt;
+        if (L.t0 <= L.hiddenAt) L.t0 += dt;
+        if (L.fadeT0 <= L.hiddenAt) L.fadeT0 += dt;
         L.nextAuto += dt;
         L.lastT = now;
       }
       L.visible = vis;
-      if (vis) kick();
+      if (vis) {
+        draw(now);
+        kick();
+      }
     };
     let inView = true;
     const io = new IntersectionObserver((ents) => {
