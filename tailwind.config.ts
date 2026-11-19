@@ -23,7 +23,7 @@ const config: Config = {
       fontFamily: {
         display: ["var(--font-display)", "Clash Display", "sans-serif"],
         serif: ["var(--font-serif)", "Instrument Serif", "serif"],
-        mono: ["var(--font-mono)", "Azeret Mono", "monospace"],
+        mono: ["var(--font-mono)", "Satoshi", "sans-serif"],
         sans: ["var(--font-sans)", "Satoshi", "sans-serif"],
       },
       borderRadius: {

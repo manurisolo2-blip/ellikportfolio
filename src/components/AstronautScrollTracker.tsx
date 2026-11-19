@@ -1068,7 +1068,7 @@ export function AstronautScrollTracker() {
                   animate={{ opacity: 1, x: 0, scale: 1 }}
                   exit={{ opacity: 0, x: -4, scale: 0.92 }}
                   transition={{ duration: 0.16, ease: "easeOut" }}
-                  className="pointer-events-none absolute left-full ml-1.5 top-2 whitespace-nowrap border border-[#F4F1EA]/45 bg-[#050505] px-2 py-0.5 font-mono text-[10px] tracking-[0.12em] text-[#F4F1EA]"
+                  className="pointer-events-none absolute left-full ml-1.5 top-2 whitespace-nowrap border border-[#F4F1EA]/45 bg-[#050505] px-2 py-0.5 font-sans font-medium tabular-nums text-[10px] tracking-[0.12em] text-[#F4F1EA]"
                 >
                   {scrollPct}%
                 </motion.span>

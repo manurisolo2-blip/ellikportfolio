@@ -18,7 +18,7 @@ export type DeckItem = {
   id: string;
   index: string;         // "01", "02", "03"
   name: string;          // Título de la modalidad
-  eyebrow: string;       // Subtítulo corto en Azeret Mono
+  eyebrow: string;       // Subtítulo corto en Satoshi
   summary: string;       // Descripción humana clara
   deliverables: string[];// 3 puntos concretos incluidos
   image: string;         // Captura real local de respaldo visual (/previews/...)
@@ -180,17 +180,17 @@ function DeckCard({
       <div className="relative z-20 shrink-0 flex items-center justify-between gap-3 border-b border-white/[0.09] px-5 sm:px-8 md:px-10 h-11 sm:h-12">
         <div className="flex items-center gap-3 min-w-0">
           <span
-            className="ellik-deck-badge inline-flex h-5 sm:h-6 px-2.5 items-center justify-center font-mono text-[10px] sm:text-[11px] font-medium tracking-[0.16em] text-[#050505] shrink-0"
+            className="ellik-deck-badge inline-flex h-5 sm:h-6 px-2.5 items-center justify-center font-sans font-semibold tabular-nums text-[10px] sm:text-[11px] tracking-[0.16em] text-[#050505] shrink-0"
             style={{ backgroundColor: item.accent }}
           >
             {item.index}
           </span>
-          <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.16em] text-[#F4F1EA]/80 truncate">
+          <span className="font-sans font-medium text-[10px] sm:text-[11px] uppercase tracking-[0.16em] text-[#F4F1EA]/80 truncate">
             {item.eyebrow}
           </span>
         </div>
 
-        <span className="hidden sm:inline-block font-mono text-[11px] uppercase tracking-[0.14em] text-white/45 shrink-0">
+        <span className="hidden sm:inline-block font-sans font-medium tabular-nums text-[11px] uppercase tracking-[0.14em] text-white/45 shrink-0">
           MODALIDAD {item.index} / 0{total}
         </span>
       </div>
@@ -227,7 +227,7 @@ function DeckCard({
             </ul>
           </div>
 
-          {/* Botón CTA directo al ContactDrawer + subtítulo en Azeret Mono */}
+          {/* Botón CTA directo al ContactDrawer + subtítulo en Satoshi */}
           <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-3 pr-16 sm:pr-20 lg:pr-0">
             <button
               type="button"
@@ -236,7 +236,7 @@ function DeckCard({
                 e.stopPropagation();
                 handleAction();
               }}
-              className="group/btn relative inline-flex min-h-[44px] items-center gap-2.5 overflow-hidden border border-white/30 bg-white/[0.04] px-4 sm:px-5 py-2.5 font-mono text-[11px] sm:text-xs font-medium uppercase tracking-[0.14em] text-white transition-colors duration-300 hover:border-white"
+              className="group/btn relative inline-flex min-h-[44px] items-center gap-2.5 overflow-hidden border border-white/30 bg-white/[0.04] px-4 sm:px-5 py-2.5 font-sans font-medium text-[11px] sm:text-xs uppercase tracking-[0.14em] text-white transition-colors duration-300 hover:border-white"
             >
               <span
                 aria-hidden="true"
@@ -248,7 +248,7 @@ function DeckCard({
               </span>
             </button>
 
-            <span className="hidden sm:inline-block font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/50">
+            <span className="hidden sm:inline-block font-sans font-medium text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/50">
               {item.ctaSublabel}
             </span>
           </div>
@@ -269,7 +269,7 @@ function DeckCard({
               className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#09090C]/75 via-transparent to-transparent"
             />
             <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#F4F1EA]/90 bg-[#09090C]/85 px-2.5 py-1 border border-white/15">
+              <span className="font-sans font-medium text-[10px] uppercase tracking-[0.16em] text-[#F4F1EA]/90 bg-[#09090C]/85 px-2.5 py-1 border border-white/15">
                 CASO REAL EN PRODUCCIÓN
               </span>
             </div>

@@ -150,12 +150,12 @@ export function CustomCursor() {
         }`}
       >
         {mode === "orbit" && (
-          <span className="font-mono text-[9px] tracking-[0.16em] uppercase text-[#FFFFFF]">
+          <span className="font-sans font-medium text-[10px] tracking-[0.16em] uppercase text-[#FFFFFF]">
             GIRAR
           </span>
         )}
         {mode === "view" && (
-          <span className="font-mono text-[10px] font-medium tracking-[0.14em] uppercase text-[#050505]">
+          <span className="font-sans font-medium text-[10px] tracking-[0.16em] uppercase text-[#050505]">
             VER ↗
           </span>
         )}

@@ -190,10 +190,10 @@ export function MissionsSection() {
             </h2>
 
             <div className="flex items-center gap-5">
-              <span className="hidden sm:inline font-mono text-[11px] uppercase tracking-[0.2em] text-white/45">
+              <span className="hidden sm:inline font-sans font-medium text-[11px] uppercase tracking-[0.2em] text-white/45">
                 Arrastrá o usá ← →
               </span>
-              <span className="font-mono text-xs sm:text-sm tracking-[0.18em] text-[#F4F1EA] tabular-nums">
+              <span className="font-sans font-medium text-xs sm:text-sm tracking-[0.18em] text-[#F4F1EA] tabular-nums">
                 {activeMission.index} / 0{MISSIONS.length}
               </span>
             </div>
@@ -238,7 +238,7 @@ export function MissionsSection() {
                       aria-selected={isActive}
                       onClick={() => setActiveIndex(idx)}
                       data-cursor="action"
-                      className={`min-h-[44px] inline-flex items-center gap-2 border px-3.5 py-2 font-mono text-[11px] sm:text-xs tracking-[0.12em] uppercase transition-colors duration-200 ${
+                      className={`min-h-[44px] inline-flex items-center gap-2 border px-3.5 py-2 font-sans font-medium tabular-nums text-[11px] sm:text-xs tracking-[0.12em] uppercase transition-colors duration-200 ${
                         isActive
                           ? "border-white bg-white text-[#050505] font-medium"
                           : "border-white/15 bg-transparent text-white/65 hover:border-white/45 hover:text-white"
@@ -263,7 +263,7 @@ export function MissionsSection() {
                 target="_blank"
                 rel="noopener noreferrer"
                 data-cursor="action"
-                className="group/btn relative inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2.5 whitespace-nowrap overflow-hidden border border-white/35 px-5 py-3 font-mono text-xs font-medium tracking-[0.12em] uppercase text-white transition-colors duration-300 hover:border-white"
+                className="group/btn relative inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2.5 whitespace-nowrap overflow-hidden border border-white/35 px-5 py-3 font-sans font-medium text-xs tracking-[0.12em] uppercase text-white transition-colors duration-300 hover:border-white"
               >
                 <span
                   aria-hidden="true"
@@ -290,7 +290,7 @@ export function MissionsSection() {
                   <p className="hidden sm:block text-sm leading-relaxed text-white/75 line-clamp-1 max-w-3xl">
                     {activeMission.description}
                   </p>
-                  <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/90 md:shrink-0 md:text-right leading-snug">
+                  <p className="font-sans font-medium text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/90 md:shrink-0 md:text-right leading-snug">
                     {activeMission.category} · {activeMission.highlight}
                   </p>
                 </motion.div>

@@ -5,7 +5,7 @@
 :root {
   --font-display: 'Clash Display', sans-serif;
   --font-sans: 'Satoshi', sans-serif;
-  --font-mono: 'Azeret Mono', monospace;
+  --font-mono: 'Satoshi', sans-serif;
   --font-serif: var(--font-instrument-serif), 'Instrument Serif', serif;
   --bg-void: #050505;
   --bg-elevated: #0B0B0D;
@@ -49,25 +49,29 @@ html.lenis body {
   scroll-behavior: auto !important;
 }
 
+html,
+body,
+button,
+a,
+input,
+textarea,
+span {
+  font-family: 'Satoshi', sans-serif;
+}
+
 body {
   background-color: var(--bg-void);
   color: var(--text-primary);
-  font-family: var(--font-sans);
+  font-family: 'Satoshi', sans-serif;
   overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-button,
-input,
-textarea {
-  font-family: var(--font-sans);
-}
-
 h1,
 h2,
 h3 {
-  font-family: var(--font-display);
+  font-family: 'Clash Display', sans-serif;
 }
 
 ::selection {
@@ -77,19 +81,19 @@ h3 {
 
 @layer utilities {
   .font-display {
-    font-family: var(--font-display);
+    font-family: 'Clash Display', sans-serif !important;
   }
 
   .font-sans {
-    font-family: var(--font-sans);
+    font-family: 'Satoshi', sans-serif !important;
   }
 
   .font-mono {
-    font-family: var(--font-mono);
+    font-family: 'Satoshi', sans-serif !important;
   }
 
   .heading-hero {
-    font-family: var(--font-display);
+    font-family: 'Clash Display', sans-serif !important;
     font-size: clamp(2.5rem, 5.5vw, 4.75rem);
     font-weight: 500;
     letter-spacing: -0.03em;
@@ -97,7 +101,7 @@ h3 {
   }
 
   .heading-section {
-    font-family: var(--font-display);
+    font-family: 'Clash Display', sans-serif !important;
     font-size: clamp(2rem, 4vw, 3.5rem);
     font-weight: 500;
     letter-spacing: -0.025em;
@@ -105,7 +109,7 @@ h3 {
   }
 
   .serif-accent {
-    font-family: var(--font-serif);
+    font-family: var(--font-serif) !important;
     font-style: italic;
     font-weight: 400;
     color: var(--accent-starlight);
@@ -115,7 +119,8 @@ h3 {
 
   .telemetry-label,
   .section-label {
-    font-family: var(--font-mono);
+    font-family: 'Satoshi', sans-serif !important;
+    font-weight: 500;
     font-size: 11px;
     letter-spacing: 0.14em;
     line-height: 1.6;
@@ -124,7 +129,7 @@ h3 {
   }
 
   .editorial-body {
-    font-family: var(--font-sans);
+    font-family: 'Satoshi', sans-serif !important;
     font-size: 1rem;
     line-height: 1.65;
   }

@@ -633,13 +633,13 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
             className="pointer-events-none fixed left-0 top-0 z-[110]"
           >
             <div className="ml-5 mt-5 flex items-center gap-2.5 border border-white/30 bg-[#050505]/[0.92] px-3 py-1.5 backdrop-blur-sm shadow-[0_12px_32px_rgba(0,0,0,0.8)]">
-              <span className="font-mono text-[10px] tracking-[0.16em] text-[#71717A]">
+              <span className="font-sans font-medium tabular-nums text-[10px] tracking-[0.16em] text-[#71717A]">
                 {hoveredMission.index}
               </span>
-              <span className="font-mono text-[11px] tracking-[0.16em] uppercase text-[#FFFFFF] whitespace-nowrap">
+              <span className="font-sans font-medium text-[11px] tracking-[0.16em] uppercase text-[#FFFFFF] whitespace-nowrap">
                 {hoveredMission.shortTitle}
               </span>
-              <span className="font-mono text-[11px] text-[#F4F1EA]">↗</span>
+              <span className="font-sans font-medium text-[11px] text-[#F4F1EA]">↗</span>
             </div>
           </motion.div>
         )}

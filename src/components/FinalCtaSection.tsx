@@ -135,7 +135,7 @@ export function EllikFooter() {
         grain={0.45}
         fontFamily="var(--font-display), sans-serif"
         fontWeight={700}
-        monoFamily="var(--font-mono), monospace"
+        monoFamily="var(--font-sans), 'Satoshi', sans-serif"
         backToTopLabel="VOLVER ARRIBA ↑"
         height="clamp(600px, 48vw, 640px)"
       />

@@ -235,7 +235,7 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
       <div className="fixed top-4 right-6 lg:top-8 lg:right-10 z-40 mix-blend-difference text-white">
         <MagneticButton
           onClick={() => onOpenDrawer()}
-          className="inline-flex min-h-[44px] items-center border border-white/35 bg-transparent px-4 py-2.5 font-mono text-[11px] tracking-[0.18em] uppercase text-white transition-colors duration-200 hover:border-white"
+          className="inline-flex min-h-[44px] items-center border border-white/35 bg-transparent px-4 py-2.5 font-sans font-medium text-[11px] tracking-[0.18em] uppercase text-white transition-colors duration-200 hover:border-white"
         >
           INICIAR CONTACTO ↗
         </MagneticButton>

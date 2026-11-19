@@ -142,13 +142,13 @@ export function ContactDrawer({
 
               {selectedPlan && (
                 <div className="mt-5 flex items-center justify-between border border-[var(--border-hairline)] bg-white/[0.03] px-3.5 py-2.5">
-                  <span className="font-mono text-[11px] tracking-[0.14em] uppercase text-[var(--accent-starlight)]">
+                  <span className="font-sans font-medium text-[11px] tracking-[0.14em] uppercase text-[var(--accent-starlight)]">
                     MODALIDAD: {selectedPlan}
                   </span>
                   <button
                     type="button"
                     onClick={() => setSelectedPlan("")}
-                    className="inline-flex min-h-[44px] min-w-[44px] items-center justify-end font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--text-muted)] hover:text-[var(--text-primary)] px-2 -my-2"
+                    className="inline-flex min-h-[44px] min-w-[44px] items-center justify-end font-sans font-medium text-[10px] tracking-[0.14em] uppercase text-[var(--text-muted)] hover:text-[var(--text-primary)] px-2 -my-2"
                   >
                     QUITAR ×
                   </button>
@@ -169,7 +169,7 @@ export function ContactDrawer({
                           key={category}
                           type="button"
                           onClick={() => setRubro(category)}
-                          className={`border px-3 py-3 min-h-[44px] flex items-center text-left font-mono text-[11px] tracking-[0.1em] uppercase transition-colors ${
+                          className={`border px-3 py-3 min-h-[44px] flex items-center text-left font-sans font-medium text-[11px] tracking-[0.1em] uppercase transition-colors ${
                             active
                               ? "border-[var(--text-primary)] bg-[var(--text-primary)] text-[#050505] font-medium"
                               : "border-[var(--border-hairline)] bg-transparent text-[var(--text-secondary)] hover:border-[var(--border-active)] hover:text-[var(--text-primary)]"
@@ -239,7 +239,7 @@ export function ContactDrawer({
                 <button
                   type="submit"
                   data-cursor="action"
-                  className="w-full border border-[var(--text-primary)] bg-[var(--text-primary)] px-6 py-4 font-mono text-xs tracking-[0.16em] uppercase font-medium text-[#050505] transition-colors hover:bg-transparent hover:text-[var(--text-primary)]"
+                  className="w-full border border-[var(--text-primary)] bg-[var(--text-primary)] px-6 py-4 font-sans text-xs tracking-[0.16em] uppercase font-medium text-[#050505] transition-colors hover:bg-transparent hover:text-[var(--text-primary)]"
                 >
                   ENVIAR POR WHATSAPP ↗
                 </button>
@@ -248,14 +248,14 @@ export function ContactDrawer({
 
             {/* Pie del drawer: copiar email */}
             <div className="mt-10 pt-5 border-t border-[var(--border-hairline)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <span className="font-mono text-[11px] tracking-[0.12em] text-[var(--text-muted)]">
+              <span className="font-sans font-medium text-[11px] tracking-[0.12em] text-[var(--text-muted)]">
                 {ELLIK_CONFIG.email}
               </span>
 
               <button
                 type="button"
                 onClick={handleCopyEmail}
-                className="inline-flex min-h-[44px] items-center gap-2 font-mono text-[11px] tracking-[0.14em] uppercase text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors py-2 px-1"
+                className="inline-flex min-h-[44px] items-center gap-2 font-sans font-medium text-[11px] tracking-[0.14em] uppercase text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors py-2 px-1"
               >
                 {emailCopied ? (
                   <>

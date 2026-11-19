@@ -87,7 +87,7 @@ const DEFAULT_COLUMNS: FooterColumn[] = [
 ];
 
 const SANS_STACK = "var(--font-display), 'Clash Display', sans-serif";
-const MONO_STACK = "var(--font-mono), 'Azeret Mono', monospace";
+const MONO_STACK = "var(--font-sans), 'Satoshi', sans-serif";
 
 // #region halftone
 

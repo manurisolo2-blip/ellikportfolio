@@ -123,7 +123,7 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
               delay: 0.1,
               ease: [0.16, 1, 0.3, 1],
             }}
-            className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#050505]/60 shrink-0"
+            className="font-sans font-medium text-[11px] uppercase tracking-[0.16em] text-[#050505]/60 shrink-0"
           >
             DESLIZÁ PARA APILAR · TOCÁ PARA CONSULTAR
           </motion.p>

@@ -77,7 +77,7 @@ export interface WarpCarouselProps {
 
 const DISPLAY_FONT = "'Clash Display', sans-serif";
 const SANS_FONT = "'Satoshi', sans-serif";
-const MONO_FONT = "'Azeret Mono', monospace";
+const MONO_FONT = "'Satoshi', sans-serif";
 const DEFAULT_FONT = DISPLAY_FONT;
 
 export const WARP_CAROUSEL_CARDS: WarpCard[] = [

@@ -217,7 +217,7 @@ export function EllikLogo({ className = "" }: EllikLogoProps) {
   return (
     <span className={`inline-flex items-center gap-3 select-none ${className}`}>
       <EllikEmblem className="h-7 w-7 shrink-0 text-current" />
-      <span className="font-mono text-sm font-bold tracking-[0.25em] text-current">
+      <span className="font-display text-sm font-semibold tracking-[0.22em] text-current">
         ELLIK
       </span>
     </span>
