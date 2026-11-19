@@ -22,7 +22,7 @@ const config: Config = {
       },
       fontFamily: {
         display: ["var(--font-display)", "Clash Display", "sans-serif"],
-        serif: ["var(--font-serif)", "Instrument Serif", "serif"],
+        serif: ["var(--font-display)", "Clash Display", "sans-serif"],
         mono: ["var(--font-mono)", "Satoshi", "sans-serif"],
         sans: ["var(--font-sans)", "Satoshi", "sans-serif"],
       },

@@ -1,18 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Serif } from "next/font/google";
 import { CustomCursor } from "@/components/CustomCursor";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { TabTitleManager } from "@/components/TabTitleManager";
 import { TubesCursor } from "@/components/ui/tubes-cursor";
 import "./globals.css";
-
-const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
-  weight: "400",
-  style: "italic",
-  variable: "--font-instrument-serif",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "ellik",
@@ -46,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={instrumentSerif.variable}>
+    <html lang="es">
       <head>
         <link
           rel="preconnect"

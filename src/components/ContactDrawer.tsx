@@ -137,7 +137,7 @@ export function ContactDrawer({
                 className="mt-8 font-display text-3xl sm:text-4xl font-bold uppercase tracking-[-0.03em] leading-[0.98] text-[var(--text-primary)]"
               >
                 CONTAME SOBRE TU{" "}
-                <span className="serif-accent">NEGOCIO</span>
+                <span className="font-display font-medium not-italic text-[var(--accent-starlight)]">NEGOCIO</span>
               </h2>
 
               {selectedPlan && (

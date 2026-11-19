@@ -544,7 +544,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
                 ELLIK
               </h1>
 
-              <p className="mt-3 font-serif italic text-2xl sm:text-3xl md:text-4xl text-[#F4F1EA] drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
+              <p className="mt-3 font-display font-normal not-italic text-lg sm:text-xl md:text-2xl tracking-[0.04em] text-[#F4F1EA]/85 drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
                 Tu negocio en órbita.
               </p>
             </motion.div>

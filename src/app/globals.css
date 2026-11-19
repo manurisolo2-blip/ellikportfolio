@@ -6,7 +6,7 @@
   --font-display: 'Clash Display', sans-serif;
   --font-sans: 'Satoshi', sans-serif;
   --font-mono: 'Satoshi', sans-serif;
-  --font-serif: var(--font-instrument-serif), 'Instrument Serif', serif;
+  --font-serif: 'Clash Display', sans-serif;
   --bg-void: #050505;
   --bg-elevated: #0B0B0D;
   --bg-glass: rgba(8, 8, 10, 0.88);
@@ -109,9 +109,9 @@ h3 {
   }
 
   .serif-accent {
-    font-family: var(--font-serif) !important;
-    font-style: italic;
-    font-weight: 400;
+    font-family: 'Clash Display', sans-serif !important;
+    font-style: normal;
+    font-weight: 500;
     color: var(--accent-starlight);
     letter-spacing: -0.015em;
     text-transform: none;
