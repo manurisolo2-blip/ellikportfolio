@@ -99,7 +99,7 @@ export function CustomCursor() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-[120]"
+      className="pointer-events-none fixed inset-0 z-[60]"
       style={{ opacity: visible ? 1 : 0, transition: "opacity 0.2s ease" }}
     >
       {/* Punto central instantáneo de 4px */}
@@ -137,7 +137,9 @@ export function CustomCursor() {
           borderColor:
             mode === "view" || mode === "action"
               ? "#FFFFFF"
-              : "rgba(255, 255, 255, 0.35)",
+              : mode === "orbit"
+              ? "rgba(255, 255, 255, 0.45)"
+              : "rgba(255, 255, 255, 0.2)",
         }}
         transition={{
           width: { type: "spring", stiffness: 360, damping: 28 },
@@ -145,7 +147,7 @@ export function CustomCursor() {
           backgroundColor: { duration: 0.12 },
           borderColor: { duration: 0.12 },
         }}
-        className={`fixed left-0 top-0 flex items-center justify-center border ${
+        className={`fixed left-0 top-0 flex items-center justify-center border border-white/20 ${
           isCircle ? "cursor-ring-circle" : ""
         }`}
       >

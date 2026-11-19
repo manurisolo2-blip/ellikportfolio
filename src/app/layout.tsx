@@ -3,6 +3,7 @@ import { Instrument_Serif } from "next/font/google";
 import { CustomCursor } from "@/components/CustomCursor";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { TabTitleManager } from "@/components/TabTitleManager";
+import { TubesCursor } from "@/components/ui/tubes-cursor";
 import "./globals.css";
 
 const instrumentSerif = Instrument_Serif({
@@ -59,6 +60,7 @@ export default function RootLayout({
       </head>
       <body className="bg-[var(--bg-void)] text-[var(--text-primary)] antialiased">
         <TabTitleManager />
+        <TubesCursor />
         <CustomCursor />
 
         <SmoothScroll>{children}</SmoothScroll>
