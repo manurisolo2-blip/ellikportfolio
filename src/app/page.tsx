@@ -41,7 +41,7 @@ export default function HomePage() {
       <AstronautScrollTracker />
 
       <main className="relative overflow-x-clip">
-        <div className="relative z-10 pl-6 lg:pl-60 pr-6 lg:pr-16">
+        <div className="relative z-10 pl-6 lg:pl-36 pr-6 lg:pr-28">
           <HeroSection onOpenDrawer={handleOpenDrawer} />
         </div>
 
@@ -52,7 +52,7 @@ export default function HomePage() {
           <InvestmentSection onOpenDrawer={handleOpenDrawer} />
         </div>
 
-        <div className="relative z-10 pl-6 lg:pl-60 pr-6 lg:pr-16">
+        <div className="relative z-10 pl-6 lg:pl-36 pr-6 lg:pr-28">
           <FinalCtaSection onOpenDrawer={handleOpenDrawer} />
         </div>
       </main>

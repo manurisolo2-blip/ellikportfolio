@@ -1,21 +1,106 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { CircleDot, Compass, Layers, Orbit, Send } from "lucide-react";
 import { NAV_SECTIONS, type BusinessCategory } from "@/data/ellikData";
 import { MagneticButton } from "./AnimatedHeading";
 import { EllikLogo } from "./EllikLogo";
+import {
+  LiquidNavbar,
+  type LiquidNavFx,
+  type LiquidNavItem,
+} from "./ui/liquid-glass-navbar";
 
 interface FixedFrameNavProps {
   onOpenDrawer: (preset?: { rubro?: BusinessCategory; plan?: string }) => void;
 }
 
+const ICON_PROPS = { size: 18, strokeWidth: 1.7 } as const;
+
+function buildNavItemMeta(sectionId: string, fallbackLabel: string): {
+  label: string;
+  icon: React.ReactNode;
+  fx: LiquidNavFx;
+} {
+  switch (sectionId) {
+    case "inicio":
+      return {
+        label: "Inicio",
+        icon: <Orbit {...ICON_PROPS} />,
+        fx: "spin",
+      };
+    case "proyectos":
+      return {
+        label: "Obra",
+        icon: <Layers {...ICON_PROPS} />,
+        fx: "pop",
+      };
+    case "servicios":
+      return {
+        label: "Qué hago",
+        icon: <Compass {...ICON_PROPS} />,
+        fx: "drop",
+      };
+    case "contacto":
+      return {
+        label: "Contacto",
+        icon: <Send {...ICON_PROPS} />,
+        fx: "plane",
+      };
+    default:
+      return {
+        label: fallbackLabel,
+        icon: <CircleDot {...ICON_PROPS} />,
+        fx: "pop",
+      };
+  }
+}
+
 export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
   const [activeId, setActiveId] = useState<string>(NAV_SECTIONS[0].id);
+  const programmaticLockUntilRef = useRef<number>(0);
+
+  const navItems = useMemo<LiquidNavItem[]>(
+    () =>
+      NAV_SECTIONS.map((section) => {
+        const meta = buildNavItemMeta(section.id, section.label);
+        return {
+          id: section.id,
+          label: meta.label,
+          icon: meta.icon,
+          fx: meta.fx,
+        };
+      }),
+    []
+  );
+
+  const activeIndex = useMemo(() => {
+    const idx = NAV_SECTIONS.findIndex((s) => s.id === activeId);
+    return idx >= 0 ? idx : 0;
+  }, [activeId]);
 
   const updateActiveByPosition = useCallback(() => {
     if (typeof window === "undefined") return;
+    if (performance.now() < programmaticLockUntilRef.current) return;
+
     if (window.scrollY < 80) {
       setActiveId(NAV_SECTIONS[0].id);
+      return;
+    }
+
+    const docEl = document.documentElement;
+    if (
+      window.scrollY + window.innerHeight >=
+      docEl.scrollHeight - 120
+    ) {
+      const last = NAV_SECTIONS[NAV_SECTIONS.length - 1];
+      if (last) setActiveId(last.id);
       return;
     }
 
@@ -63,15 +148,39 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
     };
   }, [updateActiveByPosition]);
 
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
+  const scrollToSection = useCallback((id: string) => {
+    programmaticLockUntilRef.current = performance.now() + 850;
+    setActiveId(id);
 
-  const activeSection =
-    NAV_SECTIONS.find((s) => s.id === activeId) ?? NAV_SECTIONS[0];
+    if (id === "inicio") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    if (id === "proyectos") {
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      const holdOffset = Math.min(
+        200,
+        Math.round(Math.max(0, el.offsetHeight - window.innerHeight) * 0.15)
+      );
+      window.scrollTo({ top: top + holdOffset, behavior: "smooth" });
+      return;
+    }
+
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  const handleNavChange = useCallback(
+    (index: number) => {
+      const target = NAV_SECTIONS[index];
+      if (!target) return;
+      scrollToSection(target.id);
+    },
+    [scrollToSection]
+  );
 
   return (
     <>
@@ -99,54 +208,38 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
         </MagneticButton>
       </div>
 
-      {/* Índice Lateral Izquierdo con Scroll-Spy (Desktop >= 1024px) */}
-      <nav
-        aria-label="Índice de secciones"
-        className="fixed left-[112px] top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col gap-4 mix-blend-difference"
+      {/* Desktop (>= 1024px): Liquid Glass Navbar vertical en el margen derecho */}
+      <div
+        data-cursor="action"
+        className="hidden lg:flex fixed right-6 xl:right-8 top-1/2 -translate-y-1/2 z-40"
       >
-        {NAV_SECTIONS.map((section) => {
-          const isActive = section.id === activeId;
-          return (
-            <button
-              key={section.id}
-              type="button"
-              onClick={() => scrollToSection(section.id)}
-              className="group flex items-center gap-3 text-left focus:outline-none py-0.5"
-            >
-              <span
-                className={`block h-px transition-all duration-200 ${
-                  isActive
-                    ? "w-4 bg-white"
-                    : "w-2 bg-white/45 group-hover:w-3 group-hover:bg-white/80"
-                }`}
-              />
-              <span
-                className={`font-mono text-[11px] tracking-[0.18em] uppercase transition-colors duration-200 ${
-                  isActive
-                    ? "text-white font-medium"
-                    : "text-[#A1A1AA] group-hover:text-white"
-                }`}
-              >
-                {section.label}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
+        <LiquidNavbar
+          items={navItems}
+          active={activeIndex}
+          onChange={handleNavChange}
+          orientation="vertical"
+          tone="dark"
+          compact={true}
+          sound={false}
+          ariaLabel="Navegación principal"
+        />
+      </div>
 
-      {/* Versión Móvil (< 1024px): Barra inferior minimalista fija */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-[#08080A]/90 backdrop-blur-md px-5 py-2 flex items-center justify-between">
-        <span className="font-mono text-[11px] tracking-[0.18em] text-[var(--text-primary)] uppercase">
-          {activeSection.label}
-        </span>
-
-        <button
-          type="button"
-          onClick={() => onOpenDrawer()}
-          className="inline-flex min-h-[44px] items-center font-mono text-[11px] tracking-[0.18em] uppercase text-[var(--text-primary)] border border-white/25 px-4 py-2.5 hover:bg-white hover:text-[#050505] transition-colors"
-        >
-          CONSULTAR ↗
-        </button>
+      {/* Móvil (< 1024px): Píldora flotante horizontal inferior */}
+      <div
+        data-cursor="action"
+        className="flex lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40"
+      >
+        <LiquidNavbar
+          items={navItems}
+          active={activeIndex}
+          onChange={handleNavChange}
+          orientation="horizontal"
+          tone="dark"
+          compact={true}
+          sound={false}
+          ariaLabel="Navegación principal"
+        />
       </div>
     </>
   );

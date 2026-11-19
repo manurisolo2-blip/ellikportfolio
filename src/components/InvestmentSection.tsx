@@ -219,7 +219,7 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
         }}
         className="w-full bg-[#F4F1EA] text-[#050505] py-28 md:py-36 selection:bg-[#050505] selection:text-[#F4F1EA] will-change-[transform,opacity]"
       >
-        <div ref={contentRef} className="pl-6 lg:pl-60 pr-6 lg:pr-16">
+        <div ref={contentRef} className="pl-6 lg:pl-36 pr-6 lg:pr-28">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
