@@ -345,12 +345,16 @@ const ACT1_WORDS = [
 ] as const;
 
 const ACT4_WORDS = [
-  { text: "¿TE", threshold: 0.78, row: 0 },
-  { text: "ESTÁ", threshold: 0.81, row: 0 },
-  { text: "PASANDO", threshold: 0.84, row: 0 },
-  { text: "ESTO", threshold: 0.87, row: 1 },
-  { text: "HOY?", threshold: 0.9, row: 1 },
+  { text: "¿TE", threshold: 0.8, row: 0 },
+  { text: "ESTÁ", threshold: 0.83, row: 0 },
+  { text: "PASANDO", threshold: 0.86, row: 0 },
+  { text: "ESTO", threshold: 0.89, row: 1 },
+  { text: "HOY?", threshold: 0.92, row: 1 },
 ] as const;
+
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+const easeOutQuad = (t: number) => 1 - (1 - t) * (1 - t);
+const smoothstep = (t: number) => t * t * (3 - 2 * t);
 
 function countActiveWords(
   words: readonly { threshold: number }[],
@@ -374,22 +378,24 @@ function StraightProblemCard({
   index,
   progress,
 }: StraightProblemCardProps) {
-  const enterStart = 0.26 + index * 0.015;
-  const enterEnd = 0.335 + index * 0.015;
-  const exitStart = 0.54 + index * 0.045;
-  const exitEnd = exitStart + 0.18;
+  const x = useTransform(progress, (v) => {
+    const t = easeOutQuad(clamp01((v - 0.22) / 0.2));
+    return `${((1 - t) * (105 + index * 6)).toFixed(3)}vw`;
+  });
 
-  const y = useTransform(
-    progress,
-    [enterStart, enterEnd, exitStart, exitEnd],
-    ["105svh", "0svh", "0svh", "-125svh"]
-  );
-  const opacity = useTransform(progress, [enterStart, enterEnd], [0, 1]);
+  const exitStart = 0.54 + index * 0.045;
+  const exitEnd = exitStart + 0.17;
+  const y = useTransform(progress, (v) => {
+    const t = smoothstep(clamp01((v - exitStart) / (exitEnd - exitStart)));
+    return `${(-t * 125).toFixed(3)}svh`;
+  });
+
+  const opacity = useTransform(progress, [0.21, 0.27], [0, 1]);
 
   return (
     <motion.article
       data-problem-card={card.id}
-      style={{ y, opacity }}
+      style={{ x, y, opacity }}
       className="aspect-square w-full min-w-0 overflow-hidden bg-[#0D0D0F] border border-white/[0.08] rounded-none p-5 md:p-6 flex flex-col justify-between will-change-transform"
     >
       <h3 className="font-sans font-medium uppercase text-xs sm:text-[13px] md:text-sm leading-snug text-white/90 text-left">
@@ -417,22 +423,21 @@ export function ProblemSequenceSection() {
   });
 
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 320,
-    damping: 38,
-    mass: 0.2,
+    stiffness: 260,
+    damping: 34,
   });
 
   useEffect(() => {
     const p = scrollYProgress.get();
     setAct1Count(countActiveWords(ACT1_WORDS, p));
     setAct4Count(countActiveWords(ACT4_WORDS, p));
-    setAct4Visible(p >= 0.78);
+    setAct4Visible(p >= 0.8);
   }, [scrollYProgress]);
 
   useMotionValueEvent(scrollYProgress, "change", (p) => {
     const nextAct1 = countActiveWords(ACT1_WORDS, p);
     const nextAct4 = countActiveWords(ACT4_WORDS, p);
-    const nextAct4Vis = p >= 0.78;
+    const nextAct4Vis = p >= 0.8;
 
     setAct1Count((prev) => (prev === nextAct1 ? prev : nextAct1));
     setAct4Count((prev) => (prev === nextAct4 ? prev : nextAct4));
