@@ -33,8 +33,8 @@ const DECK_VISUAL_META: Record<
   "01": {
     id: "pedidos-carta",
     eyebrow: {
-      es: "GASTRONOMÍA · PEDIDOS A WHATSAPP",
-      en: "HOSPITALITY · WHATSAPP ORDERS",
+      es: "GASTRONOMÍA — PEDIDOS A WHATSAPP",
+      en: "HOSPITALITY — WHATSAPP ORDERS",
     },
     image: "/previews/mojo-desktop.webp",
     surfaceBg: "#0B0B0D",
@@ -52,8 +52,8 @@ const DECK_VISUAL_META: Record<
   "02": {
     id: "catalogo-tienda",
     eyebrow: {
-      es: "INDUMENTARIA · VENTA DESDE EL CELULAR",
-      en: "APPAREL · MOBILE STOREFRONT",
+      es: "INDUMENTARIA — VENTA DESDE EL CELULAR",
+      en: "APPAREL — MOBILE STOREFRONT",
     },
     image: "/previews/dopamine-desktop.webp",
     surfaceBg: "#121215",
@@ -71,8 +71,8 @@ const DECK_VISUAL_META: Record<
   "03": {
     id: "desarrollo-medida",
     eyebrow: {
-      es: "A MEDIDA · CÓDIGO PROPIO",
-      en: "BESPOKE · CUSTOM CODE",
+      es: "A MEDIDA — CÓDIGO PROPIO",
+      en: "BESPOKE — CUSTOM CODE",
     },
     image: "/previews/rio3-desktop.webp",
     surfaceBg: "#18181C",

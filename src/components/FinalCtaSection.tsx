@@ -153,8 +153,8 @@ export function EllikFooter() {
         }
         meta={
           locale === "es"
-            ? "© 2026 ELLIK · OPERANDO EN PRODUCCIÓN"
-            : "© 2026 ELLIK · RUNNING IN PRODUCTION"
+            ? "© 2026 ELLIK — OPERANDO EN PRODUCCIÓN"
+            : "© 2026 ELLIK — RUNNING IN PRODUCTION"
         }
         columns={footerColumns}
         preset="night"

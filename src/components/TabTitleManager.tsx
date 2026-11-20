@@ -26,11 +26,11 @@ export function TabTitleManager() {
       if (document.hidden) {
         clearPending();
         wasHiddenRef.current = true;
-        document.title = lang === "es" ? "Volvé · ellik" : "Come Back · ellik";
+        document.title = lang === "es" ? "Volvé — ellik" : "Come Back — ellik";
       } else if (wasHiddenRef.current) {
         clearPending();
         wasHiddenRef.current = false;
-        document.title = lang === "es" ? "Bienvenido · ellik" : "Welcome Back · ellik";
+        document.title = lang === "es" ? "Bienvenido — ellik" : "Welcome Back — ellik";
         timeoutRef.current = setTimeout(() => {
           document.title = "ellik";
           timeoutRef.current = null;

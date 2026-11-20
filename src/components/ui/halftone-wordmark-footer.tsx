@@ -206,7 +206,7 @@ const HWF_CSS = `
 export default function HalftoneWordmarkFooter({
   wordmark = "ELLIK",
   label = "ELLIK — DISEÑO & DESARROLLO WEB",
-  meta = "© 2026 ELLIK · OPERANDO EN PRODUCCIÓN",
+  meta = "© 2026 ELLIK — OPERANDO EN PRODUCCIÓN",
   columns = DEFAULT_COLUMNS,
   backToTop = true,
   preset = "night",
