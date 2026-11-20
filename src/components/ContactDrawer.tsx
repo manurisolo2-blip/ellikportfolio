@@ -33,40 +33,38 @@ interface ContactDrawerProps {
 }
 
 const DRAWER_SCOPED_CSS = `
-.ellik-drawer-card-idle {
-  border: 1px solid rgba(244, 241, 234, 0.15);
-  background: linear-gradient(144deg, rgba(244, 241, 234, 0.09), transparent 65%), rgba(28, 28, 34, 0.42);
-  box-shadow: inset 0 1px 1px rgba(255, 252, 245, 0.24), inset 0 -1px 1px rgba(0, 0, 0, 0.28);
-}
-.ellik-drawer-card-idle:hover {
-  border-color: rgba(244, 241, 234, 0.28);
-  background: linear-gradient(144deg, rgba(244, 241, 234, 0.15), transparent 65%), rgba(38, 38, 46, 0.54);
-}
-.ellik-drawer-field {
-  border: 1px solid rgba(244, 241, 234, 0.17);
-  background: linear-gradient(155deg, rgba(244, 241, 234, 0.07), transparent 60%), rgba(22, 22, 27, 0.46);
-  box-shadow: inset 0 1px 1px rgba(255, 252, 245, 0.2), inset 0 -1px 1px rgba(0, 0, 0, 0.34);
-  color-scheme: dark;
-}
-.ellik-drawer-field:focus {
-  border-color: rgba(244, 241, 234, 0.62);
-  background: linear-gradient(155deg, rgba(244, 241, 234, 0.12), transparent 60%), rgba(34, 34, 42, 0.6);
-  box-shadow: inset 0 1px 1px rgba(255, 252, 245, 0.38), 0 0 0 3px rgba(244, 241, 234, 0.1);
-}
-.ellik-drawer-scroll {
+.ellik-glass-drawer {
+  border-radius: 30px;
+  border: 1px solid rgba(255, 248, 240, 0.22);
+  background: linear-gradient(152deg, rgba(255, 250, 244, 0.14) 0%, rgba(255, 250, 244, 0.03) 34%, rgba(16, 16, 20, 0.56) 100%), rgba(14, 14, 18, 0.58);
+  box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.36), inset -1px -1px 1px rgba(0, 0, 0, 0.45), 0 30px 90px rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(28px) saturate(1.45);
+  -webkit-backdrop-filter: blur(28px) saturate(1.45);
   scrollbar-width: thin;
-  scrollbar-color: rgba(244, 241, 234, 0.18) transparent;
+  scrollbar-color: rgba(255, 248, 240, 0.18) transparent;
+}
+.ellik-glass-drawer .ellik-glass-pill {
+  border-radius: 9999px;
+}
+.ellik-glass-drawer .ellik-glass-tray {
+  border-radius: 20px;
+}
+.ellik-glass-drawer .ellik-glass-tab {
+  border-radius: 14px;
+}
+.ellik-glass-drawer .ellik-glass-field {
+  border-radius: 16px;
+  color-scheme: dark;
 }
 `;
 
 const RUBRO_OPTIONS: {
-  code: string;
   value: BusinessCategory;
   Icon: LucideIcon;
 }[] = [
-  { code: "01", value: "Local Gastronómico", Icon: Utensils },
-  { code: "02", value: "Tienda de Ropa", Icon: ShoppingBag },
-  { code: "03", value: "Institución / Otro", Icon: Building2 },
+  { value: "Local Gastronómico", Icon: Utensils },
+  { value: "Tienda de Ropa", Icon: ShoppingBag },
+  { value: "Institución / Otro", Icon: Building2 },
 ];
 
 const DRAWER_EASE = [0.16, 1, 0.3, 1] as const;
@@ -75,19 +73,19 @@ const containerVariants = {
   hidden: {},
   visible: {
     transition: {
-      staggerChildren: 0.04,
-      delayChildren: 0.04,
+      staggerChildren: 0.035,
+      delayChildren: 0.03,
     },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
+  hidden: { opacity: 0, y: 8 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.28,
+      duration: 0.26,
       ease: DRAWER_EASE,
     },
   },
@@ -97,7 +95,7 @@ const reducedItemVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { duration: 0.18 },
+    transition: { duration: 0.16 },
   },
 };
 
@@ -200,365 +198,310 @@ export function ContactDrawer({
             role="dialog"
             aria-modal="true"
             aria-labelledby="contact-drawer-title"
-            className="fixed inset-0 z-[60]"
+            className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:justify-end p-3 sm:p-6 pointer-events-none"
           >
-            {/* Overlay translúcido para refractar estrellas y secciones detrás del liquid glass */}
+            {/* Overlay translúcido para refractar estrellas y secciones detrás del vidrio */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.24 }}
               onClick={onClose}
-              className="fixed inset-0 bg-black/45 backdrop-blur-[6px]"
+              className="fixed inset-0 bg-black/40 backdrop-blur-[8px] pointer-events-auto"
             />
 
-            {/* Panel flotante en liquid glass biselado con ángulos rectos (0px) alineado a ELLIK */}
+            {/* Panel flotante compacto de vidrio esmerilado real */}
             <motion.aside
               data-lenis-prevent
               initial={
                 reducedMotion
                   ? { opacity: 0 }
-                  : { x: 48, scale: 0.98, opacity: 0 }
+                  : { x: 40, scale: 0.97, opacity: 0 }
               }
               animate={{ x: 0, scale: 1, opacity: 1 }}
               exit={
                 reducedMotion
                   ? { opacity: 0 }
-                  : { x: 48, scale: 0.98, opacity: 0 }
+                  : { x: 40, scale: 0.97, opacity: 0 }
               }
-              transition={{ duration: 0.38, ease: DRAWER_EASE }}
-              style={{
-                border: "1px solid rgba(244, 241, 234, 0.26)",
-                background:
-                  "linear-gradient(148deg, rgba(244, 241, 234, 0.15), transparent 24% 74%, rgba(244, 241, 234, 0.07)), rgba(18, 18, 22, 0.58)",
-                boxShadow:
-                  "inset 1px 1px 1px rgba(255, 252, 245, 0.46), inset -1px -1px 1px rgba(5, 5, 8, 0.45), inset 0 0 14px rgba(244, 241, 234, 0.08), 0 24px 72px rgba(0, 0, 0, 0.62)",
-                backdropFilter: "blur(24px) saturate(1.38)",
-                WebkitBackdropFilter: "blur(24px) saturate(1.38)",
-              }}
-              className="ellik-drawer-stage fixed inset-2.5 sm:inset-y-4 sm:right-4 sm:left-auto w-[calc(100%-20px)] sm:w-[min(510px,calc(100vw-32px))] z-10 overflow-hidden flex flex-col text-[#F4F1EA]"
+              transition={{ duration: 0.36, ease: DRAWER_EASE }}
+              className="ellik-glass-drawer relative z-10 w-full max-w-[460px] h-auto max-h-[calc(100svh-32px)] overflow-y-auto overflow-x-hidden overscroll-contain text-[#F4F1EA] pointer-events-auto"
             >
-              {/* Grano analógico sutil para que el cristal tenga materia real */}
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 z-0 opacity-[0.06] mix-blend-overlay"
-                style={{
-                  backgroundImage:
-                    "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-                }}
-              />
-              {/* Arista superior especular del cristal */}
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 top-0 z-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,252,245,0.45)_35%,rgba(255,252,245,0.45)_65%,transparent)]"
-              />
               <motion.div
-                className="relative z-10 flex flex-1 min-h-0 flex-col"
+                className="p-6 sm:p-7 flex flex-col gap-5"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
               >
-                {/* Barra superior en liquid glass biselado con emblema cuadrado y cierre recto */}
-                <div className="shrink-0 px-3.5 pt-3.5 sm:px-7 sm:pt-6 pb-0">
-                  <motion.div
-                    variants={activeItemVariants}
-                    data-drawer-topbar
-                    className="px-3.5 py-2.5 flex items-center justify-between border border-[rgba(244,241,234,0.22)] bg-[rgba(244,241,234,0.06)] shadow-[inset_1px_1px_1px_rgba(255,252,245,0.34),inset_-1px_-1px_1px_rgba(0,0,0,0.34)]"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span
-                        aria-hidden="true"
-                        className="w-6 h-6 border border-[rgba(244,241,234,0.34)] bg-[rgba(244,241,234,0.1)] shadow-[inset_1px_1px_1px_rgba(255,255,255,0.35)] flex items-center justify-center shrink-0"
-                      >
-                        <span className="w-1.5 h-1.5 bg-[#F4F1EA] shadow-[0_0_8px_rgba(244,241,234,0.85)]" />
-                      </span>
-                      <span className="font-sans font-semibold text-[11px] uppercase tracking-[0.16em] text-[#F4F1EA]/90 truncate">
-                        {locale === "es" ? "Contacto directo" : "Direct contact"}
-                      </span>
-                    </div>
-
-                    <button
-                      type="button"
-                      data-drawer-close
-                      data-cursor="action"
-                      aria-label={
-                        locale === "es"
-                          ? "Cerrar panel de contacto"
-                          : "Close contact panel"
-                      }
-                      onClick={onClose}
-                      className="w-9 h-9 flex items-center justify-center border border-[rgba(244,241,234,0.22)] bg-[rgba(244,241,234,0.08)] hover:bg-[rgba(244,241,234,0.18)] shadow-[inset_1px_1px_1px_rgba(255,252,245,0.28)] text-[#F4F1EA] transition-all cursor-pointer shrink-0"
-                    >
-                      <X size={15} strokeWidth={1.75} aria-hidden="true" />
-                    </button>
-                  </motion.div>
-                </div>
-
-                {/* Cuerpo scrolleable equilibrado con bandeja de rubros y campos de cristal */}
-                <div
-                  data-lenis-prevent
-                  className="ellik-drawer-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-3.5 sm:px-7 pt-6 pb-5 sm:pt-7 flex flex-col gap-7 sm:gap-8"
+                {/* A. Cabecera limpia sin barra rectangular encerrada */}
+                <motion.div
+                  variants={activeItemVariants}
+                  className="flex items-center justify-between gap-3"
                 >
-                  <motion.div variants={activeItemVariants}>
-                    <h2
-                      id="contact-drawer-title"
-                      className="font-display font-semibold text-[30px] sm:text-[38px] leading-[1.0] tracking-[-0.022em] [word-spacing:0.04em]"
-                    >
-                      {locale === "es" ? (
-                        <>
-                          <span className="block text-white">Contame sobre</span>
-                          <span className="block text-[#F4F1EA]/50">tu negocio.</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="block text-white">Tell me about</span>
-                          <span className="block text-[#F4F1EA]/50">
-                            your business.
-                          </span>
-                        </>
-                      )}
-                    </h2>
-
-                    <p className="font-sans text-[13.5px] sm:text-[14px] text-[#D4D4D8] mt-2.5 leading-relaxed">
-                      {locale === "es"
-                        ? "Dejame estos datos y abrimos la charla directo en WhatsApp."
-                        : "Share a few details and we'll continue directly on WhatsApp."}
-                    </p>
-
-                    {selectedPlan && (
-                      <div
-                        data-drawer-plan-chip
-                        className="inline-flex items-center gap-2 mt-3.5 px-3 py-1.5 border border-[rgba(244,241,234,0.32)] bg-[rgba(244,241,234,0.09)] shadow-[inset_0_1px_1px_rgba(255,252,245,0.28)] font-sans font-medium text-[11px] uppercase tracking-[0.12em] text-[#F4F1EA] max-w-full"
-                      >
-                        <span className="truncate">
-                          {locale === "es" ? "Modalidad" : "Option"}:{" "}
-                          {selectedPlan}
-                        </span>
-                        <button
-                          type="button"
-                          aria-label={
-                            locale === "es"
-                              ? "Quitar modalidad"
-                              : "Remove option"
-                          }
-                          onClick={() => setSelectedPlan("")}
-                          className="shrink-0 text-[#F4F1EA]/65 hover:text-white transition-colors cursor-pointer"
-                        >
-                          <X size={12} strokeWidth={1.6} aria-hidden="true" />
-                        </button>
-                      </div>
-                    )}
-                  </motion.div>
-
-                  <form
-                    onSubmit={handleSendWhatsApp}
-                    className="flex flex-col gap-5"
+                  <div
+                    data-drawer-topbar
+                    className="ellik-glass-pill rounded-full px-3 py-1.5 bg-white/[0.06] border border-white/[0.12] flex items-center gap-2 min-w-0"
                   >
-                    {/* Selector de rubro en bandeja de cristal + tarjetas rectas */}
-                    <motion.div variants={activeItemVariants}>
-                      <span className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block transition-colors group-focus-within:text-[#F4F1EA]">
-                        {locale === "es"
-                          ? "Rubro de tu proyecto"
-                          : "Project category"}
+                    <span
+                      aria-hidden="true"
+                      className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] shrink-0"
+                    />
+                    <span className="font-sans font-medium text-[11px] tracking-[0.06em] text-white/80 truncate">
+                      {locale === "es" ? "Contacto directo" : "Direct contact"}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    data-drawer-close
+                    data-cursor="action"
+                    aria-label={
+                      locale === "es"
+                        ? "Cerrar panel de contacto"
+                        : "Close contact panel"
+                    }
+                    onClick={onClose}
+                    className="ellik-glass-pill w-9 h-9 rounded-full bg-white/[0.07] hover:bg-white/[0.16] border border-white/[0.16] flex items-center justify-center text-white/80 hover:text-white transition-all cursor-pointer shrink-0"
+                  >
+                    <X size={15} strokeWidth={1.75} aria-hidden="true" />
+                  </button>
+                </motion.div>
+
+                {/* B. Titular directo */}
+                <motion.div variants={activeItemVariants}>
+                  <h2
+                    id="contact-drawer-title"
+                    className="font-display font-medium text-[28px] sm:text-[32px] leading-[1.06] tracking-[-0.015em] [word-spacing:0.05em]"
+                  >
+                    {locale === "es" ? (
+                      <>
+                        <span className="text-white">Contame sobre</span>{" "}
+                        <span className="text-[#F4F1EA]/55">tu negocio.</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-white">Tell me about</span>{" "}
+                        <span className="text-[#F4F1EA]/55">
+                          your business.
+                        </span>
+                      </>
+                    )}
+                  </h2>
+
+                  <p className="font-sans text-[13.5px] text-white/60 mt-1.5 leading-snug">
+                    {locale === "es"
+                      ? "Elegí tu rubro, dejame dos datos y seguimos directo en WhatsApp."
+                      : "Pick your category, share two details, and let's chat on WhatsApp."}
+                  </p>
+
+                  {selectedPlan && (
+                    <div
+                      data-drawer-plan-chip
+                      className="ellik-glass-pill inline-flex items-center gap-2 mt-2.5 px-3 py-1 rounded-full text-[11px] font-sans font-medium bg-[#1e7461]/30 border border-[#75dac0]/35 text-[#b8f1dd] max-w-full"
+                    >
+                      <span className="truncate">
+                        {locale === "es" ? "Modalidad" : "Option"}:{" "}
+                        {selectedPlan}
                       </span>
-                      <PresenceContext.Provider value={null}>
-                        <LayoutGroup id="contact-rubro-selector">
-                          <div
-                            data-drawer-rubro-tray
-                            className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1.5 border border-[rgba(244,241,234,0.18)] bg-[rgba(244,241,234,0.05)] shadow-[inset_0_1px_1px_rgba(255,252,245,0.24),inset_0_-1px_1px_rgba(0,0,0,0.35)]"
-                          >
-                            {RUBRO_OPTIONS.map((option) => {
-                              const active = rubro === option.value;
-                              const Icon = option.Icon;
-                              const label =
-                                RUBRO_COPY[option.value][locale].cardLabel;
-                              return (
-                                <button
-                                  key={option.value}
-                                  type="button"
-                                  data-drawer-rubro={option.value}
-                                  aria-pressed={active}
-                                  onClick={() => setRubro(option.value)}
-                                  className={`min-w-0 p-2 sm:p-3 flex flex-col items-start gap-2.5 text-left transition-all duration-200 relative overflow-hidden cursor-pointer ${
-                                    active
-                                      ? "border border-transparent text-[#050505]"
-                                      : "ellik-drawer-card-idle text-[#D4D4D8] hover:text-white"
+                      <button
+                        type="button"
+                        aria-label={
+                          locale === "es"
+                            ? "Quitar modalidad"
+                            : "Remove option"
+                        }
+                        onClick={() => setSelectedPlan("")}
+                        className="shrink-0 text-[#b8f1dd]/75 hover:text-white transition-colors cursor-pointer"
+                      >
+                        <X size={12} strokeWidth={1.75} aria-hidden="true" />
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+
+                <form
+                  onSubmit={handleSendWhatsApp}
+                  className="flex flex-col gap-4"
+                >
+                  {/* C. Selector de Rubro tipo Glass Segmented Control */}
+                  <motion.div variants={activeItemVariants}>
+                    <span className="font-sans font-medium text-[11px] text-white/55 mb-1.5 ml-1 block">
+                      {locale === "es"
+                        ? "Rubro de tu proyecto"
+                        : "Project category"}
+                    </span>
+                    <PresenceContext.Provider value={null}>
+                      <LayoutGroup id="contact-rubro-selector">
+                        <div
+                          data-drawer-rubro-tray
+                          className="ellik-glass-tray grid grid-cols-3 gap-1.5 p-1.5 rounded-[20px] bg-black/25 border border-white/[0.1] shadow-[inset_0_1px_2px_rgba(0,0,0,0.45)]"
+                        >
+                          {RUBRO_OPTIONS.map((option) => {
+                            const active = rubro === option.value;
+                            const Icon = option.Icon;
+                            const label =
+                              RUBRO_COPY[option.value][locale].cardLabel;
+                            return (
+                              <button
+                                key={option.value}
+                                type="button"
+                                data-drawer-rubro={option.value}
+                                aria-pressed={active}
+                                onClick={() => setRubro(option.value)}
+                                className={`ellik-glass-tab relative rounded-[14px] py-3 px-1.5 sm:px-2.5 flex flex-col items-center justify-center gap-1.5 text-center cursor-pointer transition-colors min-w-0 ${
+                                  active
+                                    ? "text-white"
+                                    : "bg-transparent hover:bg-white/[0.06] text-white/60 hover:text-white"
+                                }`}
+                              >
+                                {active && (
+                                  <motion.div
+                                    layoutId="activeGlassTab"
+                                    transition={{
+                                      type: "spring",
+                                      stiffness: 440,
+                                      damping: 32,
+                                    }}
+                                    style={{
+                                      background:
+                                        "radial-gradient(ellipse at 15% -15%, #3a9381, transparent 70%), linear-gradient(145deg, #1e7461, #0a493e)",
+                                      border:
+                                        "1px solid rgba(196, 248, 231, 0.48)",
+                                      boxShadow:
+                                        "inset 0 1px 1px rgba(220, 255, 244, 0.5), 0 6px 16px rgba(8, 68, 58, 0.35)",
+                                    }}
+                                    className="ellik-glass-tab absolute inset-0 rounded-[14px]"
+                                  />
+                                )}
+
+                                <Icon
+                                  size={16}
+                                  strokeWidth={1.75}
+                                  className="relative z-10 shrink-0"
+                                  aria-hidden="true"
+                                />
+
+                                <span
+                                  data-rubro-label
+                                  className={`relative z-10 font-sans text-[11px] sm:text-[12px] leading-tight whitespace-nowrap ${
+                                    active ? "font-semibold" : "font-medium"
                                   }`}
                                 >
-                                  {active && (
-                                    <motion.div
-                                      layoutId="activeRubroCard"
-                                      transition={{
-                                        type: "spring",
-                                        stiffness: 440,
-                                        damping: 34,
-                                      }}
-                                      style={{
-                                        background:
-                                          "radial-gradient(ellipse at 12% -15%, rgba(255, 255, 255, 0.98), transparent 68%), linear-gradient(145deg, rgba(244, 241, 234, 0.96), rgba(220, 214, 203, 0.88))",
-                                        border:
-                                          "1px solid rgba(255, 255, 255, 0.9)",
-                                        boxShadow:
-                                          "inset 0 1px 2px rgba(255, 255, 255, 0.95), inset 0 -1px 1px rgba(0, 0, 0, 0.18), 0 10px 24px -6px rgba(244, 241, 234, 0.28)",
-                                      }}
-                                      className="absolute inset-0"
-                                    />
-                                  )}
-
-                                  <div className="relative z-10 flex items-center justify-between w-full">
-                                    <span
-                                      className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center border shrink-0 transition-colors ${
-                                        active
-                                          ? "bg-[#0B0B0E]/[0.88] border-[#0B0B0E] text-[#F4F1EA] shadow-[inset_0_1px_1px_rgba(255,255,255,0.22)]"
-                                          : "bg-white/[0.08] border-white/[0.18] text-[#F4F1EA]/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]"
-                                      }`}
-                                    >
-                                      <Icon
-                                        size={14}
-                                        strokeWidth={1.8}
-                                        aria-hidden="true"
-                                      />
-                                    </span>
-                                    <span
-                                      className={`font-display font-medium text-[10.5px] tracking-[0.06em] ${
-                                        active
-                                          ? "text-[#050505]/50"
-                                          : "text-white/35"
-                                      }`}
-                                    >
-                                      {option.code}
-                                    </span>
-                                  </div>
-
-                                  <span
-                                    data-rubro-label
-                                    className={`relative z-10 font-sans text-[11.5px] sm:text-[13px] leading-tight whitespace-nowrap ${
-                                      active
-                                        ? "font-semibold text-[#050505]"
-                                        : "font-medium"
-                                    }`}
-                                  >
-                                    {label}
-                                  </span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </LayoutGroup>
-                      </PresenceContext.Provider>
-                    </motion.div>
-
-                    {/* Campos en cristal biselado */}
-                    <motion.div
-                      variants={activeItemVariants}
-                      className="space-y-3.5"
-                    >
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="group">
-                          <label
-                            htmlFor="ellik-name"
-                            className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block transition-colors group-focus-within:text-[#F4F1EA]"
-                          >
-                            {locale === "es" ? "Tu nombre" : "Your name"}
-                          </label>
-                          <input
-                            id="ellik-name"
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder={
-                              locale === "es"
-                                ? "Ej. Martín Gómez"
-                                : "e.g. Alex Morgan"
-                            }
-                            className="ellik-drawer-field w-full px-3.5 py-3 font-sans text-[13.5px] sm:text-[14px] text-[#F4F1EA] placeholder:text-white/35 outline-none transition-all"
-                          />
+                                  {label}
+                                </span>
+                              </button>
+                            );
+                          })}
                         </div>
+                      </LayoutGroup>
+                    </PresenceContext.Provider>
+                  </motion.div>
 
-                        <div className="group">
-                          <label
-                            htmlFor="ellik-business"
-                            className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block transition-colors group-focus-within:text-[#F4F1EA]"
-                          >
-                            {locale === "es"
-                              ? "Negocio y ciudad"
-                              : "Business & city"}
-                          </label>
-                          <input
-                            id="ellik-business"
-                            type="text"
-                            value={businessAndCity}
-                            onChange={(e) => setBusinessAndCity(e.target.value)}
-                            placeholder={
-                              locale === "es"
-                                ? "Ej. Pizzería Sur — Río Tercero"
-                                : "e.g. Mojo Grille — Miami"
-                            }
-                            className="ellik-drawer-field w-full px-3.5 py-3 font-sans text-[13.5px] sm:text-[14px] text-[#F4F1EA] placeholder:text-white/35 outline-none transition-all"
-                          />
-                        </div>
+                  {/* D. Campos de Cristal Suave (rounded-[16px]) */}
+                  <motion.div
+                    variants={activeItemVariants}
+                    className="space-y-3"
+                  >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="group">
+                        <label
+                          htmlFor="ellik-name"
+                          className="font-sans font-medium text-[11px] text-white/55 mb-1.5 ml-1 block transition-colors group-focus-within:text-white/85"
+                        >
+                          {locale === "es" ? "Tu nombre" : "Your name"}
+                        </label>
+                        <input
+                          id="ellik-name"
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder={
+                            locale === "es"
+                              ? "Ej. Martín Gómez"
+                              : "e.g. Alex Morgan"
+                          }
+                          className="ellik-glass-field w-full rounded-[16px] px-3.5 py-2.5 font-sans text-[13.5px] text-white placeholder:text-white/30 bg-white/[0.045] border border-white/[0.11] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] outline-none transition-all focus:bg-white/[0.08] focus:border-white/40 focus:shadow-[0_0_0_3px_rgba(244,241,234,0.08)]"
+                        />
                       </div>
 
                       <div className="group">
                         <label
-                          htmlFor="ellik-need"
-                          className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block transition-colors group-focus-within:text-[#F4F1EA]"
+                          htmlFor="ellik-business"
+                          className="font-sans font-medium text-[11px] text-white/55 mb-1.5 ml-1 block transition-colors group-focus-within:text-white/85"
                         >
                           {locale === "es"
-                            ? "¿Qué necesitás resolver hoy? (opcional)"
-                            : "What do you need to build? (optional)"}
+                            ? "Negocio y ciudad"
+                            : "Business & city"}
                         </label>
-                        <textarea
-                          id="ellik-need"
-                          rows={3}
-                          value={need}
-                          onChange={(e) => setNeed(e.target.value)}
+                        <input
+                          id="ellik-business"
+                          type="text"
+                          value={businessAndCity}
+                          onChange={(e) => setBusinessAndCity(e.target.value)}
                           placeholder={
                             locale === "es"
-                              ? "Ej. Recibir pedidos sin audios eternos los viernes a la noche..."
-                              : "e.g. Take direct orders on WhatsApp without back-and-forth messages..."
+                              ? "Ej. Pizzería Sur — Río Tercero"
+                              : "e.g. Mojo Grille — Miami"
                           }
-                          className="ellik-drawer-field w-full resize-none px-3.5 py-3 font-sans text-[13.5px] sm:text-[14px] text-[#F4F1EA] placeholder:text-white/35 outline-none transition-all"
+                          className="ellik-glass-field w-full rounded-[16px] px-3.5 py-2.5 font-sans text-[13.5px] text-white placeholder:text-white/30 bg-white/[0.045] border border-white/[0.11] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] outline-none transition-all focus:bg-white/[0.08] focus:border-white/40 focus:shadow-[0_0_0_3px_rgba(244,241,234,0.08)]"
                         />
                       </div>
-                    </motion.div>
+                    </div>
 
-                    {/* CTA principal con bisel superior especular */}
-                    <motion.div variants={activeItemVariants} className="pt-0.5">
-                      <button
-                        type="submit"
-                        data-drawer-submit
-                        data-cursor="action"
-                        className="w-full py-3.5 sm:py-4 px-6 bg-[#F4F1EA] hover:bg-white text-[#050505] font-sans font-bold text-[13px] sm:text-[13.5px] uppercase tracking-[0.12em] flex items-center justify-center gap-2.5 transition-all active:scale-[0.99] shadow-[inset_0_1px_1px_#FFFFFF,inset_0_-1px_1px_rgba(0,0,0,0.18),0_12px_30px_-8px_rgba(244,241,234,0.35)] cursor-pointer group"
+                    <div className="group">
+                      <label
+                        htmlFor="ellik-need"
+                        className="font-sans font-medium text-[11px] text-white/55 mb-1.5 ml-1 block transition-colors group-focus-within:text-white/85"
                       >
-                        <span>
-                          {locale === "es"
-                            ? "Continuar en WhatsApp"
-                            : "Continue on WhatsApp"}
-                        </span>
-                        <ArrowUpRight
-                          className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                          aria-hidden="true"
-                        />
-                      </button>
-                      <p className="font-sans text-[11px] text-[#71717A] text-center mt-2.5">
                         {locale === "es"
-                          ? "Se abre WhatsApp con tu consulta ya redactada · Respuesta directa."
-                          : "Opens WhatsApp with your message pre-filled · Direct reply."}
-                      </p>
-                    </motion.div>
-                  </form>
-                </div>
+                          ? "¿Qué necesitás resolver? (opcional)"
+                          : "What do you need to solve? (optional)"}
+                      </label>
+                      <textarea
+                        id="ellik-need"
+                        rows={2}
+                        value={need}
+                        onChange={(e) => setNeed(e.target.value)}
+                        placeholder={
+                          locale === "es"
+                            ? "Ej. Recibir pedidos sin audios eternos los viernes a la noche..."
+                            : "e.g. Take direct orders on WhatsApp without back-and-forth messages..."
+                        }
+                        className="ellik-glass-field w-full resize-none rounded-[16px] px-3.5 py-2.5 font-sans text-[13.5px] text-white placeholder:text-white/30 bg-white/[0.045] border border-white/[0.11] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] outline-none transition-all focus:bg-white/[0.08] focus:border-white/40 focus:shadow-[0_0_0_3px_rgba(244,241,234,0.08)]"
+                      />
+                    </div>
+                  </motion.div>
 
-                {/* Pie anclado en cristal translúcido */}
+                  {/* E1. Botón Principal Píldora */}
+                  <motion.div variants={activeItemVariants} className="pt-1">
+                    <button
+                      type="submit"
+                      data-drawer-submit
+                      data-cursor="action"
+                      className="ellik-glass-pill w-full rounded-full py-3.5 px-6 bg-[#F4F1EA] hover:bg-white text-[#0B0B0D] font-sans font-semibold text-[13.5px] flex items-center justify-center gap-2 transition-all active:scale-[0.985] shadow-[inset_0_1px_1px_#FFFFFF,0_12px_30px_-8px_rgba(244,241,234,0.35)] cursor-pointer group"
+                    >
+                      <span>
+                        {locale === "es"
+                          ? "Continuar en WhatsApp"
+                          : "Continue on WhatsApp"}
+                      </span>
+                      <ArrowUpRight
+                        className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                        aria-hidden="true"
+                      />
+                    </button>
+                  </motion.div>
+                </form>
+
+                {/* E2. Pie ultra limpio integrado */}
                 <motion.div
                   variants={activeItemVariants}
-                  className="shrink-0 px-3.5 sm:px-7 py-4 border-t border-[rgba(244,241,234,0.14)] bg-[rgba(244,241,234,0.03)] flex items-center justify-between gap-3"
+                  className="pt-4 border-t border-white/[0.09] flex items-center justify-between gap-3"
                 >
                   <a
                     href={`mailto:${ELLIK_CONFIG.email}`}
                     data-drawer-email-pill
-                    className="px-3 py-2 bg-[rgba(244,241,234,0.07)] hover:bg-[rgba(244,241,234,0.13)] border border-[rgba(244,241,234,0.18)] shadow-[inset_0_1px_0_rgba(255,252,245,0.22)] text-[11.5px] sm:text-[12px] font-sans font-medium text-[#F4F1EA]/85 hover:text-white transition-colors truncate min-w-0"
+                    className="text-[12px] font-sans text-white/55 hover:text-white transition-colors truncate min-w-0"
                   >
                     {ELLIK_CONFIG.email}
                   </a>
@@ -567,10 +510,10 @@ export function ContactDrawer({
                     type="button"
                     data-drawer-copy-email
                     onClick={handleCopyEmail}
-                    className={`px-3.5 py-2 border shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] text-[11px] sm:text-[11.5px] font-sans font-semibold uppercase tracking-[0.12em] flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
+                    className={`ellik-glass-pill rounded-full px-3 py-1.5 border text-[11.5px] font-sans font-medium flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
                       emailCopied
-                        ? "border-[#F4F1EA] bg-[#F4F1EA] text-[#050505]"
-                        : "border-[rgba(244,241,234,0.25)] bg-[rgba(244,241,234,0.12)] hover:bg-[rgba(244,241,234,0.2)] text-[#F4F1EA]"
+                        ? "bg-[#1e7461]/30 border-[#75dac0]/40 text-[#75dac0]"
+                        : "bg-white/[0.06] hover:bg-white/[0.14] border-white/[0.12] text-white/80"
                     }`}
                   >
                     {emailCopied ? (
