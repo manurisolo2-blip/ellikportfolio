@@ -410,7 +410,6 @@ export function ProblemSequenceSection() {
   const [act1Count, setAct1Count] = useState<number>(0);
   const [act4Count, setAct4Count] = useState<number>(0);
   const [act4Visible, setAct4Visible] = useState<boolean>(false);
-  const [isDesktop, setIsDesktop] = useState<boolean>(false);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -422,14 +421,6 @@ export function ProblemSequenceSection() {
     damping: 38,
     mass: 0.2,
   });
-
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
-    const syncBreakpoint = () => setIsDesktop(mq.matches);
-    syncBreakpoint();
-    mq.addEventListener("change", syncBreakpoint);
-    return () => mq.removeEventListener("change", syncBreakpoint);
-  }, []);
 
   useEffect(() => {
     const p = scrollYProgress.get();
@@ -448,22 +439,11 @@ export function ProblemSequenceSection() {
     setAct4Visible((prev) => (prev === nextAct4Vis ? prev : nextAct4Vis));
   });
 
-  // FASE 2 & 3: el titular sube a la parte superior, se detiene entre 0.38 y 0.54, y luego retrocede y se difumina
-  const headlineY = useTransform(smoothProgress, [0.26, 0.38], ["0svh", "-24svh"]);
-  const headlineScale = useTransform(
-    smoothProgress,
-    [0.26, 0.38, 0.54, 0.66],
-    [1, 0.88, 0.88, 0.8]
-  );
+  // El titular permanece fijo en su lugar y escala original; solo se desvanece en la salida (0.54 -> 0.66)
   const headlineOpacity = useTransform(
     smoothProgress,
     [0, 0.54, 0.66],
     [1, 1, 0]
-  );
-  const headlineBlur = useTransform(
-    smoothProgress,
-    [0.54, 0.66],
-    ["blur(0px)", "blur(10px)"]
   );
 
   if (reducedMotion) {
@@ -473,14 +453,14 @@ export function ProblemSequenceSection() {
         className="relative z-10 w-full bg-[#050505]/92 py-24 px-6 sm:px-10 lg:px-24 xl:px-28"
       >
         <div className="mx-auto max-w-[1160px] text-center">
-          <p className="font-sans font-normal uppercase tracking-[-0.02em] leading-[1.04] text-[clamp(1.6rem,3.6vw,3.1rem)] text-white/95">
+          <p className="font-sans font-normal uppercase tracking-[-0.02em] leading-[1.04] text-[clamp(1.45rem,3.2vw,2.9rem)] text-white/95">
             LA MAYORÍA DE LOS NEGOCIOS
             <br />
             NO TIENE UN PROBLEMA
             <br />
             DE CLIENTES.
           </p>
-          <p className="mt-5 md:mt-7 font-display font-semibold uppercase tracking-[0.03em] leading-[1.06] text-[clamp(1.75rem,3.8vw,3.3rem)] text-[#F4F1EA]">
+          <p className="mt-3 sm:mt-4 md:mt-5 font-display font-semibold uppercase tracking-[0.03em] leading-[1.06] text-[clamp(1.55rem,3.4vw,3.1rem)] text-[#F4F1EA]">
             TIENE UN PROBLEMA DE CONVERSIÓN.
           </p>
 
@@ -518,7 +498,7 @@ export function ProblemSequenceSection() {
       id="problema"
       className="relative z-10 w-full h-[540svh] bg-[#050505]/92"
     >
-      <div className="sticky top-0 h-[100svh] w-full overflow-hidden flex flex-col items-center justify-center px-6 sm:px-10 lg:px-24 xl:px-28">
+      <div className="sticky top-0 h-[100svh] w-full overflow-hidden flex flex-col items-center justify-start pt-[max(84px,10.5svh)] px-6 sm:px-10 lg:px-24 xl:px-28">
         {/* FASE 4: Pregunta final en el centro detrás de las tarjetas salientes (0.78 -> 1.00) */}
         <div
           aria-hidden={!act4Visible}
@@ -565,17 +545,13 @@ export function ProblemSequenceSection() {
           </p>
         </div>
 
-        {/* FASE 1, 2 & 3: Titular principal */}
+        {/* FASE 1, 2 & 3: Titular principal fijo en su posición y escala final */}
         <motion.div
-          style={{
-            y: headlineY,
-            scale: headlineScale,
-            opacity: headlineOpacity,
-            ...(isDesktop ? { filter: headlineBlur } : {}),
-          }}
-          className="relative z-10 flex w-full max-w-5xl flex-col items-center text-center will-change-transform"
+          data-problem-headline
+          style={{ opacity: headlineOpacity }}
+          className="relative z-10 flex w-full max-w-5xl flex-col items-center text-center"
         >
-          <p className="font-sans font-normal uppercase tracking-[-0.02em] leading-[1.04] text-[clamp(1.6rem,3.6vw,3.1rem)] text-white/95">
+          <p className="font-sans font-normal uppercase tracking-[-0.02em] leading-[1.04] text-[clamp(1.45rem,3.2vw,2.9rem)] text-white/95">
             LA MAYORÍA DE LOS NEGOCIOS
             <br />
             NO TIENE UN PROBLEMA
@@ -585,7 +561,7 @@ export function ProblemSequenceSection() {
 
           <p
             aria-label="Tiene un problema de conversión."
-            className="mt-5 md:mt-7 font-display font-semibold uppercase tracking-[0.03em] leading-[1.06] text-[clamp(1.75rem,3.8vw,3.3rem)] text-[#F4F1EA]"
+            className="mt-3 sm:mt-4 md:mt-5 font-display font-semibold uppercase tracking-[0.03em] leading-[1.06] text-[clamp(1.55rem,3.4vw,3.1rem)] text-[#F4F1EA]"
           >
             {[0, 1].map((rowIdx) => (
               <span
@@ -610,7 +586,7 @@ export function ProblemSequenceSection() {
         </motion.div>
 
         {/* FASE 2 & 3: Fila horizontal recta con detención real y salida en escalera diagonal */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-[10svh] sm:bottom-[11svh] lg:bottom-[10svh] z-20 flex justify-center px-6 sm:px-10 lg:px-24 xl:px-28">
+        <div className="pointer-events-none absolute inset-x-0 bottom-[92px] lg:bottom-[7svh] z-20 flex justify-center px-6 sm:px-10 lg:px-24 xl:px-28">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 w-full max-w-[1160px]">
             {PROBLEM_CARDS.map((card, idx) => (
               <StraightProblemCard
