@@ -238,6 +238,20 @@ export function ContactDrawer({
               }}
               className="ellik-drawer-stage fixed inset-2.5 sm:inset-y-4 sm:right-4 sm:left-auto w-[calc(100%-20px)] sm:w-[min(510px,calc(100vw-32px))] z-10 overflow-hidden flex flex-col text-[#F4F1EA]"
             >
+              {/* Grano analógico sutil para que el cristal tenga materia real */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 z-0 opacity-[0.06] mix-blend-overlay"
+                style={{
+                  backgroundImage:
+                    "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+                }}
+              />
+              {/* Arista superior especular del cristal */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 top-0 z-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,252,245,0.45)_35%,rgba(255,252,245,0.45)_65%,transparent)]"
+              />
               <motion.div
                 className="relative z-10 flex flex-1 min-h-0 flex-col"
                 variants={containerVariants}
@@ -283,7 +297,7 @@ export function ContactDrawer({
                 {/* Cuerpo scrolleable equilibrado con bandeja de rubros y campos de cristal */}
                 <div
                   data-lenis-prevent
-                  className="ellik-drawer-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-3.5 sm:px-7 py-5 flex flex-col justify-between gap-5"
+                  className="ellik-drawer-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-3.5 sm:px-7 pt-6 pb-5 sm:pt-7 flex flex-col gap-7 sm:gap-8"
                 >
                   <motion.div variants={activeItemVariants}>
                     <h2
@@ -292,13 +306,13 @@ export function ContactDrawer({
                     >
                       {locale === "es" ? (
                         <>
-                          <span className="text-white">Contame sobre</span>{" "}
-                          <span className="text-[#F4F1EA]/55">tu negocio.</span>
+                          <span className="block text-white">Contame sobre</span>
+                          <span className="block text-[#F4F1EA]/50">tu negocio.</span>
                         </>
                       ) : (
                         <>
-                          <span className="text-white">Tell me about</span>{" "}
-                          <span className="text-[#F4F1EA]/55">
+                          <span className="block text-white">Tell me about</span>
+                          <span className="block text-[#F4F1EA]/50">
                             your business.
                           </span>
                         </>
@@ -342,7 +356,7 @@ export function ContactDrawer({
                   >
                     {/* Selector de rubro en bandeja de cristal + tarjetas rectas */}
                     <motion.div variants={activeItemVariants}>
-                      <span className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block">
+                      <span className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block transition-colors group-focus-within:text-[#F4F1EA]">
                         {locale === "es"
                           ? "Rubro de tu proyecto"
                           : "Project category"}
@@ -440,10 +454,10 @@ export function ContactDrawer({
                       className="space-y-3.5"
                     >
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
+                        <div className="group">
                           <label
                             htmlFor="ellik-name"
-                            className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block"
+                            className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block transition-colors group-focus-within:text-[#F4F1EA]"
                           >
                             {locale === "es" ? "Tu nombre" : "Your name"}
                           </label>
@@ -461,10 +475,10 @@ export function ContactDrawer({
                           />
                         </div>
 
-                        <div>
+                        <div className="group">
                           <label
                             htmlFor="ellik-business"
-                            className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block"
+                            className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block transition-colors group-focus-within:text-[#F4F1EA]"
                           >
                             {locale === "es"
                               ? "Negocio y ciudad"
@@ -485,10 +499,10 @@ export function ContactDrawer({
                         </div>
                       </div>
 
-                      <div>
+                      <div className="group">
                         <label
                           htmlFor="ellik-need"
-                          className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block"
+                          className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block transition-colors group-focus-within:text-[#F4F1EA]"
                         >
                           {locale === "es"
                             ? "¿Qué necesitás resolver hoy? (opcional)"
