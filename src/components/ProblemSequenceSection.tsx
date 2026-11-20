@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   motion,
   useMotionValueEvent,
@@ -26,7 +26,7 @@ const PROBLEM_CARDS: readonly ProblemCardData[] = [
         viewBox="0 0 180 120"
         fill="none"
         aria-hidden="true"
-        className="w-full h-auto max-h-[145px]"
+        className="w-full h-full max-h-[60px] sm:max-h-[100px] md:max-h-[130px]"
       >
         {/* Ejes coordenados */}
         <path
@@ -90,7 +90,7 @@ const PROBLEM_CARDS: readonly ProblemCardData[] = [
         viewBox="0 0 180 120"
         fill="none"
         aria-hidden="true"
-        className="w-full h-auto max-h-[145px]"
+        className="w-full h-full max-h-[60px] sm:max-h-[100px] md:max-h-[130px]"
       >
         {/* Burbuja 1: audio largo sin leer */}
         <rect
@@ -178,7 +178,7 @@ const PROBLEM_CARDS: readonly ProblemCardData[] = [
         viewBox="0 0 180 120"
         fill="none"
         aria-hidden="true"
-        className="w-full h-auto max-h-[145px]"
+        className="w-full h-full max-h-[60px] sm:max-h-[100px] md:max-h-[130px]"
       >
         {/* Ventana web */}
         <rect
@@ -266,7 +266,7 @@ const PROBLEM_CARDS: readonly ProblemCardData[] = [
         viewBox="0 0 180 120"
         fill="none"
         aria-hidden="true"
-        className="w-full h-auto max-h-[145px]"
+        className="w-full h-full max-h-[60px] sm:max-h-[100px] md:max-h-[130px]"
       >
         {/* Silueta de teléfono vertical */}
         <rect
@@ -337,19 +337,19 @@ const PROBLEM_CARDS: readonly ProblemCardData[] = [
 ] as const;
 
 const ACT1_WORDS = [
-  { text: "TIENE", threshold: 0.05, row: 0 },
-  { text: "UN", threshold: 0.11, row: 0 },
-  { text: "PROBLEMA", threshold: 0.17, row: 0 },
-  { text: "DE", threshold: 0.23, row: 1 },
-  { text: "CONVERSIÓN.", threshold: 0.29, row: 1 },
+  { text: "TIENE", threshold: 0.04, row: 0 },
+  { text: "UN", threshold: 0.08, row: 0 },
+  { text: "PROBLEMA", threshold: 0.12, row: 0 },
+  { text: "DE", threshold: 0.16, row: 1 },
+  { text: "CONVERSIÓN.", threshold: 0.2, row: 1 },
 ] as const;
 
-const ACT3_WORDS = [
-  { text: "¿TE", threshold: 0.81, row: 0 },
-  { text: "ESTÁ", threshold: 0.84, row: 0 },
-  { text: "PASANDO", threshold: 0.87, row: 0 },
-  { text: "ESTO", threshold: 0.9, row: 1 },
-  { text: "HOY?", threshold: 0.93, row: 1 },
+const ACT4_WORDS = [
+  { text: "¿TE", threshold: 0.78, row: 0 },
+  { text: "ESTÁ", threshold: 0.81, row: 0 },
+  { text: "PASANDO", threshold: 0.84, row: 0 },
+  { text: "ESTO", threshold: 0.87, row: 1 },
+  { text: "HOY?", threshold: 0.9, row: 1 },
 ] as const;
 
 function countActiveWords(
@@ -363,40 +363,40 @@ function countActiveWords(
   return count;
 }
 
-interface TiltedProblemCardProps {
+interface StraightProblemCardProps {
   card: ProblemCardData;
   index: number;
   progress: MotionValue<number>;
 }
 
-function TiltedProblemCard({
+function StraightProblemCard({
   card,
   index,
   progress,
-}: TiltedProblemCardProps) {
-  const centerP = 0.44 + index * 0.09;
-  const rotate = useTransform(
-    progress,
-    [centerP - 0.11, centerP, centerP + 0.11],
-    [6, 0, -5]
-  );
+}: StraightProblemCardProps) {
+  const enterStart = 0.26 + index * 0.015;
+  const enterEnd = 0.335 + index * 0.015;
+  const exitStart = 0.54 + index * 0.045;
+  const exitEnd = exitStart + 0.18;
+
   const y = useTransform(
     progress,
-    [centerP - 0.11, centerP, centerP + 0.11],
-    [34, 0, 20]
+    [enterStart, enterEnd, exitStart, exitEnd],
+    ["105svh", "0svh", "0svh", "-125svh"]
   );
+  const opacity = useTransform(progress, [enterStart, enterEnd], [0, 1]);
 
   return (
     <motion.article
       data-problem-card={card.id}
-      style={{ rotate, y }}
-      className="w-[270px] h-[270px] sm:w-[310px] sm:h-[310px] md:w-[340px] md:h-[340px] shrink-0 bg-[#0B0B0D] border border-white/[0.08] p-6 md:p-7 flex flex-col justify-between will-change-transform"
+      style={{ y, opacity }}
+      className="aspect-square w-full min-w-0 overflow-hidden bg-[#0D0D0F] border border-white/[0.08] rounded-none p-5 md:p-6 flex flex-col justify-between will-change-transform"
     >
-      <h3 className="font-sans font-medium uppercase text-sm md:text-[15px] tracking-[0.02em] leading-snug text-white/90">
+      <h3 className="font-sans font-medium uppercase text-xs sm:text-[13px] md:text-sm leading-snug text-white/90 text-left">
         {card.title}
       </h3>
 
-      <div className="flex items-center justify-center pt-4">
+      <div className="flex flex-1 min-h-0 items-center justify-center pt-2 md:pt-4">
         {card.renderSketch()}
       </div>
     </motion.article>
@@ -408,8 +408,9 @@ export function ProblemSequenceSection() {
   const reducedMotion = Boolean(useReducedMotion());
 
   const [act1Count, setAct1Count] = useState<number>(0);
-  const [act3Count, setAct3Count] = useState<number>(0);
-  const [act3Visible, setAct3Visible] = useState<boolean>(false);
+  const [act4Count, setAct4Count] = useState<number>(0);
+  const [act4Visible, setAct4Visible] = useState<boolean>(false);
+  const [isDesktop, setIsDesktop] = useState<boolean>(false);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -417,73 +418,90 @@ export function ProblemSequenceSection() {
   });
 
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 260,
-    damping: 34,
+    stiffness: 320,
+    damping: 38,
+    mass: 0.2,
   });
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const syncBreakpoint = () => setIsDesktop(mq.matches);
+    syncBreakpoint();
+    mq.addEventListener("change", syncBreakpoint);
+    return () => mq.removeEventListener("change", syncBreakpoint);
+  }, []);
+
+  useEffect(() => {
+    const p = scrollYProgress.get();
+    setAct1Count(countActiveWords(ACT1_WORDS, p));
+    setAct4Count(countActiveWords(ACT4_WORDS, p));
+    setAct4Visible(p >= 0.78);
+  }, [scrollYProgress]);
 
   useMotionValueEvent(scrollYProgress, "change", (p) => {
     const nextAct1 = countActiveWords(ACT1_WORDS, p);
-    const nextAct3 = countActiveWords(ACT3_WORDS, p);
-    const nextAct3Vis = p >= 0.8;
+    const nextAct4 = countActiveWords(ACT4_WORDS, p);
+    const nextAct4Vis = p >= 0.78;
 
     setAct1Count((prev) => (prev === nextAct1 ? prev : nextAct1));
-    setAct3Count((prev) => (prev === nextAct3 ? prev : nextAct3));
-    setAct3Visible((prev) => (prev === nextAct3Vis ? prev : nextAct3Vis));
+    setAct4Count((prev) => (prev === nextAct4 ? prev : nextAct4));
+    setAct4Visible((prev) => (prev === nextAct4Vis ? prev : nextAct4Vis));
   });
 
-  // Acto 2: el titular de Acto 1 sube y hace escala suave, luego se apaga en 0.74 -> 0.80
-  const headlineY = useTransform(smoothProgress, [0.37, 0.48], ["0svh", "-22svh"]);
-  const headlineScale = useTransform(smoothProgress, [0.37, 0.48], [1, 0.78]);
-  const act1And2Opacity = useTransform(
+  // FASE 2 & 3: el titular sube a la parte superior, se detiene entre 0.38 y 0.54, y luego retrocede y se difumina
+  const headlineY = useTransform(smoothProgress, [0.26, 0.38], ["0svh", "-24svh"]);
+  const headlineScale = useTransform(
     smoothProgress,
-    [0, 0.74, 0.8],
+    [0.26, 0.38, 0.54, 0.66],
+    [1, 0.88, 0.88, 0.8]
+  );
+  const headlineOpacity = useTransform(
+    smoothProgress,
+    [0, 0.54, 0.66],
     [1, 1, 0]
   );
-
-  // Riel horizontal de 4 tarjetas inclinadas (0.38 -> 0.78)
-  const railX = useTransform(smoothProgress, [0.38, 0.78], ["65vw", "-125%"]);
-  const railOpacity = useTransform(
+  const headlineBlur = useTransform(
     smoothProgress,
-    [0.36, 0.39, 0.74, 0.8],
-    [0, 1, 1, 0]
+    [0.54, 0.66],
+    ["blur(0px)", "blur(10px)"]
   );
 
   if (reducedMotion) {
     return (
       <section
         id="problema"
-        className="relative z-10 w-full bg-[#050505]/90 py-24 px-6 sm:px-10 lg:px-28"
+        className="relative z-10 w-full bg-[#050505]/92 py-24 px-6 sm:px-10 lg:px-24 xl:px-28"
       >
-        <div className="mx-auto max-w-5xl text-center">
-          <p className="font-sans font-normal uppercase tracking-[-0.02em] leading-[1.04] text-[clamp(1.7rem,4.2vw,3.6rem)] text-white/95">
+        <div className="mx-auto max-w-[1160px] text-center">
+          <p className="font-sans font-normal uppercase tracking-[-0.02em] leading-[1.04] text-[clamp(1.6rem,3.6vw,3.1rem)] text-white/95">
             LA MAYORÍA DE LOS NEGOCIOS
             <br />
             NO TIENE UN PROBLEMA
             <br />
             DE CLIENTES.
           </p>
-          <p className="mt-8 md:mt-10 font-display font-semibold uppercase tracking-[0.04em] leading-[1.08] text-[clamp(1.85rem,4.5vw,3.85rem)] text-[#F4F1EA]">
+          <p className="mt-5 md:mt-7 font-display font-semibold uppercase tracking-[0.03em] leading-[1.06] text-[clamp(1.75rem,3.8vw,3.3rem)] text-[#F4F1EA]">
             TIENE UN PROBLEMA DE CONVERSIÓN.
           </p>
 
-          <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center">
+          <div className="mt-14 grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 w-full max-w-[1160px] mx-auto">
             {PROBLEM_CARDS.map((card) => (
               <article
                 key={card.id}
                 data-problem-card={card.id}
-                className="w-full max-w-[300px] aspect-square bg-[#0B0B0D] border border-white/[0.08] p-6 flex flex-col justify-between text-left"
+                className="aspect-square w-full min-w-0 overflow-hidden bg-[#0D0D0F] border border-white/[0.08] rounded-none p-5 md:p-6 flex flex-col justify-between text-left"
               >
-                <h3 className="font-sans font-medium uppercase text-sm tracking-[0.02em] text-white/90">
+                <h3 className="font-sans font-medium uppercase text-xs sm:text-[13px] md:text-sm leading-snug text-white/90 text-left">
                   {card.title}
                 </h3>
-                <div className="flex items-center justify-center pt-4">
+                <div className="flex flex-1 min-h-0 items-center justify-center pt-2 md:pt-4">
                   {card.renderSketch()}
                 </div>
               </article>
             ))}
           </div>
 
-          <p className="mt-16 font-sans font-normal uppercase tracking-[-0.02em] leading-[1.06] text-[clamp(2rem,5vw,4.2rem)] text-white">
+          <p className="mt-16 font-sans font-normal uppercase tracking-[-0.02em] leading-[1.06] text-[clamp(1.9rem,4.6vw,3.9rem)] text-white">
             ¿TE ESTÁ PASANDO{" "}
             <span className="font-display font-semibold text-[#F4F1EA]">
               ESTO HOY?
@@ -498,19 +516,66 @@ export function ProblemSequenceSection() {
     <section
       ref={sectionRef}
       id="problema"
-      className="relative z-10 w-full h-[460svh] bg-[#050505]/90"
+      className="relative z-10 w-full h-[540svh] bg-[#050505]/92"
     >
-      <div className="sticky top-0 h-[100svh] w-full overflow-hidden flex flex-col items-center justify-center px-6 sm:px-10 lg:px-28">
-        {/* ACTO 1 & ACTO 2: Titular secuencial + subida suave */}
+      <div className="sticky top-0 h-[100svh] w-full overflow-hidden flex flex-col items-center justify-center px-6 sm:px-10 lg:px-24 xl:px-28">
+        {/* FASE 4: Pregunta final en el centro detrás de las tarjetas salientes (0.78 -> 1.00) */}
+        <div
+          aria-hidden={!act4Visible}
+          className={`pointer-events-none absolute inset-0 z-0 flex flex-col items-center justify-center px-6 sm:px-10 lg:px-24 xl:px-28 text-center transition-none ${
+            act4Visible ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <p className="font-sans font-normal uppercase tracking-[-0.02em] leading-[1.06] text-[clamp(1.9rem,4.6vw,3.9rem)] text-white">
+            <span className="flex flex-wrap items-baseline justify-center gap-x-[0.28em]">
+              {ACT4_WORDS.map((word, idx) =>
+                word.row !== 0 ? null : (
+                  <span
+                    key={word.text}
+                    className={`inline-block transition-none ${
+                      act4Visible && idx < act4Count
+                        ? "opacity-100"
+                        : "opacity-0"
+                    }`}
+                  >
+                    {word.text}
+                  </span>
+                )
+              )}
+            </span>
+          </p>
+
+          <p className="mt-2 md:mt-3 font-display font-semibold uppercase tracking-[0.03em] leading-[1.04] text-[clamp(2rem,4.8vw,4.1rem)] text-[#F4F1EA]">
+            <span className="flex flex-wrap items-baseline justify-center gap-x-[0.28em]">
+              {ACT4_WORDS.map((word, idx) =>
+                word.row !== 1 ? null : (
+                  <span
+                    key={word.text}
+                    className={`inline-block transition-none ${
+                      act4Visible && idx < act4Count
+                        ? "opacity-100"
+                        : "opacity-0"
+                    }`}
+                  >
+                    {word.text}
+                  </span>
+                )
+              )}
+            </span>
+          </p>
+        </div>
+
+        {/* FASE 1, 2 & 3: Titular principal */}
         <motion.div
           style={{
             y: headlineY,
             scale: headlineScale,
-            opacity: act1And2Opacity,
+            opacity: headlineOpacity,
+            ...(isDesktop ? { filter: headlineBlur } : {}),
           }}
           className="relative z-10 flex w-full max-w-5xl flex-col items-center text-center will-change-transform"
         >
-          <p className="font-sans font-normal uppercase tracking-[-0.02em] leading-[1.04] text-[clamp(1.7rem,4.2vw,3.6rem)] text-white/95">
+          <p className="font-sans font-normal uppercase tracking-[-0.02em] leading-[1.04] text-[clamp(1.6rem,3.6vw,3.1rem)] text-white/95">
             LA MAYORÍA DE LOS NEGOCIOS
             <br />
             NO TIENE UN PROBLEMA
@@ -520,7 +585,7 @@ export function ProblemSequenceSection() {
 
           <p
             aria-label="Tiene un problema de conversión."
-            className="mt-8 md:mt-10 font-display font-semibold uppercase tracking-[0.04em] leading-[1.08] text-[clamp(1.85rem,4.5vw,3.85rem)] text-[#F4F1EA]"
+            className="mt-5 md:mt-7 font-display font-semibold uppercase tracking-[0.03em] leading-[1.06] text-[clamp(1.75rem,3.8vw,3.3rem)] text-[#F4F1EA]"
           >
             {[0, 1].map((rowIdx) => (
               <span
@@ -544,70 +609,18 @@ export function ProblemSequenceSection() {
           </p>
         </motion.div>
 
-        {/* ACTO 2: Riel horizontal de 4 tarjetas inclinadas en el tercio inferior */}
-        <motion.div
-          style={{ opacity: railOpacity }}
-          className="pointer-events-none absolute inset-x-0 bottom-[13svh] sm:bottom-[14svh] md:bottom-[10svh] z-20 flex items-center"
-        >
-          <motion.div
-            style={{ x: railX }}
-            className="flex items-center gap-6 md:gap-8 w-max will-change-transform"
-          >
+        {/* FASE 2 & 3: Fila horizontal recta con detención real y salida en escalera diagonal */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-[10svh] sm:bottom-[11svh] lg:bottom-[10svh] z-20 flex justify-center px-6 sm:px-10 lg:px-24 xl:px-28">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 w-full max-w-[1160px]">
             {PROBLEM_CARDS.map((card, idx) => (
-              <TiltedProblemCard
+              <StraightProblemCard
                 key={card.id}
                 card={card}
                 index={idx}
                 progress={smoothProgress}
               />
             ))}
-          </motion.div>
-        </motion.div>
-
-        {/* ACTO 3: Pregunta final palabra por palabra de golpe en el vacío (0.80 -> 1.00) */}
-        <div
-          aria-hidden={!act3Visible}
-          className={`pointer-events-none absolute inset-0 z-30 flex flex-col items-center justify-center px-6 sm:px-10 lg:px-28 text-center transition-none ${
-            act3Visible ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <p className="font-sans font-normal uppercase tracking-[-0.02em] leading-[1.06] text-[clamp(2rem,5vw,4.2rem)] text-white">
-            <span className="flex flex-wrap items-baseline justify-center gap-x-[0.28em]">
-              {ACT3_WORDS.map((word, idx) =>
-                word.row !== 0 ? null : (
-                  <span
-                    key={word.text}
-                    className={`inline-block transition-none ${
-                      act3Visible && idx < act3Count
-                        ? "opacity-100"
-                        : "opacity-0"
-                    }`}
-                  >
-                    {word.text}
-                  </span>
-                )
-              )}
-            </span>
-          </p>
-
-          <p className="mt-2 md:mt-3 font-display font-semibold uppercase tracking-[0.03em] leading-[1.04] text-[clamp(2.1rem,5.2vw,4.4rem)] text-[#F4F1EA]">
-            <span className="flex flex-wrap items-baseline justify-center gap-x-[0.28em]">
-              {ACT3_WORDS.map((word, idx) =>
-                word.row !== 1 ? null : (
-                  <span
-                    key={word.text}
-                    className={`inline-block transition-none ${
-                      act3Visible && idx < act3Count
-                        ? "opacity-100"
-                        : "opacity-0"
-                    }`}
-                  >
-                    {word.text}
-                  </span>
-                )
-              )}
-            </span>
-          </p>
+          </div>
         </div>
       </div>
     </section>
