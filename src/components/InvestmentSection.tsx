@@ -22,6 +22,8 @@ const DECK_VISUAL_META: Record<
     eyebrow: string;
     image: string;
     accent: string;
+    surfaceBg: string;
+    spineBg: string;
     ctaLabel: string;
     ctaSublabel: string;
     exampleLabel: string;
@@ -34,6 +36,8 @@ const DECK_VISUAL_META: Record<
     eyebrow: "GASTRONOMÍA · PEDIDOS A WHATSAPP",
     image: "/previews/mojo-desktop.webp",
     accent: "#E06D3B",
+    surfaceBg: "linear-gradient(135deg, #21120B 0%, #110B09 44%, #1A0E09 100%)",
+    spineBg: "linear-gradient(90deg, #26140C 0%, #170D0A 60%, #1F110B 100%)",
     ctaLabel: "Consultar esta modalidad",
     ctaSublabel: "Charla directa por WhatsApp",
     exampleLabel: "mojo-grille-demo.vercel.app",
@@ -45,6 +49,8 @@ const DECK_VISUAL_META: Record<
     eyebrow: "INDUMENTARIA · VENTA DESDE EL CELULAR",
     image: "/previews/dopamine-desktop.webp",
     accent: "#D9A45B",
+    surfaceBg: "linear-gradient(135deg, #1E180B 0%, #100E0A 44%, #18130A 100%)",
+    spineBg: "linear-gradient(90deg, #231C0D 0%, #15120B 60%, #1C160B 100%)",
     ctaLabel: "Consultar esta modalidad",
     ctaSublabel: "Charla directa por WhatsApp",
     exampleLabel: "dopamine-three-omega.vercel.app",
@@ -56,6 +62,8 @@ const DECK_VISUAL_META: Record<
     eyebrow: "A MEDIDA · CÓDIGO PROPIO",
     image: "/previews/rio3-desktop.webp",
     accent: "#5B9BD5",
+    surfaceBg: "linear-gradient(135deg, #0D192B 0%, #090E16 44%, #0C1625 100%)",
+    spineBg: "linear-gradient(90deg, #102036 0%, #0B131F 60%, #0F1B2E 100%)",
     ctaLabel: "Consultar esta modalidad",
     ctaSublabel: "Charla directa por WhatsApp",
     exampleLabel: "deportistasrio3.vercel.app",
@@ -75,6 +83,8 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
         eyebrow: plan.defaultRubro.toUpperCase(),
         image: "/previews/mojo-desktop.webp",
         accent: "#E06D3B",
+        surfaceBg: "linear-gradient(135deg, #21120B 0%, #110B09 44%, #1A0E09 100%)",
+        spineBg: "linear-gradient(90deg, #26140C 0%, #170D0A 60%, #1F110B 100%)",
         ctaLabel: "Consultar esta modalidad",
         ctaSublabel: "Charla directa por WhatsApp",
         exampleLabel: "ellik.studio",
@@ -91,6 +101,8 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
         deliverables: plan.scopeItems,
         image: meta.image,
         accent: meta.accent,
+        surfaceBg: meta.surfaceBg,
+        spineBg: meta.spineBg,
         ctaLabel: meta.ctaLabel,
         ctaSublabel: meta.ctaSublabel,
         exampleLabel: meta.exampleLabel,
