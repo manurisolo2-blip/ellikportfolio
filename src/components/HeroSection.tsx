@@ -603,7 +603,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
               <EllikEmblem3D
                 boost={isDraggingOrbit}
                 scrollProgressRef={scrollProgressRef}
-                className="-mb-12 sm:-mb-16 md:-mb-24"
+                className="-mb-6 sm:-mb-8 md:-mb-12"
               />
 
               <h1
