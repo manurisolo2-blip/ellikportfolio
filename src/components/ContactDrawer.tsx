@@ -6,6 +6,7 @@ import {
   LayoutGroup,
   PresenceContext,
   motion,
+  useReducedMotion,
 } from "framer-motion";
 import {
   ArrowUpRight,
@@ -27,11 +28,49 @@ interface ContactDrawerProps {
 }
 
 const DRAWER_SCOPED_CSS = `
+.ellik-drawer-stage {
+  border-radius: 28px !important;
+}
+@media (min-width: 640px) {
+  .ellik-drawer-stage {
+    border-radius: 34px !important;
+  }
+}
 .ellik-drawer-pill {
   border-radius: 9999px !important;
 }
+.ellik-drawer-tray {
+  border-radius: 20px !important;
+}
+.ellik-drawer-card {
+  border-radius: 14px !important;
+}
+.ellik-drawer-card-idle {
+  border: 1px solid rgba(255, 240, 224, 0.14);
+  background: linear-gradient(144deg, rgba(255, 244, 232, 0.08), transparent 65%), rgba(40, 34, 32, 0.45);
+  box-shadow: inset 0 1px 1px rgba(255, 245, 232, 0.22);
+}
+.ellik-drawer-card-idle:hover {
+  background: linear-gradient(144deg, rgba(255, 244, 232, 0.14), transparent 65%), rgba(52, 44, 40, 0.56);
+}
+.ellik-drawer-squircle {
+  border-radius: 9px !important;
+}
 .ellik-drawer-field {
-  border-radius: 12px !important;
+  border-radius: 15px !important;
+  border: 1px solid rgba(255, 240, 224, 0.16);
+  background: linear-gradient(155deg, rgba(255, 245, 235, 0.06), transparent 60%), rgba(32, 27, 26, 0.48);
+  box-shadow: inset 0 1px 1px rgba(255, 245, 232, 0.18), inset 0 -1px 1px rgba(0, 0, 0, 0.3);
+  color-scheme: dark;
+}
+.ellik-drawer-field:focus {
+  border-color: rgba(244, 241, 234, 0.58);
+  background: linear-gradient(155deg, rgba(255, 245, 235, 0.1), transparent 60%), rgba(48, 41, 38, 0.62);
+  box-shadow: inset 0 1px 1px rgba(255, 245, 232, 0.35), 0 0 0 3px rgba(244, 241, 234, 0.1);
+}
+.ellik-drawer-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 240, 224, 0.18) transparent;
 }
 `;
 
@@ -51,21 +90,30 @@ const containerVariants = {
   hidden: {},
   visible: {
     transition: {
-      staggerChildren: 0.04,
-      delayChildren: 0.06,
+      staggerChildren: 0.045,
+      delayChildren: 0.05,
     },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
+  hidden: { opacity: 0, y: 14, filter: "blur(5px)" },
   visible: {
     opacity: 1,
     y: 0,
+    filter: "blur(0px)",
     transition: {
-      duration: 0.28,
+      duration: 0.38,
       ease: DRAWER_EASE,
     },
+  },
+};
+
+const reducedItemVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.18 },
   },
 };
 
@@ -81,6 +129,7 @@ export function ContactDrawer({
   const [businessAndCity, setBusinessAndCity] = useState<string>("");
   const [need, setNeed] = useState<string>("");
   const [emailCopied, setEmailCopied] = useState<boolean>(false);
+  const reducedMotion = useReducedMotion() ?? false;
 
   useEffect(() => {
     if (isOpen) {
@@ -139,6 +188,8 @@ export function ContactDrawer({
     }
   };
 
+  const activeItemVariants = reducedMotion ? reducedItemVariants : itemVariants;
+
   return (
     <>
       <style>{DRAWER_SCOPED_CSS}</style>
@@ -149,275 +200,329 @@ export function ContactDrawer({
             role="dialog"
             aria-modal="true"
             aria-labelledby="contact-drawer-title"
-            className="fixed inset-0 z-[60] flex justify-end"
+            className="fixed inset-0 z-[60]"
           >
-            {/* Overlay con desenfoque sutil */}
+            {/* Overlay translúcido para refractar estrellas y secciones detrás del cristal */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
               onClick={onClose}
-              className="fixed inset-0 bg-black/70 backdrop-blur-md"
+              className="fixed inset-0 bg-black/45 backdrop-blur-[6px]"
             />
 
-          {/* Panel lateral de cristal oscuro elevado */}
-          <motion.aside
-            data-lenis-prevent
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.45, ease: DRAWER_EASE }}
-            className="relative z-10 flex h-[100dvh] w-full max-w-[500px] flex-col overflow-x-hidden overflow-y-auto overscroll-contain bg-[#09090C]/95 backdrop-blur-2xl border-l border-white/[0.1] shadow-[-24px_0_80px_rgba(0,0,0,0.85)] p-5 sm:p-8"
-          >
-            {/* Resplandor radial ambiental muy sutil arriba a la derecha */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0"
+            {/* Panel flotante de cristal espacial esmerilado y biselado */}
+            <motion.aside
+              data-lenis-prevent
+              initial={
+                reducedMotion
+                  ? { opacity: 0 }
+                  : { x: 48, scale: 0.97, opacity: 0 }
+              }
+              animate={{ x: 0, scale: 1, opacity: 1 }}
+              exit={
+                reducedMotion
+                  ? { opacity: 0 }
+                  : { x: 48, scale: 0.97, opacity: 0 }
+              }
+              transition={{ duration: 0.42, ease: DRAWER_EASE }}
               style={{
+                border: "1px solid rgba(255, 240, 224, 0.26)",
                 background:
-                  "radial-gradient(circle at 100% 0%, rgba(244,241,234,0.07), transparent 55%)",
+                  "linear-gradient(148deg, rgba(255, 241, 224, 0.14), transparent 22% 76%, rgba(255, 241, 224, 0.06)), rgba(24, 21, 20, 0.62)",
+                boxShadow:
+                  "inset 1px 1px 1px rgba(255, 245, 232, 0.45), inset -1px -1px 1px rgba(10, 6, 5, 0.42), inset 0 0 10px rgba(255, 241, 224, 0.08), 0 22px 72px rgba(0, 0, 0, 0.58)",
+                backdropFilter: "blur(22px) saturate(1.35)",
+                WebkitBackdropFilter: "blur(22px) saturate(1.35)",
               }}
-            />
-
-            <motion.div
-              className="relative z-10 flex flex-1 flex-col"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
+              className="ellik-drawer-stage fixed inset-3 sm:inset-y-4 sm:right-4 sm:left-auto w-[calc(100%-24px)] sm:w-[min(510px,calc(100vw-32px))] z-10 rounded-[28px] sm:rounded-[34px] overflow-hidden flex flex-col"
             >
-              {/* Barra superior: disponibilidad real + cierre táctil */}
               <motion.div
-                variants={itemVariants}
-                className="flex items-center justify-between pb-5 border-b border-white/[0.08]"
+                className="relative z-10 flex flex-1 min-h-0 flex-col"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
               >
-                <div className="flex items-center gap-2">
-                  <span
-                    aria-hidden="true"
-                    className="ellik-drawer-pill w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"
-                  />
-                  <span className="font-sans font-medium text-[11px] uppercase tracking-[0.16em] text-white/60">
-                    Contacto directo
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  data-drawer-close
-                  data-cursor="action"
-                  onClick={onClose}
-                  className="ellik-drawer-pill rounded-full border border-white/15 bg-white/[0.03] hover:border-white/40 hover:bg-white/[0.08] px-3.5 py-1.5 min-h-[36px] flex items-center gap-1.5 text-[11px] font-sans font-medium text-white/75 hover:text-white transition-all cursor-pointer"
-                >
-                  <span>Cerrar</span>
-                  <X size={13} aria-hidden="true" />
-                </button>
-              </motion.div>
-
-              {/* Titular respirable + bajada + chip contextual opcional */}
-              <motion.div variants={itemVariants} className="mt-6 sm:mt-7">
-                <h2
-                  id="contact-drawer-title"
-                  className="font-display font-medium text-[32px] sm:text-[38px] leading-[1.06] tracking-[-0.015em] [word-spacing:0.05em]"
-                >
-                  <span className="text-white">Contame sobre</span>{" "}
-                  <span className="text-[#F4F1EA]/55">tu negocio.</span>
-                </h2>
-
-                <p className="font-sans text-sm text-[#8A8A93] mt-2.5 leading-relaxed">
-                  Dejame estos datos y abrimos la charla directo en WhatsApp.
-                </p>
-
-                {selectedPlan && (
-                  <div
-                    data-drawer-plan-chip
-                    className="ellik-drawer-pill inline-flex items-center gap-2 mt-4 px-3 py-1 rounded-full bg-[#F4F1EA]/10 border border-[#F4F1EA]/20 text-xs font-sans text-[#F4F1EA] max-w-full"
+                {/* Barra superior en píldora de vidrio */}
+                <div className="shrink-0 px-4 pt-4 sm:px-7 sm:pt-6 pb-0">
+                  <motion.div
+                    variants={activeItemVariants}
+                    data-drawer-topbar
+                    className="ellik-drawer-pill rounded-full px-3.5 py-2 flex items-center justify-between border border-[rgba(255,240,224,0.22)] bg-[rgba(255,244,232,0.06)] shadow-[inset_1px_1px_1px_rgba(255,245,232,0.32),inset_-1px_-1px_1px_rgba(0,0,0,0.3)]"
                   >
-                    <span className="truncate">Modalidad: {selectedPlan}</span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span
+                        aria-hidden="true"
+                        className="ellik-drawer-pill w-5 h-5 shrink-0"
+                        style={{
+                          background:
+                            "radial-gradient(ellipse at 32% 24%, #faf7fe 5%, #72ecf1 25%, transparent 58%), radial-gradient(ellipse at 67% 54%, #e1b7f9, #815add 55%, #353467 79%)",
+                          boxShadow:
+                            "inset 0 0 0 0.75px rgba(246, 245, 255, 0.75), inset 0 -2px 4px #604db4, 0 2px 8px rgba(71, 46, 113, 0.35)",
+                        }}
+                      />
+                      <span className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#FFF6E9]/90 truncate">
+                        Contacto directo
+                      </span>
+                    </div>
+
                     <button
                       type="button"
-                      aria-label="Quitar modalidad"
-                      onClick={() => setSelectedPlan("")}
-                      className="shrink-0 text-[#F4F1EA]/60 hover:text-[#F4F1EA] transition-colors cursor-pointer"
+                      data-drawer-close
+                      data-cursor="action"
+                      aria-label="Cerrar panel de contacto"
+                      onClick={onClose}
+                      className="ellik-drawer-pill w-9 h-9 rounded-full flex items-center justify-center border border-[rgba(255,240,224,0.2)] bg-[rgba(255,244,232,0.08)] hover:bg-[rgba(255,244,232,0.16)] text-[#FFF6E9] transition-all cursor-pointer shrink-0"
                     >
-                      <X size={12} aria-hidden="true" />
+                      <X size={15} aria-hidden="true" />
                     </button>
-                  </div>
-                )}
-              </motion.div>
+                  </motion.div>
+                </div>
 
-              <form onSubmit={handleSendWhatsApp} className="mt-6 space-y-5">
-                {/* Selector táctil de rubro en 3 tarjetas compactas */}
-                <motion.div variants={itemVariants}>
-                  <span className="font-sans font-medium text-[11px] uppercase tracking-[0.14em] text-white/55 mb-2 block">
-                    Rubro de tu proyecto
-                  </span>
-                  <PresenceContext.Provider value={null}>
-                    <LayoutGroup id="contact-rubro-selector">
-                      <div className="grid grid-cols-3 gap-2.5">
-                        {RUBRO_OPTIONS.map((option) => {
-                          const active = rubro === option.value;
-                          const Icon = option.Icon;
-                          return (
-                            <button
-                              key={option.value}
-                              type="button"
-                              data-drawer-rubro={option.value}
-                              aria-pressed={active}
-                              onClick={() => setRubro(option.value)}
-                              className={`ellik-drawer-field rounded-xl p-3 sm:p-3.5 flex flex-col items-start gap-2.5 text-left transition-all duration-200 cursor-pointer relative overflow-hidden border ${
-                                active
-                                  ? "border-[#F4F1EA] text-[#050505]"
-                                  : "bg-white/[0.03] border-white/[0.1] text-white/65 hover:border-white/25 hover:text-white"
-                              }`}
-                            >
-                              {active && (
-                                <motion.div
-                                  layoutId="activeRubro"
-                                  transition={{
-                                    type: "spring",
-                                    stiffness: 420,
-                                    damping: 32,
-                                  }}
-                                  className="ellik-drawer-field absolute inset-0 rounded-xl bg-[#F4F1EA]"
-                                />
-                              )}
-                              <Icon
-                                size={16}
-                                strokeWidth={1.6}
-                                className="relative z-10 shrink-0"
-                              />
-                              <span
-                                data-rubro-label
-                                className={`relative z-10 font-sans text-[12px] sm:text-[13px] leading-tight whitespace-nowrap ${
-                                  active ? "font-medium" : "font-normal"
-                                }`}
-                              >
-                                {option.label}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </LayoutGroup>
-                  </PresenceContext.Provider>
-                </motion.div>
-
-                {/* Campos elevados y legibles */}
-                <motion.div variants={itemVariants} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div>
-                      <label
-                        htmlFor="ellik-name"
-                        className="font-sans font-medium text-[11px] uppercase tracking-[0.14em] text-white/55 mb-2 block"
-                      >
-                        Tu nombre
-                      </label>
-                      <input
-                        id="ellik-name"
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Ej. Martín Gómez"
-                        className="ellik-drawer-field w-full rounded-xl bg-white/[0.035] border border-white/[0.1] px-4 py-3.5 font-sans text-base sm:text-sm text-white placeholder:text-white/30 outline-none transition-all duration-200 focus:bg-white/[0.06] focus:border-[#F4F1EA]/60 focus:ring-2 focus:ring-[#F4F1EA]/10"
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="ellik-business"
-                        className="font-sans font-medium text-[11px] uppercase tracking-[0.14em] text-white/55 mb-2 block"
-                      >
-                        Negocio y ciudad
-                      </label>
-                      <input
-                        id="ellik-business"
-                        type="text"
-                        value={businessAndCity}
-                        onChange={(e) => setBusinessAndCity(e.target.value)}
-                        placeholder="Ej. Pizzería Sur — Río Tercero"
-                        className="ellik-drawer-field w-full rounded-xl bg-white/[0.035] border border-white/[0.1] px-4 py-3.5 font-sans text-base sm:text-sm text-white placeholder:text-white/30 outline-none transition-all duration-200 focus:bg-white/[0.06] focus:border-[#F4F1EA]/60 focus:ring-2 focus:ring-[#F4F1EA]/10"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="ellik-need"
-                      className="font-sans font-medium text-[11px] uppercase tracking-[0.14em] text-white/55 mb-2 block"
+                {/* Cuerpo scrolleable con bandeja anidada de rubros y campos de cristal */}
+                <div
+                  data-lenis-prevent
+                  className="ellik-drawer-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 sm:px-7 py-5 flex flex-col justify-between gap-5"
+                >
+                  {/* Encabezado y chip opcional */}
+                  <motion.div variants={activeItemVariants}>
+                    <h2
+                      id="contact-drawer-title"
+                      className="font-display font-medium text-[28px] sm:text-[36px] leading-[1.04] tracking-[-0.02em] [word-spacing:0.05em]"
                     >
-                      ¿Qué necesitás resolver hoy? (opcional)
-                    </label>
-                    <textarea
-                      id="ellik-need"
-                      rows={3}
-                      value={need}
-                      onChange={(e) => setNeed(e.target.value)}
-                      placeholder="Ej. Recibir pedidos sin audios eternos los viernes a la noche..."
-                      className="ellik-drawer-field w-full resize-none rounded-xl bg-white/[0.035] border border-white/[0.1] px-4 py-3.5 font-sans text-base sm:text-sm text-white placeholder:text-white/30 outline-none transition-all duration-200 focus:bg-white/[0.06] focus:border-[#F4F1EA]/60 focus:ring-2 focus:ring-[#F4F1EA]/10"
-                    />
-                  </div>
-                </motion.div>
+                      <span className="text-[#FFF8EE]">Contame sobre</span>{" "}
+                      <span className="text-[#E5D5C7]/60">tu negocio.</span>
+                    </h2>
 
-                {/* CTA principal a WhatsApp */}
-                <motion.div variants={itemVariants} className="pt-1">
-                  <button
-                    type="submit"
-                    data-drawer-submit
-                    data-cursor="action"
-                    className="ellik-drawer-pill rounded-full w-full py-4 px-6 bg-[#F4F1EA] hover:bg-white text-[#050505] font-sans font-semibold text-sm tracking-[0.02em] flex items-center justify-center gap-2.5 transition-all duration-200 active:scale-[0.98] group cursor-pointer shadow-[0_12px_30px_-10px_rgba(244,241,234,0.35)]"
+                    <p className="font-sans text-[13px] text-[#E5D5C7]/75 mt-2 leading-relaxed">
+                      Dejame estos datos y abrimos la charla directo en WhatsApp.
+                    </p>
+
+                    {selectedPlan && (
+                      <div
+                        data-drawer-plan-chip
+                        className="ellik-drawer-pill bg-[#1e7461]/25 border border-[#75dac0]/35 text-[#b8f1dd] text-[11px] font-sans font-medium px-3 py-1 rounded-full inline-flex items-center gap-1.5 mt-3 max-w-full"
+                      >
+                        <span className="truncate">Modalidad: {selectedPlan}</span>
+                        <button
+                          type="button"
+                          aria-label="Quitar modalidad"
+                          onClick={() => setSelectedPlan("")}
+                          className="shrink-0 text-[#b8f1dd]/75 hover:text-white transition-colors cursor-pointer"
+                        >
+                          <X size={12} aria-hidden="true" />
+                        </button>
+                      </div>
+                    )}
+                  </motion.div>
+
+                  <form
+                    onSubmit={handleSendWhatsApp}
+                    className="flex flex-col gap-5"
                   >
-                    <span>Continuar en WhatsApp</span>
-                    <ArrowUpRight
-                      className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                      aria-hidden="true"
-                    />
+                    {/* Selector de rubro anidado en bandeja de cristal + tarjeta activa verde petróleo */}
+                    <motion.div variants={activeItemVariants}>
+                      <span className="font-sans font-semibold text-[11px] uppercase tracking-[0.12em] text-[#E5D5C7]/65 mb-2 block">
+                        Rubro de tu proyecto
+                      </span>
+                      <PresenceContext.Provider value={null}>
+                        <LayoutGroup id="contact-rubro-selector">
+                          <div
+                            data-drawer-rubro-tray
+                            className="ellik-drawer-tray grid grid-cols-3 gap-1.5 sm:gap-2 p-1.5 rounded-[20px] border border-[rgba(255,240,224,0.18)] bg-[rgba(255,242,228,0.05)] shadow-[inset_0_1px_1px_rgba(255,245,232,0.22),inset_0_-1px_1px_rgba(0,0,0,0.3)]"
+                          >
+                            {RUBRO_OPTIONS.map((option) => {
+                              const active = rubro === option.value;
+                              const Icon = option.Icon;
+                              return (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  data-drawer-rubro={option.value}
+                                  aria-pressed={active}
+                                  onClick={() => setRubro(option.value)}
+                                  className={`ellik-drawer-card min-w-0 rounded-[14px] p-2.5 sm:p-3 flex flex-col items-start gap-2.5 text-left transition-all duration-200 relative overflow-hidden cursor-pointer ${
+                                    active
+                                      ? "border border-transparent text-white"
+                                      : "ellik-drawer-card-idle text-[#E5D5C7]/80 hover:text-white"
+                                  }`}
+                                >
+                                  {active && (
+                                    <motion.div
+                                      layoutId="activeGlassRubro"
+                                      transition={{
+                                        type: "spring",
+                                        stiffness: 420,
+                                        damping: 32,
+                                      }}
+                                      style={{
+                                        background:
+                                          "radial-gradient(ellipse at 5% -20%, #3a9381, transparent 68%), linear-gradient(145deg, #1e7461, #08443a)",
+                                        border:
+                                          "1px solid rgba(196, 248, 231, 0.52)",
+                                        boxShadow:
+                                          "inset 0 1px 2px rgba(214, 252, 240, 0.48), 0 8px 18px rgba(8, 68, 58, 0.35)",
+                                      }}
+                                      className="ellik-drawer-card absolute inset-0 rounded-[14px]"
+                                    />
+                                  )}
+
+                                  <span
+                                    data-drawer-squircle
+                                    className={`ellik-drawer-squircle relative z-10 w-7 h-7 rounded-[9px] flex items-center justify-center shrink-0 transition-colors ${
+                                      active
+                                        ? "bg-[rgba(235,255,247,0.18)] text-[#b8f1dd]"
+                                        : "bg-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.22)]"
+                                    }`}
+                                  >
+                                    <Icon
+                                      size={14}
+                                      strokeWidth={1.75}
+                                      aria-hidden="true"
+                                    />
+                                  </span>
+
+                                  <span
+                                    data-rubro-label
+                                    className={`relative z-10 font-sans text-[11px] sm:text-[12.5px] leading-tight whitespace-nowrap ${
+                                      active
+                                        ? "font-semibold text-white"
+                                        : "font-medium"
+                                    }`}
+                                  >
+                                    {option.label}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </LayoutGroup>
+                      </PresenceContext.Provider>
+                    </motion.div>
+
+                    {/* Campos en paneles de cristal biselados */}
+                    <motion.div
+                      variants={activeItemVariants}
+                      className="space-y-3.5"
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label
+                            htmlFor="ellik-name"
+                            className="font-sans font-semibold text-[11px] uppercase tracking-[0.12em] text-[#E5D5C7]/65 mb-2 block"
+                          >
+                            Tu nombre
+                          </label>
+                          <input
+                            id="ellik-name"
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Ej. Martín Gómez"
+                            className="ellik-drawer-field w-full rounded-[15px] px-3.5 py-3 font-sans text-[13.5px] text-[#FFF8EE] placeholder:text-[#E5D5C7]/45 outline-none transition-all"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="ellik-business"
+                            className="font-sans font-semibold text-[11px] uppercase tracking-[0.12em] text-[#E5D5C7]/65 mb-2 block"
+                          >
+                            Negocio y ciudad
+                          </label>
+                          <input
+                            id="ellik-business"
+                            type="text"
+                            value={businessAndCity}
+                            onChange={(e) => setBusinessAndCity(e.target.value)}
+                            placeholder="Ej. Pizzería Sur — Río Tercero"
+                            className="ellik-drawer-field w-full rounded-[15px] px-3.5 py-3 font-sans text-[13.5px] text-[#FFF8EE] placeholder:text-[#E5D5C7]/45 outline-none transition-all"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="ellik-need"
+                          className="font-sans font-semibold text-[11px] uppercase tracking-[0.12em] text-[#E5D5C7]/65 mb-2 block"
+                        >
+                          ¿Qué necesitás resolver hoy? (opcional)
+                        </label>
+                        <textarea
+                          id="ellik-need"
+                          rows={3}
+                          value={need}
+                          onChange={(e) => setNeed(e.target.value)}
+                          placeholder="Ej. Recibir pedidos sin audios eternos los viernes a la noche..."
+                          className="ellik-drawer-field w-full resize-none rounded-[15px] px-3.5 py-3 font-sans text-[13.5px] text-[#FFF8EE] placeholder:text-[#E5D5C7]/45 outline-none transition-all"
+                        />
+                      </div>
+                    </motion.div>
+
+                    {/* CTA principal con brillo superior especular */}
+                    <motion.div variants={activeItemVariants} className="pt-0.5">
+                      <button
+                        type="submit"
+                        data-drawer-submit
+                        data-cursor="action"
+                        className="ellik-drawer-pill w-full rounded-full py-3.5 px-6 bg-[#F4F1EA] hover:brightness-105 text-[#181514] font-sans font-bold text-[13.5px] flex items-center justify-center gap-2 transition-all active:scale-[0.985] shadow-[inset_0_1px_1px_#FFFFFF,0_10px_28px_-8px_rgba(244,241,234,0.35)] cursor-pointer group"
+                      >
+                        <span>Continuar en WhatsApp</span>
+                        <ArrowUpRight
+                          className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                          aria-hidden="true"
+                        />
+                      </button>
+                      <p className="text-[11px] text-[#E5D5C7]/55 text-center mt-2.5 font-sans">
+                        Se abre WhatsApp con tu consulta ya redactada · Respuesta
+                        directa.
+                      </p>
+                    </motion.div>
+                  </form>
+                </div>
+
+                {/* Pie con píldoras de cristal */}
+                <motion.div
+                  variants={activeItemVariants}
+                  className="shrink-0 px-4 sm:px-7 py-4 border-t border-[rgba(255,240,224,0.12)] bg-[rgba(255,244,232,0.03)] flex items-center justify-between gap-3"
+                >
+                  <a
+                    href={`mailto:${ELLIK_CONFIG.email}`}
+                    data-drawer-email-pill
+                    className="ellik-drawer-pill rounded-full px-3 py-1.5 bg-[rgba(255,244,232,0.07)] border border-[rgba(255,240,224,0.15)] text-[11.5px] font-sans text-[#FFF6E9]/80 hover:text-white transition-colors truncate min-w-0"
+                  >
+                    {ELLIK_CONFIG.email}
+                  </a>
+
+                  <button
+                    type="button"
+                    data-drawer-copy-email
+                    onClick={handleCopyEmail}
+                    className={`ellik-drawer-pill rounded-full px-3.5 py-1.5 border shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] text-[11.5px] font-sans font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
+                      emailCopied
+                        ? "border-[#75dac0]/45 bg-[#1e7461]/30 text-[#75dac0]"
+                        : "bg-[rgba(255,244,232,0.12)] hover:bg-[rgba(255,244,232,0.2)] border-[rgba(255,240,224,0.24)] text-[#FFF6E9]"
+                    }`}
+                  >
+                    {emailCopied ? (
+                      <>
+                        <Check size={12} aria-hidden="true" />
+                        <span>Copiado ✓</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={12} aria-hidden="true" />
+                        <span>Copiar mail</span>
+                      </>
+                    )}
                   </button>
-                  <p className="text-[11px] text-white/40 mt-3 text-center font-sans">
-                    Se abre WhatsApp con tu consulta ya redactada · Respuesta directa.
-                  </p>
                 </motion.div>
-              </form>
-
-              {/* Pie anclado: email directo + pill de copiado */}
-              <motion.div
-                variants={itemVariants}
-                className="mt-auto pt-5 border-t border-white/[0.08] flex items-center justify-between gap-4"
-              >
-                <a
-                  href={`mailto:${ELLIK_CONFIG.email}`}
-                  className="text-xs font-sans text-white/60 hover:text-white transition-colors truncate"
-                >
-                  {ELLIK_CONFIG.email}
-                </a>
-
-                <button
-                  type="button"
-                  data-drawer-copy-email
-                  onClick={handleCopyEmail}
-                  className={`ellik-drawer-pill rounded-full border px-3 py-1.5 text-[11px] font-sans font-medium flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
-                    emailCopied
-                      ? "border-emerald-400/35 bg-emerald-400/10 text-emerald-300"
-                      : "border-white/[0.12] bg-white/[0.03] hover:border-white/30 text-white/80 hover:text-white"
-                  }`}
-                >
-                  {emailCopied ? (
-                    <>
-                      <Check size={12} aria-hidden="true" />
-                      <span>Copiado ✓</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={12} aria-hidden="true" />
-                      <span>Copiar mail</span>
-                    </>
-                  )}
-                </button>
               </motion.div>
-            </motion.div>
-          </motion.aside>
-        </div>
-      )}
-    </AnimatePresence>
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
