@@ -8,7 +8,16 @@ import {
   motion,
   useReducedMotion,
 } from "framer-motion";
-import { ArrowUpRight, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  Building2,
+  Check,
+  Copy,
+  ShoppingBag,
+  Utensils,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import {
   ELLIK_CONFIG,
   RUBRO_COPY,
@@ -24,8 +33,24 @@ interface ContactDrawerProps {
 }
 
 const DRAWER_SCOPED_CSS = `
+.ellik-drawer-card-idle {
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-top-color: rgba(255, 255, 255, 0.22);
+  background: linear-gradient(160deg, rgba(244, 241, 234, 0.05), transparent 65%), #121216;
+}
+.ellik-drawer-card-idle:hover {
+  background: linear-gradient(160deg, rgba(244, 241, 234, 0.09), transparent 65%), #17171C;
+}
 .ellik-drawer-field {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-top-color: rgba(255, 255, 255, 0.24);
+  background: linear-gradient(160deg, rgba(244, 241, 234, 0.04), transparent 60%), #111115;
   color-scheme: dark;
+}
+.ellik-drawer-field:focus {
+  border-color: rgba(244, 241, 234, 0.75);
+  background: #16161B;
+  box-shadow: 0 0 0 3px rgba(244, 241, 234, 0.08);
 }
 .ellik-drawer-scroll {
   scrollbar-width: thin;
@@ -36,10 +61,11 @@ const DRAWER_SCOPED_CSS = `
 const RUBRO_OPTIONS: {
   code: string;
   value: BusinessCategory;
+  Icon: LucideIcon;
 }[] = [
-  { code: "01", value: "Local Gastronómico" },
-  { code: "02", value: "Tienda de Ropa" },
-  { code: "03", value: "Institución / Otro" },
+  { code: "01", value: "Local Gastronómico", Icon: Utensils },
+  { code: "02", value: "Tienda de Ropa", Icon: ShoppingBag },
+  { code: "03", value: "Institución / Otro", Icon: Building2 },
 ];
 
 const DRAWER_EASE = [0.16, 1, 0.3, 1] as const;
@@ -175,24 +201,36 @@ export function ContactDrawer({
             aria-labelledby="contact-drawer-title"
             className="fixed inset-0 z-[60]"
           >
-            {/* Overlay oscuro sobrio para contraste uniforme sobre secciones oscuras y claras */}
+            {/* Overlay sobrio para contraste uniforme sobre secciones oscuras y claras */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.24 }}
               onClick={onClose}
-              className="fixed inset-0 bg-black/[0.72] backdrop-blur-[4px]"
+              className="fixed inset-0 bg-black/[0.65] backdrop-blur-[5px]"
             />
 
-            {/* Panel arquitectónico recto y mate alineado a ELLIK */}
+            {/* Panel flotante enmarcado recto alineado a la estética editorial de ELLIK */}
             <motion.aside
               data-lenis-prevent
-              initial={reducedMotion ? { opacity: 0 } : { x: "100%" }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={reducedMotion ? { opacity: 0 } : { x: "100%" }}
+              initial={
+                reducedMotion
+                  ? { opacity: 0 }
+                  : { x: 48, scale: 0.98, opacity: 0 }
+              }
+              animate={{ x: 0, scale: 1, opacity: 1 }}
+              exit={
+                reducedMotion
+                  ? { opacity: 0 }
+                  : { x: 48, scale: 0.98, opacity: 0 }
+              }
               transition={{ duration: 0.38, ease: DRAWER_EASE }}
-              className="fixed inset-y-0 right-0 z-10 flex h-[100dvh] w-full sm:w-[490px] flex-col overflow-hidden bg-[#070709]/[0.96] backdrop-blur-md border-l border-white/[0.14] text-white"
+              style={{
+                background:
+                  "linear-gradient(155deg, rgba(244, 241, 234, 0.07), transparent 28% 75%, rgba(244, 241, 234, 0.03)), rgba(10, 10, 13, 0.94)",
+              }}
+              className="ellik-drawer-stage fixed inset-2.5 sm:inset-y-4 sm:right-4 sm:left-auto w-[calc(100%-20px)] sm:w-[min(510px,calc(100vw-32px))] z-10 overflow-hidden flex flex-col bg-[#0A0A0D]/[0.95] backdrop-blur-xl border border-white/[0.18] border-t-white/[0.28] shadow-[0_28px_80px_rgba(0,0,0,0.78)] text-[#F4F1EA]"
             >
               <motion.div
                 className="relative z-10 flex flex-1 min-h-0 flex-col"
@@ -200,48 +238,51 @@ export function ContactDrawer({
                 initial="hidden"
                 animate="visible"
               >
-                {/* Barra superior arquitectónica con nodo cuadrado y cierre recto */}
-                <motion.div
-                  variants={activeItemVariants}
-                  data-drawer-topbar
-                  className="shrink-0 px-5 sm:px-8 py-5 border-b border-white/[0.1] flex items-center justify-between gap-4"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span
-                      aria-hidden="true"
-                      className="w-1.5 h-1.5 bg-[#F4F1EA] shrink-0"
-                    />
-                    <span className="font-sans font-medium text-[11px] uppercase tracking-[0.18em] text-white/65 truncate">
-                      {locale === "es" ? "Contacto directo" : "Direct contact"}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    data-drawer-close
-                    data-cursor="action"
-                    aria-label={
-                      locale === "es"
-                        ? "Cerrar panel de contacto"
-                        : "Close contact panel"
-                    }
-                    onClick={onClose}
-                    className="border border-white/20 bg-transparent hover:border-white px-3.5 h-9 inline-flex items-center gap-2 font-sans font-medium text-[10.5px] uppercase tracking-[0.16em] text-white/80 hover:text-white transition-colors cursor-pointer shrink-0"
+                {/* Barra superior enmarcada con emblema arquitectónico recto y cierre cuadrado */}
+                <div className="shrink-0 px-3.5 pt-3.5 sm:px-7 sm:pt-6 pb-0">
+                  <motion.div
+                    variants={activeItemVariants}
+                    data-drawer-topbar
+                    className="px-3.5 py-2.5 flex items-center justify-between border border-white/[0.16] border-t-white/[0.24] bg-[#121216]"
                   >
-                    <span>{locale === "es" ? "Cerrar" : "Close"}</span>
-                    <X size={13} strokeWidth={1.6} aria-hidden="true" />
-                  </button>
-                </motion.div>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span
+                        aria-hidden="true"
+                        className="w-6 h-6 border border-[#F4F1EA]/35 bg-[#F4F1EA]/[0.08] flex items-center justify-center shrink-0"
+                      >
+                        <span className="w-1.5 h-1.5 bg-[#F4F1EA]" />
+                      </span>
+                      <span className="font-sans font-semibold text-[11px] uppercase tracking-[0.16em] text-[#F4F1EA]/90 truncate">
+                        {locale === "es" ? "Contacto directo" : "Direct contact"}
+                      </span>
+                    </div>
 
-                {/* Cuerpo scrolleable con ritmo continuo y cero vacío muerto */}
+                    <button
+                      type="button"
+                      data-drawer-close
+                      data-cursor="action"
+                      aria-label={
+                        locale === "es"
+                          ? "Cerrar panel de contacto"
+                          : "Close contact panel"
+                      }
+                      onClick={onClose}
+                      className="w-9 h-9 flex items-center justify-center border border-white/[0.18] bg-white/[0.04] hover:bg-[#F4F1EA] hover:text-[#050505] hover:border-[#F4F1EA] text-[#F4F1EA] transition-colors cursor-pointer shrink-0"
+                    >
+                      <X size={15} strokeWidth={1.75} aria-hidden="true" />
+                    </button>
+                  </motion.div>
+                </div>
+
+                {/* Cuerpo scrolleable equilibrado con bandeja de rubros y campos táctiles */}
                 <div
                   data-lenis-prevent
-                  className="ellik-drawer-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-5 sm:px-8 py-6 sm:py-7 flex flex-col gap-6 sm:gap-7"
+                  className="ellik-drawer-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-3.5 sm:px-7 py-5 flex flex-col justify-between gap-5"
                 >
                   <motion.div variants={activeItemVariants}>
                     <h2
                       id="contact-drawer-title"
-                      className="font-display font-medium text-[30px] sm:text-[36px] leading-[1.03] tracking-[-0.02em] [word-spacing:0.04em]"
+                      className="font-display font-semibold text-[30px] sm:text-[38px] leading-[1.0] tracking-[-0.022em] [word-spacing:0.04em]"
                     >
                       {locale === "es" ? (
                         <>
@@ -258,7 +299,7 @@ export function ContactDrawer({
                       )}
                     </h2>
 
-                    <p className="font-sans text-[13.5px] text-[#A1A1AA] mt-2.5 leading-relaxed">
+                    <p className="font-sans text-[13.5px] sm:text-[14px] text-[#D4D4D8] mt-2.5 leading-relaxed">
                       {locale === "es"
                         ? "Dejame estos datos y abrimos la charla directo en WhatsApp."
                         : "Share a few details and we'll continue directly on WhatsApp."}
@@ -267,7 +308,7 @@ export function ContactDrawer({
                     {selectedPlan && (
                       <div
                         data-drawer-plan-chip
-                        className="inline-flex items-center gap-2.5 mt-4 px-3 py-1.5 border border-[#F4F1EA]/30 bg-white/[0.04] font-sans font-medium text-[11px] uppercase tracking-[0.12em] text-[#F4F1EA] max-w-full"
+                        className="inline-flex items-center gap-2 mt-3.5 px-3 py-1.5 border border-[#F4F1EA]/35 bg-[#F4F1EA]/[0.08] font-sans font-medium text-[11px] uppercase tracking-[0.12em] text-[#F4F1EA] max-w-full"
                       >
                         <span className="truncate">
                           {locale === "es" ? "Modalidad" : "Option"}:{" "}
@@ -291,11 +332,11 @@ export function ContactDrawer({
 
                   <form
                     onSubmit={handleSendWhatsApp}
-                    className="flex flex-col gap-5 sm:gap-6"
+                    className="flex flex-col gap-5"
                   >
-                    {/* Selector editorial numerado (01, 02, 03) sin íconos ni brillos */}
+                    {/* Selector de rubro en bandeja enmarcada con insignias cuadradas e íconos Lucide */}
                     <motion.div variants={activeItemVariants}>
-                      <span className="font-sans font-medium text-[10.5px] uppercase tracking-[0.16em] text-[#A1A1AA] mb-2.5 block">
+                      <span className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block">
                         {locale === "es"
                           ? "Rubro de tu proyecto"
                           : "Project category"}
@@ -304,10 +345,11 @@ export function ContactDrawer({
                         <LayoutGroup id="contact-rubro-selector">
                           <div
                             data-drawer-rubro-tray
-                            className="grid grid-cols-3 gap-2"
+                            className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1.5 border border-white/[0.16] bg-[#070709]"
                           >
                             {RUBRO_OPTIONS.map((option) => {
                               const active = rubro === option.value;
+                              const Icon = option.Icon;
                               const label =
                                 RUBRO_COPY[option.value][locale].cardLabel;
                               return (
@@ -317,37 +359,52 @@ export function ContactDrawer({
                                   data-drawer-rubro={option.value}
                                   aria-pressed={active}
                                   onClick={() => setRubro(option.value)}
-                                  className={`min-w-0 p-3 sm:p-3.5 flex flex-col items-start gap-2.5 text-left border transition-colors duration-200 relative overflow-hidden cursor-pointer ${
+                                  className={`min-w-0 p-2 sm:p-3 flex flex-col items-start gap-2.5 text-left transition-all duration-200 relative overflow-hidden cursor-pointer ${
                                     active
-                                      ? "border-[#F4F1EA] text-[#050505]"
-                                      : "border-white/[0.14] bg-[#0D0D0F] text-white/70 hover:border-white/40 hover:text-white"
+                                      ? "border border-transparent text-[#050505]"
+                                      : "ellik-drawer-card-idle text-[#D4D4D8] hover:text-white hover:border-white/35"
                                   }`}
                                 >
                                   {active && (
                                     <motion.div
-                                      layoutId="activeRubro"
+                                      layoutId="activeRubroCard"
                                       transition={{
                                         type: "spring",
-                                        stiffness: 460,
-                                        damping: 36,
+                                        stiffness: 440,
+                                        damping: 34,
                                       }}
-                                      className="absolute inset-0 bg-[#F4F1EA]"
+                                      className="absolute inset-0 bg-[#F4F1EA] border border-white shadow-[0_10px_24px_-8px_rgba(244,241,234,0.3)]"
                                     />
                                   )}
 
-                                  <span
-                                    className={`relative z-10 font-sans font-medium text-[10px] tabular-nums tracking-[0.16em] ${
-                                      active
-                                        ? "text-[#050505]/55"
-                                        : "text-white/40"
-                                    }`}
-                                  >
-                                    {option.code}
-                                  </span>
+                                  <div className="relative z-10 flex items-center justify-between w-full">
+                                    <span
+                                      className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center border shrink-0 transition-colors ${
+                                        active
+                                          ? "bg-[#0B0B0D] border-[#0B0B0D] text-[#F4F1EA]"
+                                          : "bg-white/[0.06] border-white/[0.16] text-[#F4F1EA]/85"
+                                      }`}
+                                    >
+                                      <Icon
+                                        size={14}
+                                        strokeWidth={1.8}
+                                        aria-hidden="true"
+                                      />
+                                    </span>
+                                    <span
+                                      className={`font-display font-medium text-[10.5px] tracking-[0.06em] ${
+                                        active
+                                          ? "text-[#050505]/50"
+                                          : "text-white/35"
+                                      }`}
+                                    >
+                                      {option.code}
+                                    </span>
+                                  </div>
 
                                   <span
                                     data-rubro-label
-                                    className={`relative z-10 font-sans text-[12px] sm:text-[13px] leading-tight whitespace-nowrap ${
+                                    className={`relative z-10 font-sans text-[11.5px] sm:text-[13px] leading-tight whitespace-nowrap ${
                                       active
                                         ? "font-semibold text-[#050505]"
                                         : "font-medium"
@@ -363,16 +420,16 @@ export function ContactDrawer({
                       </PresenceContext.Provider>
                     </motion.div>
 
-                    {/* Campos rectos y mate en Satoshi */}
+                    {/* Campos rectos y táctiles */}
                     <motion.div
                       variants={activeItemVariants}
-                      className="space-y-4"
+                      className="space-y-3.5"
                     >
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label
                             htmlFor="ellik-name"
-                            className="font-sans font-medium text-[10.5px] uppercase tracking-[0.16em] text-[#A1A1AA] mb-2 block"
+                            className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block"
                           >
                             {locale === "es" ? "Tu nombre" : "Your name"}
                           </label>
@@ -386,14 +443,14 @@ export function ContactDrawer({
                                 ? "Ej. Martín Gómez"
                                 : "e.g. Alex Morgan"
                             }
-                            className="ellik-drawer-field w-full border border-white/[0.14] bg-[#0D0D0F] px-3.5 py-3 font-sans text-[14px] text-white placeholder:text-white/30 outline-none transition-colors duration-200 focus:border-[#F4F1EA] focus:bg-[#121215]"
+                            className="ellik-drawer-field w-full px-3.5 py-3 font-sans text-[13.5px] sm:text-[14px] text-[#F4F1EA] placeholder:text-white/35 outline-none transition-all"
                           />
                         </div>
 
                         <div>
                           <label
                             htmlFor="ellik-business"
-                            className="font-sans font-medium text-[10.5px] uppercase tracking-[0.16em] text-[#A1A1AA] mb-2 block"
+                            className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block"
                           >
                             {locale === "es"
                               ? "Negocio y ciudad"
@@ -409,7 +466,7 @@ export function ContactDrawer({
                                 ? "Ej. Pizzería Sur — Río Tercero"
                                 : "e.g. Mojo Grille — Miami"
                             }
-                            className="ellik-drawer-field w-full border border-white/[0.14] bg-[#0D0D0F] px-3.5 py-3 font-sans text-[14px] text-white placeholder:text-white/30 outline-none transition-colors duration-200 focus:border-[#F4F1EA] focus:bg-[#121215]"
+                            className="ellik-drawer-field w-full px-3.5 py-3 font-sans text-[13.5px] sm:text-[14px] text-[#F4F1EA] placeholder:text-white/35 outline-none transition-all"
                           />
                         </div>
                       </div>
@@ -417,7 +474,7 @@ export function ContactDrawer({
                       <div>
                         <label
                           htmlFor="ellik-need"
-                          className="font-sans font-medium text-[10.5px] uppercase tracking-[0.16em] text-[#A1A1AA] mb-2 block"
+                          className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block"
                         >
                           {locale === "es"
                             ? "¿Qué necesitás resolver hoy? (opcional)"
@@ -433,18 +490,18 @@ export function ContactDrawer({
                               ? "Ej. Recibir pedidos sin audios eternos los viernes a la noche..."
                               : "e.g. Take direct orders on WhatsApp without back-and-forth messages..."
                           }
-                          className="ellik-drawer-field w-full resize-none border border-white/[0.14] bg-[#0D0D0F] px-3.5 py-3 font-sans text-[14px] text-white placeholder:text-white/30 outline-none transition-colors duration-200 focus:border-[#F4F1EA] focus:bg-[#121215]"
+                          className="ellik-drawer-field w-full resize-none px-3.5 py-3 font-sans text-[13.5px] sm:text-[14px] text-[#F4F1EA] placeholder:text-white/35 outline-none transition-all"
                         />
                       </div>
                     </motion.div>
 
-                    {/* CTA principal recto sin sombra ni brillo */}
+                    {/* CTA principal recto en papel cálido */}
                     <motion.div variants={activeItemVariants} className="pt-0.5">
                       <button
                         type="submit"
                         data-drawer-submit
                         data-cursor="action"
-                        className="w-full py-4 px-6 bg-[#F4F1EA] hover:bg-white text-[#050505] font-sans font-semibold text-[12px] uppercase tracking-[0.16em] flex items-center justify-center gap-2.5 transition-colors duration-200 active:scale-[0.99] cursor-pointer group"
+                        className="w-full py-3.5 sm:py-4 px-6 bg-[#F4F1EA] hover:bg-white text-[#050505] font-sans font-bold text-[13px] sm:text-[13.5px] uppercase tracking-[0.12em] flex items-center justify-center gap-2.5 transition-all active:scale-[0.99] shadow-[0_12px_30px_-10px_rgba(244,241,234,0.3)] cursor-pointer group"
                       >
                         <span>
                           {locale === "es"
@@ -465,15 +522,15 @@ export function ContactDrawer({
                   </form>
                 </div>
 
-                {/* Pie anclado sobrio y recto */}
+                {/* Pie anclado dual-box enmarcado */}
                 <motion.div
                   variants={activeItemVariants}
-                  className="shrink-0 px-5 sm:px-8 py-4 border-t border-white/[0.1] bg-[#070709] flex items-center justify-between gap-3"
+                  className="shrink-0 px-3.5 sm:px-7 py-4 border-t border-white/[0.14] bg-[#0D0D11] flex items-center justify-between gap-3"
                 >
                   <a
                     href={`mailto:${ELLIK_CONFIG.email}`}
                     data-drawer-email-pill
-                    className="font-sans text-xs tracking-[0.02em] text-white/65 hover:text-white transition-colors truncate min-w-0"
+                    className="px-3 py-2 bg-[#141419] border border-white/[0.16] hover:border-white/35 text-[11.5px] sm:text-[12px] font-sans font-medium text-[#F4F1EA]/85 hover:text-white transition-colors truncate min-w-0"
                   >
                     {ELLIK_CONFIG.email}
                   </a>
@@ -482,19 +539,25 @@ export function ContactDrawer({
                     type="button"
                     data-drawer-copy-email
                     onClick={handleCopyEmail}
-                    className={`border px-3.5 py-2 font-sans font-medium text-[10.5px] uppercase tracking-[0.14em] transition-colors cursor-pointer shrink-0 ${
+                    className={`px-3.5 py-2 border text-[11px] sm:text-[11.5px] font-sans font-semibold uppercase tracking-[0.12em] flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
                       emailCopied
                         ? "border-[#F4F1EA] bg-[#F4F1EA] text-[#050505]"
-                        : "border-white/20 bg-transparent text-white/80 hover:border-white hover:text-white"
+                        : "border-white/[0.22] bg-[#141419] hover:bg-white/[0.08] hover:border-white/45 text-[#F4F1EA]"
                     }`}
                   >
-                    {emailCopied
-                      ? locale === "es"
-                        ? "Copiado"
-                        : "Copied"
-                      : locale === "es"
-                        ? "Copiar mail"
-                        : "Copy email"}
+                    {emailCopied ? (
+                      <>
+                        <Check size={12} aria-hidden="true" />
+                        <span>{locale === "es" ? "Copiado" : "Copied"}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={12} aria-hidden="true" />
+                        <span>
+                          {locale === "es" ? "Copiar mail" : "Copy email"}
+                        </span>
+                      </>
+                    )}
                   </button>
                 </motion.div>
               </motion.div>
