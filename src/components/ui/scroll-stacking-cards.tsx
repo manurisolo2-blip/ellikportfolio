@@ -20,14 +20,11 @@ export type DeckItem = {
   name: string;          // Título de la modalidad
   eyebrow: string;       // Subtítulo corto en Satoshi
   summary: string;       // Descripción humana clara
-  deliverables: string[];// 3 puntos concretos incluidos
-  image: string;         // Captura real local de respaldo visual (/previews/...)
-  accent: string;        // Color de acento del círculo con flecha
-  surfaceBg: string;     // Gradiente tonal propio de cada tarjeta
-  spineBg: string;       // Fondo diferenciado para el lomo apilado
+  deliverables: string[];// 3 puntos clave incluidos
+  image: string;         // Captura real local (/previews/...)
+  surfaceBg: string;     // Superficie mate sólida diferenciada
   ctaLabel: string;      // Ej: "Consultar esta modalidad"
   ctaSublabel: string;   // Ej: "Charla directa por WhatsApp"
-  exampleLabel: string;  // Ej: "mojo-grille-demo.vercel.app"
   estimatedTime: string; // Ej: "5 a 7 días"
   focus: string;         // Ej: "Mobile-first + WhatsApp"
   planKey: string;       // Clave para preseleccionar en ContactDrawer
@@ -37,7 +34,6 @@ export type DeckItem = {
 export interface DeckLabels {
   estimatedTime: string;
   focus: string;
-  liveExample: string;
   viewSpine: string;
   backToCard: (index: string, name: string) => string;
   deckAriaLabel: string;
@@ -46,7 +42,6 @@ export interface DeckLabels {
 const DEFAULT_DECK_LABELS: DeckLabels = {
   estimatedTime: "TIEMPO ESTIMADO",
   focus: "ENFOQUE",
-  liveExample: "EJEMPLO REAL",
   viewSpine: "VER ↑",
   backToCard: (index, name) => `Volver a la tarjeta ${index}: ${name}`,
   deckAriaLabel: "Modalidades de servicio",
@@ -65,9 +60,6 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const easeOut = (t: number) => 1 - (1 - t) ** 3;
 const ENTER = 0.72;
 
-const GRAIN_BG =
-  "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
-
 /**
  * Progreso de llegada [0..1] de la tarjeta `j` dentro del mazo en `v`.
  */
@@ -82,19 +74,13 @@ const DECK_SCOPED_CSS = `
   border-radius: 24px !important;
 }
 .ellik-deck-media {
-  border-top-left-radius: 18px !important;
+  border-radius: 14px !important;
 }
 .ellik-deck-notch {
   border-top-left-radius: 20px !important;
 }
 .ellik-deck-orb {
   border-radius: 9999px !important;
-}
-.ellik-deck-pill {
-  border-radius: 9999px !important;
-}
-.ellik-deck-box {
-  border-radius: 12px !important;
 }
 `;
 
@@ -161,15 +147,8 @@ function ActionNotch({
           </span>
         </span>
 
-        <span
-          className="ellik-deck-orb grid size-11 sm:size-[52px] shrink-0 place-items-center text-white transition-transform duration-200 ease-out group-hover/card:rotate-45 group-hover/cta:rotate-45 group-hover/cta:scale-105 group-active/cta:scale-90 group-focus-visible/cta:outline-2 group-focus-visible/cta:outline-offset-2"
-          style={{
-            backgroundColor: item.accent,
-            outlineColor: item.accent,
-            boxShadow: `0 10px 26px -4px ${item.accent}99, inset 0 1px 1px rgba(255,255,255,0.35)`,
-          }}
-        >
-          <ArrowUpRight className="size-5 sm:size-6" strokeWidth={2.2} />
+        <span className="ellik-deck-orb grid size-11 sm:size-[52px] shrink-0 place-items-center bg-[#0B0B0D] text-[#F4F1EA] transition-all duration-200 ease-out group-hover/card:rotate-45 group-hover/cta:rotate-45 group-hover/cta:bg-[#1E1E24] group-active/cta:scale-90 group-focus-visible/cta:outline-2 group-focus-visible/cta:outline-offset-2 group-focus-visible/cta:outline-[#0B0B0D]">
+          <ArrowUpRight className="size-5 sm:size-6" strokeWidth={2} />
         </span>
       </button>
     </div>
@@ -213,12 +192,12 @@ function DeckCard({
     arrived(index, v, count) >= 0.5 ? "0svh" : "110svh"
   );
 
-  // Contra-parallax sutil en la captura al aterrizar la tarjeta
+  // Contra-parallax sutil en la captura al aterrizar la tarjeta (llega exacto a 1x)
   const imgScale = useTransform(progress, (v) =>
-    still ? 1 : 1.08 - 0.08 * arrived(index, v, count)
+    still ? 1 : 1.04 - 0.04 * arrived(index, v, count)
   );
   const imgY = useTransform(progress, (v) =>
-    still ? 0 : (1 - arrived(index, v, count)) * 16
+    still ? 0 : (1 - arrived(index, v, count)) * 12
   );
 
   // Lomo clickable visible solo cuando otra tarjeta cubre a ésta por delante
@@ -239,6 +218,8 @@ function DeckCard({
     }
   };
 
+  const paddedCount = String(count).padStart(2, "0");
+
   return (
     <motion.article
       data-deck-card={index}
@@ -253,41 +234,9 @@ function DeckCard({
       <div
         data-cursor="action"
         onClick={handleAction}
-        className="ellik-deck-card group/card relative grid w-full grid-cols-1 grid-rows-[auto_1fr] lg:grid-cols-12 lg:grid-rows-1 h-[555px] sm:h-[570px] lg:h-[min(68svh,560px)] overflow-hidden cursor-pointer select-none text-[#F4F1EA] border"
-        style={{
-          background: item.surfaceBg,
-          borderColor: `${item.accent}38`,
-          boxShadow: `0 42px 90px -28px rgba(8,10,16,0.62), inset 0 1px 0 ${item.accent}30`,
-        }}
+        className="ellik-deck-card group/card relative grid w-full grid-cols-1 grid-rows-[auto_1fr] lg:grid-cols-12 lg:grid-rows-1 h-[555px] sm:h-[570px] lg:h-[min(68svh,560px)] overflow-hidden cursor-pointer select-none text-[#F4F1EA] border border-white/[0.1] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.55)]"
+        style={{ backgroundColor: item.surfaceBg }}
       >
-        {/* Borde superior luminoso nítido por acento (corona tarjeta activa y lomos) */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 z-[35] h-[2px]"
-          style={{
-            background: `linear-gradient(90deg, transparent 2%, ${item.accent}99 20%, ${item.accent} 50%, ${item.accent}99 80%, transparent 98%)`,
-          }}
-        />
-
-        {/* Lavado direccional superior izquierdo */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-[1]"
-          style={{
-            background: `radial-gradient(ellipse 68% 52% at 0% 0%, ${item.accent}2B 0%, ${item.accent}0E 42%, transparent 72%)`,
-          }}
-        />
-
-        {/* Grano analógico sutil sin filtro blur */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-[1] opacity-[0.045]"
-          style={{
-            backgroundImage: GRAIN_BG,
-            backgroundSize: "180px 180px",
-          }}
-        />
-
         {/* Lomo superior clickable cuando la tarjeta está apilada detrás */}
         <motion.button
           type="button"
@@ -297,202 +246,75 @@ function DeckCard({
           style={{
             opacity: spineOpacity,
             pointerEvents: spinePointerEvents,
-            background: item.spineBg,
-            borderBottomColor: `${item.accent}3A`,
+            backgroundColor: item.surfaceBg,
           }}
           onClick={(e) => {
             e.stopPropagation();
             onJumpToCard(index);
           }}
-          className="absolute inset-x-0 top-0 z-30 h-[36px] px-5 sm:px-9 lg:px-11 flex items-center justify-between border-b text-left transition-all hover:brightness-125 outline-none"
+          className="absolute inset-x-0 top-0 z-30 h-[36px] px-5 sm:px-9 lg:px-12 flex items-center justify-between border-b border-white/[0.08] text-left transition-colors hover:bg-white/[0.03] outline-none"
         >
-          <span className="flex items-center gap-2.5 min-w-0">
-            <span
-              aria-hidden="true"
-              className="ellik-deck-orb size-[7px] shrink-0"
-              style={{
-                backgroundColor: item.accent,
-                boxShadow: `0 0 10px ${item.accent}AA`,
-              }}
-            />
-            <span
-              className="font-sans font-semibold text-[11px] tabular-nums shrink-0"
-              style={{ color: item.accent }}
-            >
-              {item.index}
-            </span>
-            <span className="text-white/35 shrink-0" aria-hidden="true">
-              ·
-            </span>
-            <span className="font-sans font-medium text-[11.5px] tracking-[0.04em] text-white/92 truncate">
-              {item.name}
-            </span>
+          <span className="font-sans font-medium text-[11px] tracking-[0.06em] text-white/75 truncate">
+            {item.index} / {paddedCount} — {item.name}
           </span>
-          <span
-            className="ellik-deck-pill px-2.5 py-0.5 border font-sans font-semibold text-[10px] uppercase tracking-[0.14em] shrink-0 ml-4 transition-colors"
-            style={{
-              backgroundColor: `${item.accent}1C`,
-              borderColor: `${item.accent}55`,
-              color: item.accent,
-            }}
-          >
+          <span className="font-sans font-medium text-[10px] uppercase tracking-[0.16em] text-white/45 shrink-0 ml-4">
             {labels.viewSpine}
           </span>
         </motion.button>
 
-        {/* Columna izquierda: Cabecera cromática, número editorial fantasma, lista numerada y bloque comercial */}
-        <div className="relative z-[5] lg:col-span-6 p-4 sm:p-8 lg:p-7 xl:p-11 flex flex-col justify-between min-w-0 overflow-hidden">
-          {/* Número editorial fantasma de gran escala en fondo */}
-          <span
-            aria-hidden="true"
-            className="pointer-events-none select-none absolute -bottom-6 right-2 lg:-bottom-10 lg:right-3 font-display font-bold text-[130px] sm:text-[170px] lg:text-[210px] leading-none tracking-[-0.04em] opacity-[0.08]"
-            style={{
-              color: item.accent,
-              WebkitMaskImage:
-                "linear-gradient(to bottom, rgba(0,0,0,0.95), rgba(0,0,0,0.12))",
-              maskImage:
-                "linear-gradient(to bottom, rgba(0,0,0,0.95), rgba(0,0,0,0.12))",
-            }}
-          >
-            {item.index}
-          </span>
+        {/* Columna izquierda (5/12): Lámina editorial mate sin cajas ni divisores internos */}
+        <div className="relative z-[5] lg:col-span-5 p-4 sm:p-8 lg:p-8 xl:p-11 flex flex-col justify-between min-w-0">
+          <p className="font-sans font-medium text-[10.5px] sm:text-[11px] uppercase tracking-[0.16em] text-white/40 truncate">
+            {item.index} / {paddedCount} — {item.eyebrow}
+          </p>
 
-          <div className="relative z-[2]">
-            <div className="flex items-center gap-2.5 mb-2 sm:mb-3 xl:mb-4 min-w-0">
-              <span
-                className="ellik-deck-pill inline-flex items-center gap-1.5 px-2.5 py-0.5 border text-[10px] sm:text-[11px] font-sans font-semibold tabular-nums tracking-[0.1em] shrink-0"
-                style={{
-                  backgroundColor: `${item.accent}22`,
-                  borderColor: `${item.accent}66`,
-                  color: item.accent,
-                }}
-              >
-                <span
-                  aria-hidden="true"
-                  className="ellik-deck-orb size-1.5"
-                  style={{ backgroundColor: item.accent }}
-                />
-                {item.index}
-              </span>
-              <p className="font-sans font-medium text-[10px] sm:text-[11px] uppercase tracking-[0.15em] text-white/80 truncate">
-                {item.eyebrow}
-              </p>
-            </div>
-            <h3 className="font-display font-medium text-[24px] sm:text-4xl lg:text-[38px] xl:text-[42px] leading-[1.05] tracking-[-0.01em] [word-spacing:0.06em] text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.35)]">
+          <div className="my-2 sm:my-0">
+            <h3 className="font-display font-medium text-[24px] sm:text-4xl lg:text-[34px] xl:text-[42px] leading-[1.04] tracking-[-0.015em] [word-spacing:0.05em] text-[#F4F1EA]">
               {item.name}
             </h3>
-            <p className="font-sans text-[13px] sm:text-[15px] text-[#C4C4CC] leading-relaxed mt-1.5 sm:mt-3 xl:mt-3.5 max-w-md">
+
+            <p className="font-sans text-[13px] sm:text-[14px] xl:text-[15px] text-white/60 leading-relaxed mt-2 sm:mt-4 xl:mt-5 max-w-sm">
               {item.summary}
             </p>
-          </div>
 
-          <ul className="relative z-[2] my-2 sm:my-3.5 lg:my-2 xl:my-3">
-            {item.deliverables.map((point, idx) => (
-              <li
-                key={idx}
-                className="flex items-baseline gap-3 sm:gap-4 py-1.5 sm:py-2.5 lg:py-2 xl:py-3 border-t border-white/[0.11] last:border-b"
-              >
-                <span
-                  className="font-sans font-semibold text-[11px] tabular-nums shrink-0"
-                  style={{ color: item.accent }}
-                >
-                  {String(idx + 1).padStart(2, "0")}
-                </span>
-                <span className="font-sans text-xs sm:text-sm text-[#F4F1EA]/92 leading-snug">
-                  {point}
-                </span>
-              </li>
-            ))}
-          </ul>
+            <ul className="mt-3 sm:mt-5 xl:mt-7 text-[12px] sm:text-[13px] text-white/80 leading-relaxed flex flex-col gap-1 sm:gap-1.5">
+              {item.deliverables.map((point, idx) => (
+                <li key={idx} className="flex items-baseline gap-2">
+                  <span aria-hidden="true" className="text-white/30 shrink-0">
+                    —
+                  </span>
+                  <span>{point}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
 
           <div
             data-deck-metrics={item.id}
-            className="ellik-deck-box relative z-[2] overflow-hidden flex items-center gap-4 sm:gap-6 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-white/[0.045] border border-white/[0.11]"
+            className="pt-3 sm:pt-5 xl:pt-6 border-t border-white/[0.08] flex items-center gap-6 sm:gap-8"
           >
-            <span
-              aria-hidden="true"
-              className="absolute inset-y-0 left-0 w-[3px]"
-              style={{ backgroundColor: item.accent }}
-            />
             <div>
-              <p className="font-sans text-[9.5px] sm:text-[10px] uppercase tracking-[0.14em] text-white/55">
+              <p className="font-sans text-[10px] uppercase tracking-[0.14em] text-white/35">
                 {labels.estimatedTime}
               </p>
-              <p className="font-sans font-semibold text-[12px] sm:text-[13px] text-white mt-0.5">
+              <p className="font-sans text-[12.5px] sm:text-[13px] font-medium text-white/90 mt-0.5">
                 {item.estimatedTime}
               </p>
             </div>
-            <div className="h-6 w-px bg-white/15 shrink-0" aria-hidden="true" />
             <div>
-              <p className="font-sans text-[9.5px] sm:text-[10px] uppercase tracking-[0.14em] text-white/55">
+              <p className="font-sans text-[10px] uppercase tracking-[0.14em] text-white/35">
                 {labels.focus}
               </p>
-              <p className="font-sans font-semibold text-[12px] sm:text-[13px] text-white mt-0.5">
+              <p className="font-sans text-[12.5px] sm:text-[13px] font-medium text-white/90 mt-0.5">
                 {item.focus}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Columna derecha: Vitrina con iluminación direccional, grilla arquitectónica y brillo al hover */}
-        <div className="relative z-[5] lg:col-span-6 flex flex-col justify-between pt-3 pl-4 sm:pt-6 sm:pl-8 lg:pt-8 lg:pl-8 overflow-hidden border-t border-white/[0.09] lg:border-t-0 lg:border-l lg:border-white/[0.09] min-h-[145px]">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background: `radial-gradient(ellipse 90% 80% at 88% 12%, ${item.accent}42 0%, ${item.accent}16 45%, transparent 74%)`,
-            }}
-          />
-
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 opacity-[0.07]"
-            style={{
-              backgroundImage:
-                "linear-gradient(to right, rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.5) 1px, transparent 1px)",
-              backgroundSize: "28px 28px",
-              WebkitMaskImage:
-                "radial-gradient(ellipse 95% 85% at 75% 15%, rgba(0,0,0,1) 20%, transparent 75%)",
-              maskImage:
-                "radial-gradient(ellipse 95% 85% at 75% 15%, rgba(0,0,0,1) 20%, transparent 75%)",
-            }}
-          />
-
-          <div className="relative z-[2] flex items-center justify-between gap-4 pr-4 sm:pr-8 pb-2 sm:pb-3">
-            <span className="flex items-center gap-2 shrink-0">
-              <span
-                aria-hidden="true"
-                className="ellik-deck-orb size-1.5"
-                style={{ backgroundColor: item.accent }}
-              />
-              <span className="font-sans font-semibold text-[10px] uppercase tracking-[0.16em] text-white/75">
-                {labels.liveExample}
-              </span>
-            </span>
-            <span
-              className="ellik-deck-pill px-2.5 py-0.5 bg-black/35 border font-sans font-medium text-[10.5px] text-white/90 truncate"
-              style={{ borderColor: `${item.accent}48` }}
-            >
-              {item.exampleLabel}
-            </span>
-          </div>
-
-          <div
-            className="ellik-deck-media relative z-[2] flex-1 min-h-[105px] lg:min-h-0 w-full overflow-hidden border-t border-l bg-[#121217]"
-            style={{
-              borderTopColor: `${item.accent}75`,
-              borderLeftColor: `${item.accent}45`,
-              boxShadow: `-18px -12px 44px rgba(0,0,0,0.6), 0 0 30px -10px ${item.accent}45`,
-            }}
-          >
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-0 z-[4] h-px bg-gradient-to-r from-white/40 via-white/15 to-transparent"
-            />
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-y-0 -left-1/2 z-[4] w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/[0.14] to-transparent opacity-0 transition-all duration-1000 ease-out group-hover/card:opacity-100 group-hover/card:translate-x-[360%]"
-            />
+        {/* Columna derecha (7/12): Encuadre completo 16:10 sin recortes laterales */}
+        <div className="relative z-[5] lg:col-span-7 px-4 pt-0.5 pb-4 sm:p-7 lg:p-8 lg:pl-2 lg:pb-16 flex items-start sm:items-center min-h-0">
+          <div className="ellik-deck-media relative w-full aspect-[16/10] overflow-hidden border border-white/[0.1] bg-[#050505] shadow-[0_24px_60px_-20px_rgba(0,0,0,0.75)]">
             <motion.div
               className="relative h-full w-full will-change-transform"
               style={still ? undefined : { scale: imgScale, y: imgY }}
@@ -501,13 +323,19 @@ function DeckCard({
                 src={item.image}
                 alt={item.name}
                 fill
-                sizes="(min-width: 1280px) 520px, (min-width: 1024px) 45vw, 90vw"
-                className="h-full w-full object-cover object-top transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/card:scale-[1.03]"
+                sizes="(min-width: 1280px) 620px, (min-width: 1024px) 56vw, 92vw"
+                className="h-full w-full object-cover object-top transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/card:scale-[1.02]"
               />
             </motion.div>
+
+            {/* Sutil oscurecimiento únicamente en esquina inferior derecha donde apoya el ActionNotch */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent"
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(circle at 100% 100%, rgba(0,0,0,0.36) 0%, transparent 45%)",
+              }}
             />
           </div>
         </div>

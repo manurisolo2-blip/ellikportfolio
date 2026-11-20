@@ -23,12 +23,9 @@ const DECK_VISUAL_META: Record<
     id: string;
     eyebrow: Record<Locale, string>;
     image: string;
-    accent: string;
     surfaceBg: string;
-    spineBg: string;
     ctaLabel: Record<Locale, string>;
     ctaSublabel: Record<Locale, string>;
-    exampleLabel: string;
     estimatedTime: Record<Locale, string>;
     focus: Record<Locale, string>;
   }
@@ -40,9 +37,7 @@ const DECK_VISUAL_META: Record<
       en: "HOSPITALITY · WHATSAPP ORDERS",
     },
     image: "/previews/mojo-desktop.webp",
-    accent: "#E06D3B",
-    surfaceBg: "linear-gradient(135deg, #21120B 0%, #110B09 44%, #1A0E09 100%)",
-    spineBg: "linear-gradient(90deg, #26140C 0%, #170D0A 60%, #1F110B 100%)",
+    surfaceBg: "#0B0B0D",
     ctaLabel: {
       es: "Consultar esta modalidad",
       en: "Inquire about this option",
@@ -51,7 +46,6 @@ const DECK_VISUAL_META: Record<
       es: "Charla directa por WhatsApp",
       en: "Direct chat on WhatsApp",
     },
-    exampleLabel: "mojo-grille-demo.vercel.app",
     estimatedTime: { es: "5 a 7 días", en: "5 to 7 days" },
     focus: { es: "Mobile-first + WhatsApp", en: "Mobile-first + WhatsApp" },
   },
@@ -62,9 +56,7 @@ const DECK_VISUAL_META: Record<
       en: "APPAREL · MOBILE STOREFRONT",
     },
     image: "/previews/dopamine-desktop.webp",
-    accent: "#D9A45B",
-    surfaceBg: "linear-gradient(135deg, #1E180B 0%, #100E0A 44%, #18130A 100%)",
-    spineBg: "linear-gradient(90deg, #231C0D 0%, #15120B 60%, #1C160B 100%)",
+    surfaceBg: "#121215",
     ctaLabel: {
       es: "Consultar esta modalidad",
       en: "Inquire about this option",
@@ -73,7 +65,6 @@ const DECK_VISUAL_META: Record<
       es: "Charla directa por WhatsApp",
       en: "Direct chat on WhatsApp",
     },
-    exampleLabel: "dopamine-three-omega.vercel.app",
     estimatedTime: { es: "7 a 12 días", en: "7 to 12 days" },
     focus: { es: "Catálogo + stock", en: "Catalog + stock" },
   },
@@ -84,9 +75,7 @@ const DECK_VISUAL_META: Record<
       en: "BESPOKE · CUSTOM CODE",
     },
     image: "/previews/rio3-desktop.webp",
-    accent: "#5B9BD5",
-    surfaceBg: "linear-gradient(135deg, #0D192B 0%, #090E16 44%, #0C1625 100%)",
-    spineBg: "linear-gradient(90deg, #102036 0%, #0B131F 60%, #0F1B2E 100%)",
+    surfaceBg: "#18181C",
     ctaLabel: {
       es: "Consultar esta modalidad",
       en: "Inquire about this option",
@@ -95,7 +84,6 @@ const DECK_VISUAL_META: Record<
       es: "Charla directa por WhatsApp",
       en: "Direct chat on WhatsApp",
     },
-    exampleLabel: "deportistasrio3.vercel.app",
     estimatedTime: { es: "Según alcance", en: "Scoped to project" },
     focus: { es: "100 % personalizado", en: "100% custom-built" },
   },
@@ -105,7 +93,6 @@ const DECK_LABELS_BY_LOCALE: Record<Locale, DeckLabels> = {
   es: {
     estimatedTime: "TIEMPO ESTIMADO",
     focus: "ENFOQUE",
-    liveExample: "EJEMPLO REAL",
     viewSpine: "VER ↑",
     backToCard: (index, name) => `Volver a la tarjeta ${index}: ${name}`,
     deckAriaLabel: "Modalidades de servicio",
@@ -113,7 +100,6 @@ const DECK_LABELS_BY_LOCALE: Record<Locale, DeckLabels> = {
   en: {
     estimatedTime: "ESTIMATED TIME",
     focus: "FOCUS",
-    liveExample: "LIVE EXAMPLE",
     viewSpine: "VIEW ↑",
     backToCard: (index, name) => `Back to card ${index}: ${name}`,
     deckAriaLabel: "Service options",
@@ -139,11 +125,7 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
           summary: plan.description,
           deliverables: plan.scopeItems,
           image: "/previews/mojo-desktop.webp",
-          accent: "#E06D3B",
-          surfaceBg:
-            "linear-gradient(135deg, #21120B 0%, #110B09 44%, #1A0E09 100%)",
-          spineBg:
-            "linear-gradient(90deg, #26140C 0%, #170D0A 60%, #1F110B 100%)",
+          surfaceBg: "#0B0B0D",
           ctaLabel:
             locale === "es"
               ? "Consultar esta modalidad"
@@ -152,7 +134,6 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
             locale === "es"
               ? "Charla directa por WhatsApp"
               : "Direct chat on WhatsApp",
-          exampleLabel: "ellik.studio",
           estimatedTime:
             locale === "es" ? "Según alcance" : "Scoped to project",
           focus: locale === "es" ? "A medida" : "Custom-built",
@@ -168,12 +149,9 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
         summary: plan.description,
         deliverables: plan.scopeItems,
         image: meta.image,
-        accent: meta.accent,
         surfaceBg: meta.surfaceBg,
-        spineBg: meta.spineBg,
         ctaLabel: meta.ctaLabel[locale],
         ctaSublabel: meta.ctaSublabel[locale],
-        exampleLabel: meta.exampleLabel,
         estimatedTime: meta.estimatedTime[locale],
         focus: meta.focus[locale],
         planKey: plan.fullTitle,
