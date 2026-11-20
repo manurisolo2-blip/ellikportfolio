@@ -34,27 +34,28 @@ interface ContactDrawerProps {
 
 const DRAWER_SCOPED_CSS = `
 .ellik-drawer-card-idle {
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-top-color: rgba(255, 255, 255, 0.22);
-  background: linear-gradient(160deg, rgba(244, 241, 234, 0.05), transparent 65%), #121216;
+  border: 1px solid rgba(244, 241, 234, 0.15);
+  background: linear-gradient(144deg, rgba(244, 241, 234, 0.09), transparent 65%), rgba(28, 28, 34, 0.42);
+  box-shadow: inset 0 1px 1px rgba(255, 252, 245, 0.24), inset 0 -1px 1px rgba(0, 0, 0, 0.28);
 }
 .ellik-drawer-card-idle:hover {
-  background: linear-gradient(160deg, rgba(244, 241, 234, 0.09), transparent 65%), #17171C;
+  border-color: rgba(244, 241, 234, 0.28);
+  background: linear-gradient(144deg, rgba(244, 241, 234, 0.15), transparent 65%), rgba(38, 38, 46, 0.54);
 }
 .ellik-drawer-field {
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-top-color: rgba(255, 255, 255, 0.24);
-  background: linear-gradient(160deg, rgba(244, 241, 234, 0.04), transparent 60%), #111115;
+  border: 1px solid rgba(244, 241, 234, 0.17);
+  background: linear-gradient(155deg, rgba(244, 241, 234, 0.07), transparent 60%), rgba(22, 22, 27, 0.46);
+  box-shadow: inset 0 1px 1px rgba(255, 252, 245, 0.2), inset 0 -1px 1px rgba(0, 0, 0, 0.34);
   color-scheme: dark;
 }
 .ellik-drawer-field:focus {
-  border-color: rgba(244, 241, 234, 0.75);
-  background: #16161B;
-  box-shadow: 0 0 0 3px rgba(244, 241, 234, 0.08);
+  border-color: rgba(244, 241, 234, 0.62);
+  background: linear-gradient(155deg, rgba(244, 241, 234, 0.12), transparent 60%), rgba(34, 34, 42, 0.6);
+  box-shadow: inset 0 1px 1px rgba(255, 252, 245, 0.38), 0 0 0 3px rgba(244, 241, 234, 0.1);
 }
 .ellik-drawer-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+  scrollbar-color: rgba(244, 241, 234, 0.18) transparent;
 }
 `;
 
@@ -201,17 +202,17 @@ export function ContactDrawer({
             aria-labelledby="contact-drawer-title"
             className="fixed inset-0 z-[60]"
           >
-            {/* Overlay sobrio para contraste uniforme sobre secciones oscuras y claras */}
+            {/* Overlay translúcido para refractar estrellas y secciones detrás del liquid glass */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.24 }}
               onClick={onClose}
-              className="fixed inset-0 bg-black/[0.65] backdrop-blur-[5px]"
+              className="fixed inset-0 bg-black/45 backdrop-blur-[6px]"
             />
 
-            {/* Panel flotante enmarcado recto alineado a la estética editorial de ELLIK */}
+            {/* Panel flotante en liquid glass biselado con ángulos rectos (0px) alineado a ELLIK */}
             <motion.aside
               data-lenis-prevent
               initial={
@@ -227,10 +228,15 @@ export function ContactDrawer({
               }
               transition={{ duration: 0.38, ease: DRAWER_EASE }}
               style={{
+                border: "1px solid rgba(244, 241, 234, 0.26)",
                 background:
-                  "linear-gradient(155deg, rgba(244, 241, 234, 0.07), transparent 28% 75%, rgba(244, 241, 234, 0.03)), rgba(10, 10, 13, 0.94)",
+                  "linear-gradient(148deg, rgba(244, 241, 234, 0.15), transparent 24% 74%, rgba(244, 241, 234, 0.07)), rgba(18, 18, 22, 0.58)",
+                boxShadow:
+                  "inset 1px 1px 1px rgba(255, 252, 245, 0.46), inset -1px -1px 1px rgba(5, 5, 8, 0.45), inset 0 0 14px rgba(244, 241, 234, 0.08), 0 24px 72px rgba(0, 0, 0, 0.62)",
+                backdropFilter: "blur(24px) saturate(1.38)",
+                WebkitBackdropFilter: "blur(24px) saturate(1.38)",
               }}
-              className="ellik-drawer-stage fixed inset-2.5 sm:inset-y-4 sm:right-4 sm:left-auto w-[calc(100%-20px)] sm:w-[min(510px,calc(100vw-32px))] z-10 overflow-hidden flex flex-col bg-[#0A0A0D]/[0.95] backdrop-blur-xl border border-white/[0.18] border-t-white/[0.28] shadow-[0_28px_80px_rgba(0,0,0,0.78)] text-[#F4F1EA]"
+              className="ellik-drawer-stage fixed inset-2.5 sm:inset-y-4 sm:right-4 sm:left-auto w-[calc(100%-20px)] sm:w-[min(510px,calc(100vw-32px))] z-10 overflow-hidden flex flex-col text-[#F4F1EA]"
             >
               <motion.div
                 className="relative z-10 flex flex-1 min-h-0 flex-col"
@@ -238,19 +244,19 @@ export function ContactDrawer({
                 initial="hidden"
                 animate="visible"
               >
-                {/* Barra superior enmarcada con emblema arquitectónico recto y cierre cuadrado */}
+                {/* Barra superior en liquid glass biselado con emblema cuadrado y cierre recto */}
                 <div className="shrink-0 px-3.5 pt-3.5 sm:px-7 sm:pt-6 pb-0">
                   <motion.div
                     variants={activeItemVariants}
                     data-drawer-topbar
-                    className="px-3.5 py-2.5 flex items-center justify-between border border-white/[0.16] border-t-white/[0.24] bg-[#121216]"
+                    className="px-3.5 py-2.5 flex items-center justify-between border border-[rgba(244,241,234,0.22)] bg-[rgba(244,241,234,0.06)] shadow-[inset_1px_1px_1px_rgba(255,252,245,0.34),inset_-1px_-1px_1px_rgba(0,0,0,0.34)]"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span
                         aria-hidden="true"
-                        className="w-6 h-6 border border-[#F4F1EA]/35 bg-[#F4F1EA]/[0.08] flex items-center justify-center shrink-0"
+                        className="w-6 h-6 border border-[rgba(244,241,234,0.34)] bg-[rgba(244,241,234,0.1)] shadow-[inset_1px_1px_1px_rgba(255,255,255,0.35)] flex items-center justify-center shrink-0"
                       >
-                        <span className="w-1.5 h-1.5 bg-[#F4F1EA]" />
+                        <span className="w-1.5 h-1.5 bg-[#F4F1EA] shadow-[0_0_8px_rgba(244,241,234,0.85)]" />
                       </span>
                       <span className="font-sans font-semibold text-[11px] uppercase tracking-[0.16em] text-[#F4F1EA]/90 truncate">
                         {locale === "es" ? "Contacto directo" : "Direct contact"}
@@ -267,14 +273,14 @@ export function ContactDrawer({
                           : "Close contact panel"
                       }
                       onClick={onClose}
-                      className="w-9 h-9 flex items-center justify-center border border-white/[0.18] bg-white/[0.04] hover:bg-[#F4F1EA] hover:text-[#050505] hover:border-[#F4F1EA] text-[#F4F1EA] transition-colors cursor-pointer shrink-0"
+                      className="w-9 h-9 flex items-center justify-center border border-[rgba(244,241,234,0.22)] bg-[rgba(244,241,234,0.08)] hover:bg-[rgba(244,241,234,0.18)] shadow-[inset_1px_1px_1px_rgba(255,252,245,0.28)] text-[#F4F1EA] transition-all cursor-pointer shrink-0"
                     >
                       <X size={15} strokeWidth={1.75} aria-hidden="true" />
                     </button>
                   </motion.div>
                 </div>
 
-                {/* Cuerpo scrolleable equilibrado con bandeja de rubros y campos táctiles */}
+                {/* Cuerpo scrolleable equilibrado con bandeja de rubros y campos de cristal */}
                 <div
                   data-lenis-prevent
                   className="ellik-drawer-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-3.5 sm:px-7 py-5 flex flex-col justify-between gap-5"
@@ -308,7 +314,7 @@ export function ContactDrawer({
                     {selectedPlan && (
                       <div
                         data-drawer-plan-chip
-                        className="inline-flex items-center gap-2 mt-3.5 px-3 py-1.5 border border-[#F4F1EA]/35 bg-[#F4F1EA]/[0.08] font-sans font-medium text-[11px] uppercase tracking-[0.12em] text-[#F4F1EA] max-w-full"
+                        className="inline-flex items-center gap-2 mt-3.5 px-3 py-1.5 border border-[rgba(244,241,234,0.32)] bg-[rgba(244,241,234,0.09)] shadow-[inset_0_1px_1px_rgba(255,252,245,0.28)] font-sans font-medium text-[11px] uppercase tracking-[0.12em] text-[#F4F1EA] max-w-full"
                       >
                         <span className="truncate">
                           {locale === "es" ? "Modalidad" : "Option"}:{" "}
@@ -334,7 +340,7 @@ export function ContactDrawer({
                     onSubmit={handleSendWhatsApp}
                     className="flex flex-col gap-5"
                   >
-                    {/* Selector de rubro en bandeja enmarcada con insignias cuadradas e íconos Lucide */}
+                    {/* Selector de rubro en bandeja de cristal + tarjetas rectas */}
                     <motion.div variants={activeItemVariants}>
                       <span className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#F4F1EA]/70 mb-2 block">
                         {locale === "es"
@@ -345,7 +351,7 @@ export function ContactDrawer({
                         <LayoutGroup id="contact-rubro-selector">
                           <div
                             data-drawer-rubro-tray
-                            className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1.5 border border-white/[0.16] bg-[#070709]"
+                            className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1.5 border border-[rgba(244,241,234,0.18)] bg-[rgba(244,241,234,0.05)] shadow-[inset_0_1px_1px_rgba(255,252,245,0.24),inset_0_-1px_1px_rgba(0,0,0,0.35)]"
                           >
                             {RUBRO_OPTIONS.map((option) => {
                               const active = rubro === option.value;
@@ -362,7 +368,7 @@ export function ContactDrawer({
                                   className={`min-w-0 p-2 sm:p-3 flex flex-col items-start gap-2.5 text-left transition-all duration-200 relative overflow-hidden cursor-pointer ${
                                     active
                                       ? "border border-transparent text-[#050505]"
-                                      : "ellik-drawer-card-idle text-[#D4D4D8] hover:text-white hover:border-white/35"
+                                      : "ellik-drawer-card-idle text-[#D4D4D8] hover:text-white"
                                   }`}
                                 >
                                   {active && (
@@ -373,7 +379,15 @@ export function ContactDrawer({
                                         stiffness: 440,
                                         damping: 34,
                                       }}
-                                      className="absolute inset-0 bg-[#F4F1EA] border border-white shadow-[0_10px_24px_-8px_rgba(244,241,234,0.3)]"
+                                      style={{
+                                        background:
+                                          "radial-gradient(ellipse at 12% -15%, rgba(255, 255, 255, 0.98), transparent 68%), linear-gradient(145deg, rgba(244, 241, 234, 0.96), rgba(220, 214, 203, 0.88))",
+                                        border:
+                                          "1px solid rgba(255, 255, 255, 0.9)",
+                                        boxShadow:
+                                          "inset 0 1px 2px rgba(255, 255, 255, 0.95), inset 0 -1px 1px rgba(0, 0, 0, 0.18), 0 10px 24px -6px rgba(244, 241, 234, 0.28)",
+                                      }}
+                                      className="absolute inset-0"
                                     />
                                   )}
 
@@ -381,8 +395,8 @@ export function ContactDrawer({
                                     <span
                                       className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center border shrink-0 transition-colors ${
                                         active
-                                          ? "bg-[#0B0B0D] border-[#0B0B0D] text-[#F4F1EA]"
-                                          : "bg-white/[0.06] border-white/[0.16] text-[#F4F1EA]/85"
+                                          ? "bg-[#0B0B0E]/[0.88] border-[#0B0B0E] text-[#F4F1EA] shadow-[inset_0_1px_1px_rgba(255,255,255,0.22)]"
+                                          : "bg-white/[0.08] border-white/[0.18] text-[#F4F1EA]/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]"
                                       }`}
                                     >
                                       <Icon
@@ -420,7 +434,7 @@ export function ContactDrawer({
                       </PresenceContext.Provider>
                     </motion.div>
 
-                    {/* Campos rectos y táctiles */}
+                    {/* Campos en cristal biselado */}
                     <motion.div
                       variants={activeItemVariants}
                       className="space-y-3.5"
@@ -495,13 +509,13 @@ export function ContactDrawer({
                       </div>
                     </motion.div>
 
-                    {/* CTA principal recto en papel cálido */}
+                    {/* CTA principal con bisel superior especular */}
                     <motion.div variants={activeItemVariants} className="pt-0.5">
                       <button
                         type="submit"
                         data-drawer-submit
                         data-cursor="action"
-                        className="w-full py-3.5 sm:py-4 px-6 bg-[#F4F1EA] hover:bg-white text-[#050505] font-sans font-bold text-[13px] sm:text-[13.5px] uppercase tracking-[0.12em] flex items-center justify-center gap-2.5 transition-all active:scale-[0.99] shadow-[0_12px_30px_-10px_rgba(244,241,234,0.3)] cursor-pointer group"
+                        className="w-full py-3.5 sm:py-4 px-6 bg-[#F4F1EA] hover:bg-white text-[#050505] font-sans font-bold text-[13px] sm:text-[13.5px] uppercase tracking-[0.12em] flex items-center justify-center gap-2.5 transition-all active:scale-[0.99] shadow-[inset_0_1px_1px_#FFFFFF,inset_0_-1px_1px_rgba(0,0,0,0.18),0_12px_30px_-8px_rgba(244,241,234,0.35)] cursor-pointer group"
                       >
                         <span>
                           {locale === "es"
@@ -522,15 +536,15 @@ export function ContactDrawer({
                   </form>
                 </div>
 
-                {/* Pie anclado dual-box enmarcado */}
+                {/* Pie anclado en cristal translúcido */}
                 <motion.div
                   variants={activeItemVariants}
-                  className="shrink-0 px-3.5 sm:px-7 py-4 border-t border-white/[0.14] bg-[#0D0D11] flex items-center justify-between gap-3"
+                  className="shrink-0 px-3.5 sm:px-7 py-4 border-t border-[rgba(244,241,234,0.14)] bg-[rgba(244,241,234,0.03)] flex items-center justify-between gap-3"
                 >
                   <a
                     href={`mailto:${ELLIK_CONFIG.email}`}
                     data-drawer-email-pill
-                    className="px-3 py-2 bg-[#141419] border border-white/[0.16] hover:border-white/35 text-[11.5px] sm:text-[12px] font-sans font-medium text-[#F4F1EA]/85 hover:text-white transition-colors truncate min-w-0"
+                    className="px-3 py-2 bg-[rgba(244,241,234,0.07)] hover:bg-[rgba(244,241,234,0.13)] border border-[rgba(244,241,234,0.18)] shadow-[inset_0_1px_0_rgba(255,252,245,0.22)] text-[11.5px] sm:text-[12px] font-sans font-medium text-[#F4F1EA]/85 hover:text-white transition-colors truncate min-w-0"
                   >
                     {ELLIK_CONFIG.email}
                   </a>
@@ -539,10 +553,10 @@ export function ContactDrawer({
                     type="button"
                     data-drawer-copy-email
                     onClick={handleCopyEmail}
-                    className={`px-3.5 py-2 border text-[11px] sm:text-[11.5px] font-sans font-semibold uppercase tracking-[0.12em] flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
+                    className={`px-3.5 py-2 border shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] text-[11px] sm:text-[11.5px] font-sans font-semibold uppercase tracking-[0.12em] flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
                       emailCopied
                         ? "border-[#F4F1EA] bg-[#F4F1EA] text-[#050505]"
-                        : "border-white/[0.22] bg-[#141419] hover:bg-white/[0.08] hover:border-white/45 text-[#F4F1EA]"
+                        : "border-[rgba(244,241,234,0.25)] bg-[rgba(244,241,234,0.12)] hover:bg-[rgba(244,241,234,0.2)] text-[#F4F1EA]"
                     }`}
                   >
                     {emailCopied ? (
