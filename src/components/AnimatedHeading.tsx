@@ -201,7 +201,7 @@ export function AnimatedHeading({
 
       {prefixWords.map((word, index) => (
         <span
-          key={`prefix-${index}-${word}`}
+          key={`prefix-${index}`}
           className="relative z-10 inline-block overflow-hidden align-bottom pb-[0.08em] mr-[0.26em]"
         >
           <motion.span
@@ -214,7 +214,7 @@ export function AnimatedHeading({
       ))}
       {accentWords.map((word, index) => (
         <span
-          key={`accent-${index}-${word}`}
+          key={`accent-${index}`}
           className={`relative z-10 inline-block overflow-hidden align-bottom pb-[0.08em] ${
             index < accentWords.length - 1 ? "mr-[0.26em]" : ""
           }`}

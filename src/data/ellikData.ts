@@ -1,3 +1,5 @@
+export type Locale = "es" | "en";
+
 export interface NavSection {
   id: string;
   label: string;
@@ -47,6 +49,24 @@ export const BUSINESS_CATEGORIES = [
 
 export type BusinessCategory = (typeof BUSINESS_CATEGORIES)[number];
 
+export const RUBRO_COPY: Record<
+  BusinessCategory,
+  Record<Locale, { cardLabel: string; whatsappLabel: string }>
+> = {
+  "Local Gastronómico": {
+    es: { cardLabel: "Gastronomía", whatsappLabel: "Local Gastronómico" },
+    en: { cardLabel: "Hospitality", whatsappLabel: "Food & Hospitality" },
+  },
+  "Tienda de Ropa": {
+    es: { cardLabel: "Indumentaria", whatsappLabel: "Tienda de Ropa" },
+    en: { cardLabel: "Apparel", whatsappLabel: "Apparel & Retail" },
+  },
+  "Institución / Otro": {
+    es: { cardLabel: "A medida", whatsappLabel: "Institución / Otro" },
+    en: { cardLabel: "Custom", whatsappLabel: "Custom / Institution" },
+  },
+};
+
 export const ELLIK_CONFIG = {
   brandName: "ELLIK",
   whatsappNumber: "5493571000000", // Reemplazar por número real con código de país sin +
@@ -61,6 +81,23 @@ export const NAV_SECTIONS: NavSection[] = [
   { id: "servicios", label: "Qué hago" },
   { id: "contacto", label: "Contacto" },
 ];
+
+export const NAV_SECTIONS_BY_LOCALE: Record<Locale, NavSection[]> = {
+  es: [
+    { id: "inicio", label: "Inicio" },
+    { id: "problema", label: "El problema" },
+    { id: "proyectos", label: "Obra" },
+    { id: "servicios", label: "Qué hago" },
+    { id: "contacto", label: "Contacto" },
+  ],
+  en: [
+    { id: "inicio", label: "Home" },
+    { id: "problema", label: "The Problem" },
+    { id: "proyectos", label: "Work" },
+    { id: "servicios", label: "Services" },
+    { id: "contacto", label: "Contact" },
+  ],
+};
 
 export const PAIN_POINTS: PainPoint[] = [
   {
@@ -210,3 +247,118 @@ export const INVESTMENT_PLANS: InvestmentPlan[] = [
     defaultRubro: "Institución / Otro",
   },
 ];
+
+export const MISSIONS_BY_LOCALE: Record<Locale, Mission[]> = {
+  es: MISSIONS,
+  en: [
+    {
+      id: "mojo-grille",
+      index: "01",
+      shortTitle: "Mojo Grille",
+      category: "Hospitality · Miami",
+      title: "Mojo Grille",
+      location: "Miami, FL",
+      description:
+        "Interactive site for a Cuban restaurant. The dish disassembles on scroll and guests send a complete order straight to WhatsApp—zero commission fees.",
+      highlight: "WhatsApp order builder",
+      liveUrl: "https://mojo-grille-demo.vercel.app/",
+      displayDomain: "mojo-grille-demo.vercel.app",
+      previewImage: "/previews/mojo-desktop.webp",
+      secondaryImage: "/previews/mojo-mobile.webp",
+      fallbackVariant: "gastro-1",
+    },
+    {
+      id: "dopamine",
+      index: "02",
+      shortTitle: "Dopamine",
+      category: "E-Commerce · Buenos Aires",
+      title: "Dopamine Streetwear",
+      location: "Buenos Aires, AR",
+      description:
+        "Streetwear storefront with instant size selection inside the catalog, automatic bank-transfer discounts, and a slide-out cart with zero page reloads.",
+      highlight: "2-tap mobile checkout",
+      liveUrl: "https://dopamine-three-omega.vercel.app/",
+      displayDomain: "dopamine-three-omega.vercel.app",
+      previewImage: "/previews/dopamine-desktop.webp",
+      secondaryImage: "/previews/dopamine-mobile.webp",
+      fallbackVariant: "ropa",
+    },
+    {
+      id: "lung-yai",
+      index: "03",
+      shortTitle: "Lung Yai",
+      category: "Michelin Guide · Miami",
+      title: "Lung Yai Thai Tapas",
+      location: "Calle Ocho, Miami",
+      description:
+        "Official site and digital menu for a Thai restaurant on Calle Ocho, built to open straight from Instagram with no heavy PDF files.",
+      highlight: "Instant bilingual menu",
+      liveUrl: "https://lungyai.vercel.app/",
+      displayDomain: "lungyai.vercel.app",
+      previewImage: "/previews/lungyai-desktop.webp",
+      secondaryImage: "/previews/lungyai-mobile.webp",
+      fallbackVariant: "gastro-2",
+    },
+    {
+      id: "deportistas-rio3",
+      index: "04",
+      shortTitle: "Sports Capital Portal",
+      category: "Institutional · Río Tercero",
+      title: "National Sports Capital",
+      location: "Río Tercero, Córdoba",
+      description:
+        "Interactive portal built for the City of Río Tercero, featuring live discipline search, Olympic athlete profiles, and a municipal sports archive.",
+      highlight: "Official municipal portal",
+      liveUrl: "https://deportistasrio3.vercel.app/",
+      displayDomain: "deportistasrio3.vercel.app",
+      previewImage: "/previews/rio3-desktop.webp",
+      secondaryImage: "/previews/rio3-mobile.webp",
+      fallbackVariant: "municipal",
+    },
+  ],
+};
+
+export const INVESTMENT_PLANS_BY_LOCALE: Record<Locale, InvestmentPlan[]> = {
+  es: INVESTMENT_PLANS,
+  en: [
+    {
+      code: "01",
+      title: "Ordering Web & Digital Menu",
+      fullTitle: "Ordering Web & Digital Menu",
+      description:
+        "For restaurants and food spots that want structured orders arriving on WhatsApp with zero mistakes or delays.",
+      scopeItems: [
+        "Interactive menu built to load fast on mobile",
+        "Automatic order builder straight to WhatsApp",
+        "Zero sales commissions or third-party platforms",
+      ],
+      defaultRubro: "Local Gastronómico",
+    },
+    {
+      code: "02",
+      title: "Catalog & Online Store",
+      fullTitle: "Catalog & Online Store",
+      description:
+        "For apparel brands and retail shops that need clear sizing, live stock, and direct mobile sales.",
+      scopeItems: [
+        "Instant size and category filters without page reloads",
+        "Automatic discount calculation and slide-out cart",
+        "Straightforward stock and pricing updates",
+      ],
+      defaultRubro: "Tienda de Ropa",
+    },
+    {
+      code: "03",
+      title: "Custom Web Development",
+      fullTitle: "Custom Web Development",
+      description:
+        "Institutional sites, portals, and bespoke web projects coded from scratch with tailored motion.",
+      scopeItems: [
+        "Custom institutional or multi-section architecture",
+        "Directories, live search, and custom integrations",
+        "Clean production code and direct developer support",
+      ],
+      defaultRubro: "Institución / Otro",
+    },
+  ],
+};

@@ -7,15 +7,16 @@ import {
   useSpring,
   useVelocity,
 } from "framer-motion";
+import { useLanguage, type Locale } from "@/context/LanguageContext";
 
-const MARQUEE_ITEMS = [
-  "DISEÑO A MEDIDA",
-  "ANIMACIÓN 3D",
-  "CÓDIGO PROPIO",
-  "PRODUCCIÓN",
-] as const;
+const MARQUEE_ITEMS_BY_LOCALE: Record<Locale, readonly string[]> = {
+  es: ["DISEÑO A MEDIDA", "ANIMACIÓN 3D", "CÓDIGO PROPIO", "PRODUCCIÓN"],
+  en: ["CUSTOM DESIGN", "3D MOTION", "CLEAN CODE", "PRODUCTION"],
+};
 
 export function VelocityMarquee() {
+  const { locale } = useLanguage();
+  const marqueeItems = MARQUEE_ITEMS_BY_LOCALE[locale];
   const containerRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const offsetPctRef = useRef<number>(0);
@@ -87,7 +88,7 @@ export function VelocityMarquee() {
   return (
     <div
       ref={containerRef}
-      aria-label="Capacidades de estudio"
+      aria-label={locale === "es" ? "Capacidades de estudio" : "Studio capabilities"}
       className="relative w-full border-y border-white/15 py-5 overflow-hidden bg-[#050505] select-none"
     >
       <div
@@ -102,7 +103,7 @@ export function VelocityMarquee() {
           >
             {[0, 1, 2].map((repeatIdx) => (
               <React.Fragment key={`${copyIdx}-${repeatIdx}`}>
-                {MARQUEE_ITEMS.map((item, itemIdx) => (
+                {marqueeItems.map((item, itemIdx) => (
                   <span
                     key={`${copyIdx}-${repeatIdx}-${itemIdx}`}
                     className="font-display text-4xl md:text-6xl font-medium uppercase tracking-[-0.02em] text-white/90 whitespace-nowrap pr-14 md:pr-20"

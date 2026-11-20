@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { LanguageProvider } from "@/context/LanguageContext";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { TabTitleManager } from "@/components/TabTitleManager";
 import { TubesCursor } from "@/components/ui/tubes-cursor";
@@ -49,10 +50,12 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-[var(--bg-void)] text-[var(--text-primary)] antialiased">
-        <TabTitleManager />
-        <TubesCursor />
+        <LanguageProvider>
+          <TabTitleManager />
+          <TubesCursor />
 
-        <SmoothScroll>{children}</SmoothScroll>
+          <SmoothScroll>{children}</SmoothScroll>
+        </LanguageProvider>
       </body>
     </html>
   );

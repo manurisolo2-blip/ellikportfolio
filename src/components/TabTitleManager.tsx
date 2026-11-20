@@ -1,10 +1,17 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
 export function TabTitleManager() {
+  const { locale } = useLanguage();
+  const localeRef = useRef(locale);
   const wasHiddenRef = useRef<boolean>(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    localeRef.current = locale;
+  }, [locale]);
 
   useEffect(() => {
     const clearPending = () => {
@@ -15,14 +22,15 @@ export function TabTitleManager() {
     };
 
     const handleVisibilityChange = () => {
+      const lang = localeRef.current;
       if (document.hidden) {
         clearPending();
         wasHiddenRef.current = true;
-        document.title = "Come Back · ellik";
+        document.title = lang === "es" ? "Volvé · ellik" : "Come Back · ellik";
       } else if (wasHiddenRef.current) {
         clearPending();
         wasHiddenRef.current = false;
-        document.title = "Welcome Back · ellik";
+        document.title = lang === "es" ? "Bienvenido · ellik" : "Welcome Back · ellik";
         timeoutRef.current = setTimeout(() => {
           document.title = "ellik";
           timeoutRef.current = null;

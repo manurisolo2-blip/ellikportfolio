@@ -8,7 +8,12 @@ import React, {
   useState,
 } from "react";
 import { Activity, CircleDot, Compass, Layers, Orbit, Send } from "lucide-react";
-import { NAV_SECTIONS, type BusinessCategory } from "@/data/ellikData";
+import {
+  NAV_SECTIONS,
+  NAV_SECTIONS_BY_LOCALE,
+  type BusinessCategory,
+} from "@/data/ellikData";
+import { useLanguage, type Locale } from "@/context/LanguageContext";
 import { MagneticButton } from "./AnimatedHeading";
 import { EllikLogo } from "./EllikLogo";
 import {
@@ -23,45 +28,38 @@ interface FixedFrameNavProps {
 
 const ICON_PROPS = { size: 18, strokeWidth: 1.7 } as const;
 
-function buildNavItemMeta(sectionId: string, fallbackLabel: string): {
-  label: string;
+function buildNavItemIcon(sectionId: string): {
   icon: React.ReactNode;
   fx: LiquidNavFx;
 } {
   switch (sectionId) {
     case "inicio":
       return {
-        label: "Inicio",
         icon: <Orbit {...ICON_PROPS} />,
         fx: "spin",
       };
     case "problema":
       return {
-        label: "El problema",
         icon: <Activity {...ICON_PROPS} />,
         fx: "pop",
       };
     case "proyectos":
       return {
-        label: "Obra",
         icon: <Layers {...ICON_PROPS} />,
         fx: "pop",
       };
     case "servicios":
       return {
-        label: "Qué hago",
         icon: <Compass {...ICON_PROPS} />,
         fx: "drop",
       };
     case "contacto":
       return {
-        label: "Contacto",
         icon: <Send {...ICON_PROPS} />,
         fx: "plane",
       };
     default:
       return {
-        label: fallbackLabel,
         icon: <CircleDot {...ICON_PROPS} />,
         fx: "pop",
       };
@@ -69,6 +67,7 @@ function buildNavItemMeta(sectionId: string, fallbackLabel: string): {
 }
 
 export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
+  const { locale, setLocale } = useLanguage();
   const [activeId, setActiveId] = useState<string>(NAV_SECTIONS[0].id);
   const [isOverLightSection, setIsOverLightSection] = useState<boolean>(false);
   const [isDesktopNav, setIsDesktopNav] = useState<boolean | null>(null);
@@ -81,16 +80,16 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
 
   const navItems = useMemo<LiquidNavItem[]>(
     () =>
-      NAV_SECTIONS.map((section) => {
-        const meta = buildNavItemMeta(section.id, section.label);
+      NAV_SECTIONS_BY_LOCALE[locale].map((section) => {
+        const meta = buildNavItemIcon(section.id);
         return {
           id: section.id,
-          label: meta.label,
+          label: section.label,
           icon: meta.icon,
           fx: meta.fx,
         };
       }),
-    []
+    [locale]
   );
 
   const activeIndex = useMemo(() => {
@@ -344,19 +343,51 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
           e.preventDefault();
           scrollToSection("inicio");
         }}
-        aria-label="ELLIK — Volver al inicio"
-        className="fixed top-4 left-6 lg:top-8 lg:left-10 z-[48] inline-flex min-h-[44px] items-center text-white mix-blend-difference transition-opacity hover:opacity-80"
+        aria-label={
+          locale === "es" ? "ELLIK — Volver al inicio" : "ELLIK — Back to top"
+        }
+        className="fixed top-4 left-4 sm:left-6 lg:top-8 lg:left-10 z-[48] inline-flex min-h-[44px] items-center text-white mix-blend-difference transition-opacity hover:opacity-80"
       >
         <EllikLogo />
       </a>
 
-      {/* Esquina Superior Derecha: Acción magnética de contacto directo */}
-      <div className="fixed top-4 right-6 lg:top-8 lg:right-10 z-[48] mix-blend-difference text-white">
+      {/* Esquina Superior Derecha: Selector ES | EN + Acción magnética de contacto directo */}
+      <div className="fixed top-4 right-4 sm:right-6 lg:top-8 lg:right-10 z-[48] mix-blend-difference text-white flex items-center gap-1.5 sm:gap-2.5">
+        <div
+          role="group"
+          data-lang-switcher
+          aria-label={
+            locale === "es" ? "Selector de idioma" : "Language switcher"
+          }
+          className="inline-flex min-h-[44px] items-center border border-white/35 p-0.5"
+        >
+          {(["es", "en"] as const satisfies readonly Locale[]).map((code) => {
+            const active = locale === code;
+            return (
+              <button
+                key={code}
+                type="button"
+                data-lang-btn={code}
+                data-cursor="action"
+                aria-pressed={active}
+                onClick={() => setLocale(code)}
+                className={`h-[38px] px-2 sm:px-2.5 inline-flex items-center justify-center font-sans text-[10px] sm:text-[11px] tracking-[0.12em] uppercase transition-colors duration-200 cursor-pointer ${
+                  active
+                    ? "bg-white text-black font-semibold"
+                    : "bg-transparent text-white/60 hover:text-white font-medium"
+                }`}
+              >
+                {code.toUpperCase()}
+              </button>
+            );
+          })}
+        </div>
+
         <MagneticButton
           onClick={() => onOpenDrawer()}
-          className="inline-flex min-h-[44px] items-center border border-white/35 bg-transparent px-4 py-2.5 font-sans font-medium text-[11px] tracking-[0.18em] uppercase text-white transition-colors duration-200 hover:border-white"
+          className="inline-flex min-h-[44px] items-center border border-white/35 bg-transparent px-2.5 sm:px-4 py-2.5 font-sans font-medium text-[10px] sm:text-[11px] tracking-[0.08em] sm:tracking-[0.18em] uppercase text-white whitespace-nowrap transition-colors duration-200 hover:border-white"
         >
-          INICIAR CONTACTO ↗
+          {locale === "es" ? "INICIAR CONTACTO ↗" : "START PROJECT ↗"}
         </MagneticButton>
       </div>
 
@@ -374,7 +405,9 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
             tone={isOverLightSection ? "light" : "dark"}
             compact={true}
             sound={false}
-            ariaLabel="Navegación principal"
+            ariaLabel={
+              locale === "es" ? "Navegación principal" : "Main navigation"
+            }
           />
         </div>
       )}
@@ -393,7 +426,9 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
             tone={isOverLightSection ? "light" : "dark"}
             compact={true}
             sound={false}
-            ariaLabel="Navegación principal"
+            ariaLabel={
+              locale === "es" ? "Navegación principal" : "Main navigation"
+            }
           />
         </div>
       )}

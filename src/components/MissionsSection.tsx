@@ -9,7 +9,8 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
-import { MISSIONS } from "@/data/ellikData";
+import { MISSIONS, MISSIONS_BY_LOCALE } from "@/data/ellikData";
+import { useLanguage } from "@/context/LanguageContext";
 import { WarpCarousel, type WarpCard } from "@/components/ui/warp-carousel";
 
 const MISSIONS_SCOPED_CSS = `
@@ -53,12 +54,14 @@ const PROJECT_CARD_META: Record<string, ProjectCardVisualMeta> = {
 };
 
 export function MissionsSection() {
+  const { locale } = useLanguage();
+  const missions = MISSIONS_BY_LOCALE[locale];
   const sectionRef = useRef<HTMLElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const safeIndex =
-    activeIndex >= 0 && activeIndex < MISSIONS.length ? activeIndex : 0;
-  const activeMission = MISSIONS[safeIndex];
+    activeIndex >= 0 && activeIndex < missions.length ? activeIndex : 0;
+  const activeMission = missions[safeIndex];
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -201,12 +204,12 @@ export function MissionsSection() {
           {/* Encabezado compacto dentro del escenario fullscreen */}
           <header className="relative z-20 shrink-0 flex items-center justify-between gap-3 sm:gap-4 border-b border-white/10 bg-[#050505]/95 pt-[76px] lg:pt-[92px] pb-3.5 md:pb-4 px-5 sm:pl-28 sm:pr-10 lg:pl-32 lg:pr-28 xl:pl-36 xl:pr-32">
             <h2 className="font-display text-[21px] sm:text-3xl md:text-4xl font-semibold tracking-[-0.015em] [word-spacing:0.06em] text-white leading-none whitespace-nowrap">
-              Obra reciente.
+              {locale === "es" ? "Obra reciente." : "Selected work."}
             </h2>
 
             <div className="flex items-center gap-3 sm:gap-5 shrink-0">
               <span className="hidden xl:inline text-[11px] font-sans text-white/35 mr-2">
-                Deslizá o elegí
+                {locale === "es" ? "Deslizá o elegí" : "Drag or pick"}
               </span>
 
               <div
@@ -228,7 +231,7 @@ export function MissionsSection() {
                   </AnimatePresence>
                 </span>
                 <span className="font-sans text-xs text-white/35 tabular-nums ml-1 whitespace-nowrap shrink-0">
-                  / {String(MISSIONS.length).padStart(2, "0")}
+                  / {String(missions.length).padStart(2, "0")}
                 </span>
               </div>
 
@@ -237,7 +240,9 @@ export function MissionsSection() {
                   type="button"
                   data-missions-prev
                   data-cursor="action"
-                  aria-label="Proyecto anterior"
+                  aria-label={
+                    locale === "es" ? "Proyecto anterior" : "Previous project"
+                  }
                   onClick={handlePrev}
                   className="ellik-missions-pill w-9 h-9 rounded-full border border-white/15 bg-white/[0.02] hover:border-white/50 hover:bg-white/[0.08] flex items-center justify-center text-white/80 hover:text-white transition-all cursor-pointer"
                 >
@@ -247,7 +252,9 @@ export function MissionsSection() {
                   type="button"
                   data-missions-next
                   data-cursor="action"
-                  aria-label="Proyecto siguiente"
+                  aria-label={
+                    locale === "es" ? "Proyecto siguiente" : "Next project"
+                  }
                   onClick={handleNext}
                   className="ellik-missions-pill w-9 h-9 rounded-full border border-white/15 bg-white/[0.02] hover:border-white/50 hover:bg-white/[0.08] flex items-center justify-center text-white/80 hover:text-white transition-all cursor-pointer"
                 >
@@ -272,7 +279,11 @@ export function MissionsSection() {
               warp={0.65}
               className="h-full w-full"
               style={{ minHeight: 280, aspectRatio: "auto" }}
-              ariaLabel="Proyectos seleccionados de ELLIK"
+              ariaLabel={
+                locale === "es"
+                  ? "Proyectos seleccionados de ELLIK"
+                  : "Selected projects by ELLIK"
+              }
             />
           </div>
 
@@ -327,7 +338,9 @@ export function MissionsSection() {
                   className="pointer-events-none absolute inset-0 bg-[#F4F1EA] translate-y-[102%] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-y-0 group-focus-visible/btn:translate-y-0"
                 />
                 <span className="relative z-10 inline-flex items-center gap-2.5 whitespace-nowrap transition-colors duration-300 group-hover/btn:text-[#050505] group-focus-visible/btn:text-[#050505]">
-                  <span>VISITAR SITIO EN VIVO</span>
+                  <span>
+                    {locale === "es" ? "VISITAR SITIO EN VIVO" : "VISIT LIVE SITE"}
+                  </span>
                   <ArrowUpRight className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
                 </span>
               </a>

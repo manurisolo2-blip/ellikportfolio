@@ -15,9 +15,11 @@ import {
 } from "framer-motion";
 import {
   MISSIONS,
+  MISSIONS_BY_LOCALE,
   type BusinessCategory,
   type Mission,
 } from "@/data/ellikData";
+import { useLanguage } from "@/context/LanguageContext";
 import { MagneticButton } from "./AnimatedHeading";
 
 const EllikEmblem3D = dynamic(
@@ -251,6 +253,8 @@ function computeScreenFrame(
 }
 
 export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
+  const { locale } = useLanguage();
+  const localizedMissions = MISSIONS_BY_LOCALE[locale];
   const sectionRef = useRef<HTMLElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const screenRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -559,7 +563,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
   };
 
   const hoveredMission =
-    hoveredIndex !== null ? ORBIT_SCREENS[hoveredIndex]?.mission ?? null : null;
+    hoveredIndex !== null ? localizedMissions[hoveredIndex] ?? null : null;
 
   return (
     <section
@@ -610,13 +614,17 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
               </h1>
 
               <p className="mt-3 font-display font-normal not-italic text-lg sm:text-xl md:text-2xl tracking-[0.04em] text-[#F4F1EA]/85 drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
-                Tu negocio en órbita.
+                {locale === "es"
+                  ? "Tu negocio en órbita."
+                  : "Your business in orbit."}
               </p>
             </motion.div>
 
             {/* B. LIENZOS 3D FLOTANTES SIN MARCO PESADO NI PIE DE TEXTO */}
             {ORBIT_SCREENS.map((screen, idx) => {
               const isHovered = hoveredIndex === idx;
+              const localizedMission =
+                localizedMissions[idx] ?? screen.mission;
               const initialFrame = computeScreenFrame(
                 screen,
                 INITIAL_ORBIT_ANGLE,
@@ -647,7 +655,11 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
                       handleScreenClick(screen.mission.id);
                     }
                   }}
-                  aria-label={`${screen.mission.title} — Ir al proyecto`}
+                  aria-label={
+                    locale === "es"
+                      ? `${localizedMission.title} — Ir al proyecto`
+                      : `${localizedMission.title} — View project`
+                  }
                   style={{
                     transform: initialFrame.transform,
                     zIndex: initialFrame.zIndex,
@@ -713,15 +725,18 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
       {/* C. Cierre del Hero */}
       <div className="relative z-30 flex flex-col items-center text-center pt-2">
         <p className="font-sans text-sm md:text-base text-[#A1A1AA] max-w-lg text-center leading-relaxed">
-          Diseño y desarrollo web a medida — Desde Córdoba para cualquier
-          ciudad.
+          {locale === "es"
+            ? "Diseño y desarrollo web a medida — Desde Córdoba para cualquier ciudad."
+            : "Custom web design & development — From Córdoba to any city."}
         </p>
 
         <MagneticButton
           onClick={() => onOpenDrawer()}
           className="mt-7 inline-flex min-h-[44px] items-center border border-[rgba(255,255,255,0.28)] bg-transparent px-7 py-3.5 font-sans text-sm font-medium tracking-[0.02em] text-[#FFFFFF] transition-colors duration-200 hover:border-[#FFFFFF]"
         >
-          Hablemos de tu web ↗
+          {locale === "es"
+            ? "Hablemos de tu web ↗"
+            : "Let's talk about your site ↗"}
         </MagneticButton>
       </div>
     </section>

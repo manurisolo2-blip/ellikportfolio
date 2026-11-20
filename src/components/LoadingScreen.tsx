@@ -2,12 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/context/LanguageContext";
 
 const TOTAL_DURATION_MS = 2300;
 const PROGRESS_RADIUS = 68;
 const PROGRESS_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RADIUS;
 
 export function LoadingScreen() {
+  const { locale } = useLanguage();
   const [progress, setProgress] = useState<number>(0);
   const [shockwaveActive, setShockwaveActive] = useState<boolean>(false);
   const [curtainsOpen, setCurtainsOpen] = useState<boolean>(false);
@@ -76,7 +78,7 @@ export function LoadingScreen() {
   return (
     <div
       aria-live="polite"
-      aria-label="Cargando sitio ELLIK"
+      aria-label={locale === "es" ? "Cargando sitio ELLIK" : "Loading ELLIK studio"}
       className="fixed inset-0 z-[100] select-none"
     >
       {/* Dos cortinas horizontales negras */}

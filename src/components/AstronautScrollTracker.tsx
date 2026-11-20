@@ -9,6 +9,7 @@ import {
   useMotionValueEvent,
   useScroll,
 } from "framer-motion";
+import { useLanguage } from "@/context/LanguageContext";
 
 const CLICK_STAR_ANGLES = [0, 58, 122, 180, 238, 302] as const;
 const ROPE_NODES = 8;
@@ -69,6 +70,12 @@ function clampEllipse(dx: number, dy: number, rx: number, ry: number) {
 }
 
 export function AstronautScrollTracker() {
+  const { locale } = useLanguage();
+  const localeRef = useRef(locale);
+  useEffect(() => {
+    localeRef.current = locale;
+  }, [locale]);
+
   const trackRef = useRef<HTMLDivElement | null>(null);
   const cablePathRef = useRef<SVGPathElement | null>(null);
   const cableAnchorRef = useRef<SVGCircleElement | null>(null);
@@ -375,7 +382,9 @@ export function AstronautScrollTracker() {
       lastAriaPctRef.current = nextPct;
       buttonRef.current.setAttribute(
         "aria-label",
-        `Astronauta editorial: ${nextPct}% del recorrido`
+        localeRef.current === "es"
+          ? `Astronauta editorial: ${nextPct}% del recorrido`
+          : `Editorial astronaut: ${nextPct}% scroll progress`
       );
     }
   });

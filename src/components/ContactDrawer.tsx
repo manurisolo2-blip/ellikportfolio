@@ -18,7 +18,12 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { ELLIK_CONFIG, type BusinessCategory } from "@/data/ellikData";
+import {
+  ELLIK_CONFIG,
+  RUBRO_COPY,
+  type BusinessCategory,
+} from "@/data/ellikData";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface ContactDrawerProps {
   isOpen: boolean;
@@ -76,12 +81,11 @@ const DRAWER_SCOPED_CSS = `
 
 const RUBRO_OPTIONS: {
   value: BusinessCategory;
-  label: string;
   Icon: LucideIcon;
 }[] = [
-  { value: "Local Gastronómico", label: "Gastronomía", Icon: Utensils },
-  { value: "Tienda de Ropa", label: "Indumentaria", Icon: ShoppingBag },
-  { value: "Institución / Otro", label: "A medida", Icon: Building2 },
+  { value: "Local Gastronómico", Icon: Utensils },
+  { value: "Tienda de Ropa", Icon: ShoppingBag },
+  { value: "Institución / Otro", Icon: Building2 },
 ];
 
 const DRAWER_EASE = [0.16, 1, 0.3, 1] as const;
@@ -123,6 +127,7 @@ export function ContactDrawer({
   initialRubro = "Local Gastronómico",
   initialPlan = "",
 }: ContactDrawerProps) {
+  const { locale } = useLanguage();
   const [rubro, setRubro] = useState<BusinessCategory>(initialRubro);
   const [selectedPlan, setSelectedPlan] = useState<string>(initialPlan);
   const [name, setName] = useState<string>("");
@@ -159,17 +164,32 @@ export function ContactDrawer({
 
   const handleSendWhatsApp = (e: React.FormEvent) => {
     e.preventDefault();
+    const rubroLabel = RUBRO_COPY[rubro][locale].whatsappLabel;
 
-    const lines = [
-      `Hola ELLIK, te escribo desde la web para coordinar un diagnóstico.`,
-      `• Rubro: ${rubro}`,
-      selectedPlan ? `• Modalidad de interés: ${selectedPlan}` : null,
-      name.trim() ? `• Nombre: ${name.trim()}` : null,
-      businessAndCity.trim()
-        ? `• Negocio y ciudad: ${businessAndCity.trim()}`
-        : null,
-      need.trim() ? `• Qué necesito resolver hoy: ${need.trim()}` : null,
-    ].filter(Boolean);
+    const lines =
+      locale === "es"
+        ? [
+            `Hola ELLIK, te escribo desde la web para coordinar un diagnóstico.`,
+            `• Rubro: ${rubroLabel}`,
+            selectedPlan ? `• Modalidad de interés: ${selectedPlan}` : null,
+            name.trim() ? `• Nombre: ${name.trim()}` : null,
+            businessAndCity.trim()
+              ? `• Negocio y ciudad: ${businessAndCity.trim()}`
+              : null,
+            need.trim()
+              ? `• Qué necesito resolver hoy: ${need.trim()}`
+              : null,
+          ].filter(Boolean)
+        : [
+            `Hi ELLIK, I'm reaching out from your website to schedule a review.`,
+            `• Category: ${rubroLabel}`,
+            selectedPlan ? `• Interested option: ${selectedPlan}` : null,
+            name.trim() ? `• Name: ${name.trim()}` : null,
+            businessAndCity.trim()
+              ? `• Business & city: ${businessAndCity.trim()}`
+              : null,
+            need.trim() ? `• What I need today: ${need.trim()}` : null,
+          ].filter(Boolean);
 
     const whatsappUrl = `https://wa.me/${
       ELLIK_CONFIG.whatsappNumber
@@ -263,7 +283,7 @@ export function ContactDrawer({
                         }}
                       />
                       <span className="font-sans font-semibold text-[11px] uppercase tracking-[0.14em] text-[#FFF6E9]/90 truncate">
-                        Contacto directo
+                        {locale === "es" ? "Contacto directo" : "Direct contact"}
                       </span>
                     </div>
 
@@ -271,7 +291,11 @@ export function ContactDrawer({
                       type="button"
                       data-drawer-close
                       data-cursor="action"
-                      aria-label="Cerrar panel de contacto"
+                      aria-label={
+                        locale === "es"
+                          ? "Cerrar panel de contacto"
+                          : "Close contact panel"
+                      }
                       onClick={onClose}
                       className="ellik-drawer-pill w-9 h-9 rounded-full flex items-center justify-center border border-[rgba(255,240,224,0.2)] bg-[rgba(255,244,232,0.08)] hover:bg-[rgba(255,244,232,0.16)] text-[#FFF6E9] transition-all cursor-pointer shrink-0"
                     >
@@ -291,12 +315,25 @@ export function ContactDrawer({
                       id="contact-drawer-title"
                       className="font-display font-medium text-[28px] sm:text-[36px] leading-[1.04] tracking-[-0.02em] [word-spacing:0.05em]"
                     >
-                      <span className="text-[#FFF8EE]">Contame sobre</span>{" "}
-                      <span className="text-[#E5D5C7]/60">tu negocio.</span>
+                      {locale === "es" ? (
+                        <>
+                          <span className="text-[#FFF8EE]">Contame sobre</span>{" "}
+                          <span className="text-[#E5D5C7]/60">tu negocio.</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-[#FFF8EE]">Tell me about</span>{" "}
+                          <span className="text-[#E5D5C7]/60">
+                            your business.
+                          </span>
+                        </>
+                      )}
                     </h2>
 
                     <p className="font-sans text-[13px] text-[#E5D5C7]/75 mt-2 leading-relaxed">
-                      Dejame estos datos y abrimos la charla directo en WhatsApp.
+                      {locale === "es"
+                        ? "Dejame estos datos y abrimos la charla directo en WhatsApp."
+                        : "Share a few details and we'll continue directly on WhatsApp."}
                     </p>
 
                     {selectedPlan && (
@@ -304,10 +341,17 @@ export function ContactDrawer({
                         data-drawer-plan-chip
                         className="ellik-drawer-pill bg-[#1e7461]/25 border border-[#75dac0]/35 text-[#b8f1dd] text-[11px] font-sans font-medium px-3 py-1 rounded-full inline-flex items-center gap-1.5 mt-3 max-w-full"
                       >
-                        <span className="truncate">Modalidad: {selectedPlan}</span>
+                        <span className="truncate">
+                          {locale === "es" ? "Modalidad" : "Option"}:{" "}
+                          {selectedPlan}
+                        </span>
                         <button
                           type="button"
-                          aria-label="Quitar modalidad"
+                          aria-label={
+                            locale === "es"
+                              ? "Quitar modalidad"
+                              : "Remove option"
+                          }
                           onClick={() => setSelectedPlan("")}
                           className="shrink-0 text-[#b8f1dd]/75 hover:text-white transition-colors cursor-pointer"
                         >
@@ -324,7 +368,9 @@ export function ContactDrawer({
                     {/* Selector de rubro anidado en bandeja de cristal + tarjeta activa verde petróleo */}
                     <motion.div variants={activeItemVariants}>
                       <span className="font-sans font-semibold text-[11px] uppercase tracking-[0.12em] text-[#E5D5C7]/65 mb-2 block">
-                        Rubro de tu proyecto
+                        {locale === "es"
+                          ? "Rubro de tu proyecto"
+                          : "Project category"}
                       </span>
                       <PresenceContext.Provider value={null}>
                         <LayoutGroup id="contact-rubro-selector">
@@ -335,6 +381,8 @@ export function ContactDrawer({
                             {RUBRO_OPTIONS.map((option) => {
                               const active = rubro === option.value;
                               const Icon = option.Icon;
+                              const label =
+                                RUBRO_COPY[option.value][locale].cardLabel;
                               return (
                                 <button
                                   key={option.value}
@@ -391,7 +439,7 @@ export function ContactDrawer({
                                         : "font-medium"
                                     }`}
                                   >
-                                    {option.label}
+                                    {label}
                                   </span>
                                 </button>
                               );
@@ -412,14 +460,18 @@ export function ContactDrawer({
                             htmlFor="ellik-name"
                             className="font-sans font-semibold text-[11px] uppercase tracking-[0.12em] text-[#E5D5C7]/65 mb-2 block"
                           >
-                            Tu nombre
+                            {locale === "es" ? "Tu nombre" : "Your name"}
                           </label>
                           <input
                             id="ellik-name"
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="Ej. Martín Gómez"
+                            placeholder={
+                              locale === "es"
+                                ? "Ej. Martín Gómez"
+                                : "e.g. Alex Morgan"
+                            }
                             className="ellik-drawer-field w-full rounded-[15px] px-3.5 py-3 font-sans text-[13.5px] text-[#FFF8EE] placeholder:text-[#E5D5C7]/45 outline-none transition-all"
                           />
                         </div>
@@ -429,14 +481,20 @@ export function ContactDrawer({
                             htmlFor="ellik-business"
                             className="font-sans font-semibold text-[11px] uppercase tracking-[0.12em] text-[#E5D5C7]/65 mb-2 block"
                           >
-                            Negocio y ciudad
+                            {locale === "es"
+                              ? "Negocio y ciudad"
+                              : "Business & city"}
                           </label>
                           <input
                             id="ellik-business"
                             type="text"
                             value={businessAndCity}
                             onChange={(e) => setBusinessAndCity(e.target.value)}
-                            placeholder="Ej. Pizzería Sur — Río Tercero"
+                            placeholder={
+                              locale === "es"
+                                ? "Ej. Pizzería Sur — Río Tercero"
+                                : "e.g. Mojo Grille — Miami"
+                            }
                             className="ellik-drawer-field w-full rounded-[15px] px-3.5 py-3 font-sans text-[13.5px] text-[#FFF8EE] placeholder:text-[#E5D5C7]/45 outline-none transition-all"
                           />
                         </div>
@@ -447,14 +505,20 @@ export function ContactDrawer({
                           htmlFor="ellik-need"
                           className="font-sans font-semibold text-[11px] uppercase tracking-[0.12em] text-[#E5D5C7]/65 mb-2 block"
                         >
-                          ¿Qué necesitás resolver hoy? (opcional)
+                          {locale === "es"
+                            ? "¿Qué necesitás resolver hoy? (opcional)"
+                            : "What do you need to build? (optional)"}
                         </label>
                         <textarea
                           id="ellik-need"
                           rows={3}
                           value={need}
                           onChange={(e) => setNeed(e.target.value)}
-                          placeholder="Ej. Recibir pedidos sin audios eternos los viernes a la noche..."
+                          placeholder={
+                            locale === "es"
+                              ? "Ej. Recibir pedidos sin audios eternos los viernes a la noche..."
+                              : "e.g. Take direct orders on WhatsApp without back-and-forth messages..."
+                          }
                           className="ellik-drawer-field w-full resize-none rounded-[15px] px-3.5 py-3 font-sans text-[13.5px] text-[#FFF8EE] placeholder:text-[#E5D5C7]/45 outline-none transition-all"
                         />
                       </div>
@@ -468,15 +532,20 @@ export function ContactDrawer({
                         data-cursor="action"
                         className="ellik-drawer-pill w-full rounded-full py-3.5 px-6 bg-[#F4F1EA] hover:brightness-105 text-[#181514] font-sans font-bold text-[13.5px] flex items-center justify-center gap-2 transition-all active:scale-[0.985] shadow-[inset_0_1px_1px_#FFFFFF,0_10px_28px_-8px_rgba(244,241,234,0.35)] cursor-pointer group"
                       >
-                        <span>Continuar en WhatsApp</span>
+                        <span>
+                          {locale === "es"
+                            ? "Continuar en WhatsApp"
+                            : "Continue on WhatsApp"}
+                        </span>
                         <ArrowUpRight
                           className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                           aria-hidden="true"
                         />
                       </button>
                       <p className="text-[11px] text-[#E5D5C7]/55 text-center mt-2.5 font-sans">
-                        Se abre WhatsApp con tu consulta ya redactada · Respuesta
-                        directa.
+                        {locale === "es"
+                          ? "Se abre WhatsApp con tu consulta ya redactada · Respuesta directa."
+                          : "Opens WhatsApp with your message pre-filled · Direct reply."}
                       </p>
                     </motion.div>
                   </form>
@@ -508,12 +577,16 @@ export function ContactDrawer({
                     {emailCopied ? (
                       <>
                         <Check size={12} aria-hidden="true" />
-                        <span>Copiado ✓</span>
+                        <span>
+                          {locale === "es" ? "Copiado ✓" : "Copied ✓"}
+                        </span>
                       </>
                     ) : (
                       <>
                         <Copy size={12} aria-hidden="true" />
-                        <span>Copiar mail</span>
+                        <span>
+                          {locale === "es" ? "Copiar mail" : "Copy email"}
+                        </span>
                       </>
                     )}
                   </button>

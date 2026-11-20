@@ -10,17 +10,21 @@ import {
   useTransform,
   type MotionValue,
 } from "framer-motion";
+import { useLanguage, type Locale } from "@/context/LanguageContext";
 
 interface ProblemCardData {
   id: string;
-  title: string;
+  title: Record<Locale, string>;
   renderSketch: () => React.ReactNode;
 }
 
 const PROBLEM_CARDS: readonly ProblemCardData[] = [
   {
     id: "visitas-sin-pedidos",
-    title: "MUCHAS VISITAS, POCOS PEDIDOS",
+    title: {
+      es: "MUCHAS VISITAS, POCOS PEDIDOS",
+      en: "HIGH TRAFFIC, FEW ORDERS",
+    },
     renderSketch: () => (
       <svg
         viewBox="0 0 180 120"
@@ -84,7 +88,10 @@ const PROBLEM_CARDS: readonly ProblemCardData[] = [
   },
   {
     id: "whatsapp-colapsado",
-    title: "WHATSAPP COLAPSADO EN HORA PICO",
+    title: {
+      es: "WHATSAPP COLAPSADO EN HORA PICO",
+      en: "WHATSAPP FLOODED AT PEAK HOURS",
+    },
     renderSketch: () => (
       <svg
         viewBox="0 0 180 120"
@@ -172,7 +179,10 @@ const PROBLEM_CARDS: readonly ProblemCardData[] = [
   },
   {
     id: "paginas-sin-confianza",
-    title: "PÁGINAS QUE NO GENERAN CONFIANZA",
+    title: {
+      es: "PÁGINAS QUE NO GENERAN CONFIANZA",
+      en: "SITES THAT DON'T BUILD TRUST",
+    },
     renderSketch: () => (
       <svg
         viewBox="0 0 180 120"
@@ -260,7 +270,10 @@ const PROBLEM_CARDS: readonly ProblemCardData[] = [
   },
   {
     id: "celular-pierde-ventas",
-    title: "EL CELULAR TE HACE PERDER VENTAS",
+    title: {
+      es: "EL CELULAR TE HACE PERDER VENTAS",
+      en: "MOBILE UX THAT LOSES SALES",
+    },
     renderSketch: () => (
       <svg
         viewBox="0 0 180 120"
@@ -336,21 +349,54 @@ const PROBLEM_CARDS: readonly ProblemCardData[] = [
   },
 ] as const;
 
-const ACT1_WORDS = [
-  { text: "TIENE", threshold: 0.04, row: 0 },
-  { text: "UN", threshold: 0.08, row: 0 },
-  { text: "PROBLEMA", threshold: 0.12, row: 0 },
-  { text: "DE", threshold: 0.16, row: 1 },
-  { text: "CONVERSIÓN.", threshold: 0.2, row: 1 },
-] as const;
+const ACT1_WORDS_BY_LOCALE: Record<
+  Locale,
+  readonly { text: string; threshold: number; row: number }[]
+> = {
+  es: [
+    { text: "TIENE", threshold: 0.04, row: 0 },
+    { text: "UN", threshold: 0.08, row: 0 },
+    { text: "PROBLEMA", threshold: 0.12, row: 0 },
+    { text: "DE", threshold: 0.16, row: 1 },
+    { text: "CONVERSIÓN.", threshold: 0.2, row: 1 },
+  ],
+  en: [
+    { text: "THEY", threshold: 0.04, row: 0 },
+    { text: "HAVE", threshold: 0.08, row: 0 },
+    { text: "A", threshold: 0.12, row: 0 },
+    { text: "CONVERSION", threshold: 0.16, row: 1 },
+    { text: "PROBLEM.", threshold: 0.2, row: 1 },
+  ],
+};
 
-const ACT4_WORDS = [
-  { text: "¿TE", threshold: 0.8, row: 0 },
-  { text: "ESTÁ", threshold: 0.83, row: 0 },
-  { text: "PASANDO", threshold: 0.86, row: 0 },
-  { text: "ESTO", threshold: 0.89, row: 1 },
-  { text: "HOY?", threshold: 0.92, row: 1 },
-] as const;
+const ACT4_WORDS_BY_LOCALE: Record<
+  Locale,
+  readonly { text: string; threshold: number; row: number }[]
+> = {
+  es: [
+    { text: "¿TE", threshold: 0.8, row: 0 },
+    { text: "ESTÁ", threshold: 0.83, row: 0 },
+    { text: "PASANDO", threshold: 0.86, row: 0 },
+    { text: "ESTO", threshold: 0.89, row: 1 },
+    { text: "HOY?", threshold: 0.92, row: 1 },
+  ],
+  en: [
+    { text: "IS", threshold: 0.8, row: 0 },
+    { text: "THIS", threshold: 0.83, row: 0 },
+    { text: "HAPPENING", threshold: 0.86, row: 0 },
+    { text: "RIGHT", threshold: 0.89, row: 1 },
+    { text: "NOW?", threshold: 0.92, row: 1 },
+  ],
+};
+
+const FIXED_HEADLINE_LINES: Record<Locale, readonly [string, string, string]> = {
+  es: [
+    "LA MAYORÍA DE LOS NEGOCIOS",
+    "NO TIENE UN PROBLEMA",
+    "DE CLIENTES.",
+  ],
+  en: ["MOST BUSINESSES", "DON'T HAVE A", "TRAFFIC PROBLEM."],
+};
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const easeOutQuad = (t: number) => 1 - (1 - t) * (1 - t);
@@ -371,12 +417,14 @@ interface StraightProblemCardProps {
   card: ProblemCardData;
   index: number;
   progress: MotionValue<number>;
+  locale: Locale;
 }
 
 function StraightProblemCard({
   card,
   index,
   progress,
+  locale,
 }: StraightProblemCardProps) {
   const x = useTransform(progress, (v) => {
     const t = easeOutQuad(clamp01((v - 0.22) / 0.2));
@@ -399,7 +447,7 @@ function StraightProblemCard({
       className="aspect-square w-full min-w-0 overflow-hidden bg-[#0D0D0F] border border-white/[0.08] rounded-none p-5 md:p-6 flex flex-col justify-between will-change-transform"
     >
       <h3 className="font-sans font-medium uppercase text-xs sm:text-[13px] md:text-sm leading-snug text-white/90 text-left">
-        {card.title}
+        {card.title[locale]}
       </h3>
 
       <div className="flex flex-1 min-h-0 items-center justify-center pt-2 md:pt-4">
@@ -410,8 +458,13 @@ function StraightProblemCard({
 }
 
 export function ProblemSequenceSection() {
+  const { locale } = useLanguage();
   const sectionRef = useRef<HTMLElement | null>(null);
   const reducedMotion = Boolean(useReducedMotion());
+
+  const act1Words = ACT1_WORDS_BY_LOCALE[locale];
+  const act4Words = ACT4_WORDS_BY_LOCALE[locale];
+  const fixedLines = FIXED_HEADLINE_LINES[locale];
 
   const [act1Count, setAct1Count] = useState<number>(0);
   const [act4Count, setAct4Count] = useState<number>(0);
@@ -429,14 +482,14 @@ export function ProblemSequenceSection() {
 
   useEffect(() => {
     const p = scrollYProgress.get();
-    setAct1Count(countActiveWords(ACT1_WORDS, p));
-    setAct4Count(countActiveWords(ACT4_WORDS, p));
+    setAct1Count(countActiveWords(act1Words, p));
+    setAct4Count(countActiveWords(act4Words, p));
     setAct4Visible(p >= 0.8);
-  }, [scrollYProgress]);
+  }, [scrollYProgress, act1Words, act4Words]);
 
   useMotionValueEvent(scrollYProgress, "change", (p) => {
-    const nextAct1 = countActiveWords(ACT1_WORDS, p);
-    const nextAct4 = countActiveWords(ACT4_WORDS, p);
+    const nextAct1 = countActiveWords(act1Words, p);
+    const nextAct4 = countActiveWords(act4Words, p);
     const nextAct4Vis = p >= 0.8;
 
     setAct1Count((prev) => (prev === nextAct1 ? prev : nextAct1));
@@ -459,14 +512,16 @@ export function ProblemSequenceSection() {
       >
         <div className="mx-auto max-w-[1160px] text-center">
           <p className="font-sans font-normal uppercase tracking-[-0.02em] leading-[1.04] text-[clamp(1.45rem,3.2vw,2.9rem)] text-white/95">
-            LA MAYORÍA DE LOS NEGOCIOS
+            {fixedLines[0]}
             <br />
-            NO TIENE UN PROBLEMA
+            {fixedLines[1]}
             <br />
-            DE CLIENTES.
+            {fixedLines[2]}
           </p>
           <p className="mt-3 sm:mt-4 md:mt-5 font-display font-semibold uppercase tracking-[0.03em] leading-[1.06] text-[clamp(1.55rem,3.4vw,3.1rem)] text-[#F4F1EA]">
-            TIENE UN PROBLEMA DE CONVERSIÓN.
+            {locale === "es"
+              ? "TIENE UN PROBLEMA DE CONVERSIÓN."
+              : "THEY HAVE A CONVERSION PROBLEM."}
           </p>
 
           <div className="mt-14 grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 w-full max-w-[1160px] mx-auto">
@@ -477,7 +532,7 @@ export function ProblemSequenceSection() {
                 className="aspect-square w-full min-w-0 overflow-hidden bg-[#0D0D0F] border border-white/[0.08] rounded-none p-5 md:p-6 flex flex-col justify-between text-left"
               >
                 <h3 className="font-sans font-medium uppercase text-xs sm:text-[13px] md:text-sm leading-snug text-white/90 text-left">
-                  {card.title}
+                  {card.title[locale]}
                 </h3>
                 <div className="flex flex-1 min-h-0 items-center justify-center pt-2 md:pt-4">
                   {card.renderSketch()}
@@ -487,9 +542,9 @@ export function ProblemSequenceSection() {
           </div>
 
           <p className="mt-16 font-sans font-normal uppercase tracking-[-0.02em] leading-[1.06] text-[clamp(1.9rem,4.6vw,3.9rem)] text-white">
-            ¿TE ESTÁ PASANDO{" "}
+            {locale === "es" ? "¿TE ESTÁ PASANDO " : "IS THIS HAPPENING "}
             <span className="font-display font-semibold text-[#F4F1EA]">
-              ESTO HOY?
+              {locale === "es" ? "ESTO HOY?" : "RIGHT NOW?"}
             </span>
           </p>
         </div>
@@ -513,10 +568,10 @@ export function ProblemSequenceSection() {
         >
           <p className="font-sans font-normal uppercase tracking-[-0.02em] leading-[1.06] text-[clamp(1.9rem,4.6vw,3.9rem)] text-white">
             <span className="flex flex-wrap items-baseline justify-center gap-x-[0.28em]">
-              {ACT4_WORDS.map((word, idx) =>
+              {act4Words.map((word, idx) =>
                 word.row !== 0 ? null : (
                   <span
-                    key={word.text}
+                    key={`act4-${idx}`}
                     className={`inline-block transition-none ${
                       act4Visible && idx < act4Count
                         ? "opacity-100"
@@ -532,10 +587,10 @@ export function ProblemSequenceSection() {
 
           <p className="mt-2 md:mt-3 font-display font-semibold uppercase tracking-[0.03em] leading-[1.04] text-[clamp(2rem,4.8vw,4.1rem)] text-[#F4F1EA]">
             <span className="flex flex-wrap items-baseline justify-center gap-x-[0.28em]">
-              {ACT4_WORDS.map((word, idx) =>
+              {act4Words.map((word, idx) =>
                 word.row !== 1 ? null : (
                   <span
-                    key={word.text}
+                    key={`act4-${idx}`}
                     className={`inline-block transition-none ${
                       act4Visible && idx < act4Count
                         ? "opacity-100"
@@ -557,15 +612,19 @@ export function ProblemSequenceSection() {
           className="relative z-10 flex w-full max-w-5xl flex-col items-center text-center"
         >
           <p className="font-sans font-normal uppercase tracking-[-0.02em] leading-[1.04] text-[clamp(1.45rem,3.2vw,2.9rem)] text-white/95">
-            LA MAYORÍA DE LOS NEGOCIOS
+            {fixedLines[0]}
             <br />
-            NO TIENE UN PROBLEMA
+            {fixedLines[1]}
             <br />
-            DE CLIENTES.
+            {fixedLines[2]}
           </p>
 
           <p
-            aria-label="Tiene un problema de conversión."
+            aria-label={
+              locale === "es"
+                ? "Tiene un problema de conversión."
+                : "They have a conversion problem."
+            }
             className="mt-3 sm:mt-4 md:mt-5 font-display font-semibold uppercase tracking-[0.03em] leading-[1.06] text-[clamp(1.55rem,3.4vw,3.1rem)] text-[#F4F1EA]"
           >
             {[0, 1].map((rowIdx) => (
@@ -573,10 +632,10 @@ export function ProblemSequenceSection() {
                 key={rowIdx}
                 className="flex flex-wrap items-baseline justify-center gap-x-[0.3em]"
               >
-                {ACT1_WORDS.map((word, idx) =>
+                {act1Words.map((word, idx) =>
                   word.row !== rowIdx ? null : (
                     <span
-                      key={word.text}
+                      key={`act1-${rowIdx}-${idx}`}
                       className={`inline-block transition-none ${
                         idx < act1Count ? "opacity-100" : "opacity-0"
                       }`}
@@ -599,6 +658,7 @@ export function ProblemSequenceSection() {
                 card={card}
                 index={idx}
                 progress={smoothProgress}
+                locale={locale}
               />
             ))}
           </div>

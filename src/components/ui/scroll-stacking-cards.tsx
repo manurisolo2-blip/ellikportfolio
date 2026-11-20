@@ -34,9 +34,28 @@ export type DeckItem = {
   url?: string;          // Opcional si se usa con link externo
 };
 
+export interface DeckLabels {
+  estimatedTime: string;
+  focus: string;
+  liveExample: string;
+  viewSpine: string;
+  backToCard: (index: string, name: string) => string;
+  deckAriaLabel: string;
+}
+
+const DEFAULT_DECK_LABELS: DeckLabels = {
+  estimatedTime: "TIEMPO ESTIMADO",
+  focus: "ENFOQUE",
+  liveExample: "EJEMPLO REAL",
+  viewSpine: "VER ↑",
+  backToCard: (index, name) => `Volver a la tarjeta ${index}: ${name}`,
+  deckAriaLabel: "Modalidades de servicio",
+};
+
 export interface ProjectDeckProps {
   items: DeckItem[];
   ground?: string;
+  labels?: DeckLabels;
   onSelectItem?: (item: DeckItem) => void;
   className?: string;
   children?: ReactNode;
@@ -86,6 +105,7 @@ interface DeckCardProps {
   progress: MotionValue<number>;
   still: boolean;
   ground: string;
+  labels: DeckLabels;
   onSelectItem?: (item: DeckItem) => void;
   onJumpToCard: (index: number) => void;
 }
@@ -163,6 +183,7 @@ function DeckCard({
   progress,
   still,
   ground,
+  labels,
   onSelectItem,
   onJumpToCard,
 }: DeckCardProps) {
@@ -272,7 +293,7 @@ function DeckCard({
           type="button"
           data-deck-spine={item.id}
           data-cursor="action"
-          aria-label={`Volver a la tarjeta ${item.index}: ${item.name}`}
+          aria-label={labels.backToCard(item.index, item.name)}
           style={{
             opacity: spineOpacity,
             pointerEvents: spinePointerEvents,
@@ -315,7 +336,7 @@ function DeckCard({
               color: item.accent,
             }}
           >
-            VER ↑
+            {labels.viewSpine}
           </span>
         </motion.button>
 
@@ -395,7 +416,7 @@ function DeckCard({
             />
             <div>
               <p className="font-sans text-[9.5px] sm:text-[10px] uppercase tracking-[0.14em] text-white/55">
-                TIEMPO ESTIMADO
+                {labels.estimatedTime}
               </p>
               <p className="font-sans font-semibold text-[12px] sm:text-[13px] text-white mt-0.5">
                 {item.estimatedTime}
@@ -404,7 +425,7 @@ function DeckCard({
             <div className="h-6 w-px bg-white/15 shrink-0" aria-hidden="true" />
             <div>
               <p className="font-sans text-[9.5px] sm:text-[10px] uppercase tracking-[0.14em] text-white/55">
-                ENFOQUE
+                {labels.focus}
               </p>
               <p className="font-sans font-semibold text-[12px] sm:text-[13px] text-white mt-0.5">
                 {item.focus}
@@ -445,7 +466,7 @@ function DeckCard({
                 style={{ backgroundColor: item.accent }}
               />
               <span className="font-sans font-semibold text-[10px] uppercase tracking-[0.16em] text-white/75">
-                EJEMPLO REAL
+                {labels.liveExample}
               </span>
             </span>
             <span
@@ -508,6 +529,7 @@ function DeckCard({
 export function ProjectDeck({
   items,
   ground = "#F4F1EA",
+  labels = DEFAULT_DECK_LABELS,
   onSelectItem,
   className,
   children,
@@ -562,7 +584,7 @@ export function ProjectDeck({
         ref={containerRef}
         className={cn("relative w-full", className)}
         style={{ height: `${Math.max(1, count) * 100}svh` }}
-        aria-label="Modalidades de servicio"
+        aria-label={labels.deckAriaLabel}
       >
         <div
           className="sticky top-0 grid h-[100svh] place-items-center overflow-hidden px-4 pt-16 pb-20 sm:pl-28 sm:pr-8 lg:px-32 lg:py-0 xl:px-36"
@@ -577,6 +599,7 @@ export function ProjectDeck({
               progress={progress}
               still={still}
               ground={ground}
+              labels={labels}
               onSelectItem={onSelectItem}
               onJumpToCard={handleScrollToCard}
             />
