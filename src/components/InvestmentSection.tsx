@@ -24,31 +24,43 @@ const DECK_VISUAL_META: Record<
     accent: string;
     ctaLabel: string;
     ctaSublabel: string;
+    exampleLabel: string;
+    estimatedTime: string;
+    focus: string;
   }
 > = {
   "01": {
     id: "pedidos-carta",
-    eyebrow: "GASTRONOMÍA / PEDIDOS DIRECTOS A WHATSAPP",
+    eyebrow: "GASTRONOMÍA · PEDIDOS A WHATSAPP",
     image: "/previews/mojo-desktop.webp",
     accent: "#E06D3B",
     ctaLabel: "Consultar esta modalidad",
     ctaSublabel: "Charla directa por WhatsApp",
+    exampleLabel: "mojo-grille-demo.vercel.app",
+    estimatedTime: "5 a 7 días",
+    focus: "Mobile-first + WhatsApp",
   },
   "02": {
     id: "catalogo-tienda",
-    eyebrow: "INDUMENTARIA & COMERCIOS / VENTA DESDE EL CELULAR",
+    eyebrow: "INDUMENTARIA · VENTA DESDE EL CELULAR",
     image: "/previews/dopamine-desktop.webp",
     accent: "#D9A45B",
     ctaLabel: "Consultar esta modalidad",
     ctaSublabel: "Charla directa por WhatsApp",
+    exampleLabel: "dopamine-three-omega.vercel.app",
+    estimatedTime: "7 a 12 días",
+    focus: "Catálogo + stock",
   },
   "03": {
     id: "desarrollo-medida",
-    eyebrow: "INSTITUCIONES & PROYECTOS ESPECIALES / CÓDIGO PROPIO",
+    eyebrow: "A MEDIDA · CÓDIGO PROPIO",
     image: "/previews/rio3-desktop.webp",
     accent: "#5B9BD5",
     ctaLabel: "Consultar esta modalidad",
     ctaSublabel: "Charla directa por WhatsApp",
+    exampleLabel: "deportistasrio3.vercel.app",
+    estimatedTime: "Según alcance",
+    focus: "100 % personalizado",
   },
 };
 
@@ -65,6 +77,9 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
         accent: "#E06D3B",
         ctaLabel: "Consultar esta modalidad",
         ctaSublabel: "Charla directa por WhatsApp",
+        exampleLabel: "ellik.studio",
+        estimatedTime: "Según alcance",
+        focus: "A medida",
       };
 
       return {
@@ -78,6 +93,9 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
         accent: meta.accent,
         ctaLabel: meta.ctaLabel,
         ctaSublabel: meta.ctaSublabel,
+        exampleLabel: meta.exampleLabel,
+        estimatedTime: meta.estimatedTime,
+        focus: meta.focus,
         planKey: plan.fullTitle,
       };
     });
