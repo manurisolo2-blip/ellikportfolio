@@ -71,8 +71,13 @@ function buildNavItemMeta(sectionId: string, fallbackLabel: string): {
 export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
   const [activeId, setActiveId] = useState<string>(NAV_SECTIONS[0].id);
   const [isOverLightSection, setIsOverLightSection] = useState<boolean>(false);
+  const [isDesktopNav, setIsDesktopNav] = useState<boolean | null>(null);
   const programmaticLockUntilRef = useRef<number>(0);
   const programmaticTargetTopRef = useRef<number | null>(null);
+  const sectionBoundsRef = useRef<
+    Array<{ id: string; top: number; bottom: number }>
+  >([]);
+  const docHeightRef = useRef<number>(0);
 
   const navItems = useMemo<LiquidNavItem[]>(
     () =>
@@ -93,16 +98,40 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
     return idx >= 0 ? idx : 0;
   }, [activeId]);
 
+  const refreshBounds = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const scrollY = window.scrollY;
+    docHeightRef.current = document.documentElement.scrollHeight;
+    const nextBounds: Array<{ id: string; top: number; bottom: number }> = [];
+
+    for (const section of NAV_SECTIONS) {
+      const el = document.getElementById(section.id);
+      if (!el) continue;
+      const top = el.getBoundingClientRect().top + scrollY;
+      nextBounds.push({
+        id: section.id,
+        top,
+        bottom: top + el.offsetHeight,
+      });
+    }
+
+    sectionBoundsRef.current = nextBounds;
+  }, []);
+
   const syncLightTone = useCallback(() => {
     if (typeof window === "undefined") return;
-    const serviciosEl = document.getElementById("servicios");
-    if (!serviciosEl) return;
-    const sRect = serviciosEl.getBoundingClientRect();
+    const serviciosBounds = sectionBoundsRef.current.find(
+      (b) => b.id === "servicios"
+    );
+    if (!serviciosBounds) return;
+    const scrollY = window.scrollY;
+    const sTop = serviciosBounds.top - scrollY;
+    const sBottom = serviciosBounds.bottom - scrollY;
     const zoneY =
       window.innerWidth >= 1024
         ? window.innerHeight * 0.5
         : window.innerHeight - 44;
-    const overLight = sRect.top <= zoneY && sRect.bottom >= zoneY;
+    const overLight = sTop <= zoneY && sBottom >= zoneY;
     setIsOverLightSection((prev) => (prev === overLight ? prev : overLight));
   }, []);
 
@@ -123,16 +152,15 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
       }
     }
 
-    if (window.scrollY < 100) {
+    const scrollY = window.scrollY;
+    if (scrollY < 100) {
       setActiveId(NAV_SECTIONS[0].id);
       return;
     }
 
-    const docEl = document.documentElement;
-    if (
-      window.scrollY + window.innerHeight >=
-      docEl.scrollHeight - 160
-    ) {
+    const docHeight =
+      docHeightRef.current || document.documentElement.scrollHeight;
+    if (scrollY + window.innerHeight >= docHeight - 160) {
       const last = NAV_SECTIONS[NAV_SECTIONS.length - 1];
       if (last) setActiveId(last.id);
       return;
@@ -141,12 +169,10 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
     const triggerY = window.innerHeight * 0.45;
     let currentId = NAV_SECTIONS[0].id;
 
-    for (const section of NAV_SECTIONS) {
-      const el = document.getElementById(section.id);
-      if (!el) continue;
-      const rect = el.getBoundingClientRect();
-      if (rect.top <= triggerY) {
-        currentId = section.id;
+    for (const bounds of sectionBoundsRef.current) {
+      const rectTop = bounds.top - scrollY;
+      if (rectTop <= triggerY) {
+        currentId = bounds.id;
       }
     }
 
@@ -154,21 +180,35 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
   }, [syncLightTone]);
 
   useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const syncNavViewport = () => setIsDesktopNav(mq.matches);
+    syncNavViewport();
+    mq.addEventListener("change", syncNavViewport);
+    return () => mq.removeEventListener("change", syncNavViewport);
+  }, []);
+
+  useEffect(() => {
+    refreshBounds();
+    updateActiveByPosition();
+
     const sectionElements = NAV_SECTIONS.map((s) =>
       document.getElementById(s.id)
     ).filter((el): el is HTMLElement => el !== null);
 
-    if (sectionElements.length === 0) return;
+    const observer =
+      sectionElements.length > 0
+        ? new IntersectionObserver(
+            () => {
+              updateActiveByPosition();
+            },
+            {
+              rootMargin: "-20% 0px -45% 0px",
+              threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
+            }
+          )
+        : null;
 
-    const observer = new IntersectionObserver(
-      () => {
-        updateActiveByPosition();
-      },
-      {
-        rootMargin: "-20% 0px -45% 0px",
-        threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
-      }
-    );
+    sectionElements.forEach((el) => observer?.observe(el));
 
     const serviciosEl = document.getElementById("servicios");
     const lightObserver = serviciosEl
@@ -187,29 +227,51 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
       lightObserver.observe(serviciosEl);
     }
 
+    let scrollRafId = 0;
+    const onScroll = () => {
+      if (scrollRafId) return;
+      scrollRafId = window.requestAnimationFrame(() => {
+        scrollRafId = 0;
+        updateActiveByPosition();
+      });
+    };
+
+    let resizeTimer = 0;
+    const handleLayoutShift = () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        refreshBounds();
+        updateActiveByPosition();
+      }, 150);
+    };
+
+    const docRo = new ResizeObserver(handleLayoutShift);
+    docRo.observe(document.body);
+
     const clearLockOnManualScroll = () => {
       programmaticLockUntilRef.current = 0;
       programmaticTargetTopRef.current = null;
     };
 
-    sectionElements.forEach((el) => observer.observe(el));
-    window.addEventListener("scroll", updateActiveByPosition, { passive: true });
-    window.addEventListener("resize", updateActiveByPosition, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", handleLayoutShift, { passive: true });
     window.addEventListener("wheel", clearLockOnManualScroll, { passive: true });
     window.addEventListener("touchmove", clearLockOnManualScroll, {
       passive: true,
     });
-    updateActiveByPosition();
 
     return () => {
-      observer.disconnect();
+      if (scrollRafId) window.cancelAnimationFrame(scrollRafId);
+      window.clearTimeout(resizeTimer);
+      docRo.disconnect();
+      observer?.disconnect();
       lightObserver?.disconnect();
-      window.removeEventListener("scroll", updateActiveByPosition);
-      window.removeEventListener("resize", updateActiveByPosition);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", handleLayoutShift);
       window.removeEventListener("wheel", clearLockOnManualScroll);
       window.removeEventListener("touchmove", clearLockOnManualScroll);
     };
-  }, [syncLightTone, updateActiveByPosition]);
+  }, [refreshBounds, syncLightTone, updateActiveByPosition]);
 
   const scrollToSection = useCallback((id: string) => {
     if (typeof window === "undefined") return;
@@ -299,38 +361,42 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
       </div>
 
       {/* Desktop (>= 1024px): Liquid Glass Navbar vertical en el margen derecho */}
-      <div
-        data-cursor="action"
-        className="hidden lg:flex fixed right-6 xl:right-8 top-1/2 -translate-y-1/2 z-[48]"
-      >
-        <LiquidNavbar
-          items={navItems}
-          active={activeIndex}
-          onChange={handleNavChange}
-          orientation="vertical"
-          tone={isOverLightSection ? "light" : "dark"}
-          compact={true}
-          sound={false}
-          ariaLabel="Navegación principal"
-        />
-      </div>
+      {isDesktopNav === true && (
+        <div
+          data-cursor="action"
+          className="flex fixed right-6 xl:right-8 top-1/2 -translate-y-1/2 z-[48]"
+        >
+          <LiquidNavbar
+            items={navItems}
+            active={activeIndex}
+            onChange={handleNavChange}
+            orientation="vertical"
+            tone={isOverLightSection ? "light" : "dark"}
+            compact={true}
+            sound={false}
+            ariaLabel="Navegación principal"
+          />
+        </div>
+      )}
 
       {/* Móvil (< 1024px): Píldora flotante horizontal inferior */}
-      <div
-        data-cursor="action"
-        className="flex lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-[48]"
-      >
-        <LiquidNavbar
-          items={navItems}
-          active={activeIndex}
-          onChange={handleNavChange}
-          orientation="horizontal"
-          tone={isOverLightSection ? "light" : "dark"}
-          compact={true}
-          sound={false}
-          ariaLabel="Navegación principal"
-        />
-      </div>
+      {isDesktopNav === false && (
+        <div
+          data-cursor="action"
+          className="flex fixed bottom-4 left-1/2 -translate-x-1/2 z-[48]"
+        >
+          <LiquidNavbar
+            items={navItems}
+            active={activeIndex}
+            onChange={handleNavChange}
+            orientation="horizontal"
+            tone={isOverLightSection ? "light" : "dark"}
+            compact={true}
+            sound={false}
+            ariaLabel="Navegación principal"
+          />
+        </div>
+      )}
     </>
   );
 }

@@ -135,7 +135,7 @@ export function EllikEmblem3D({
     const initialW = Math.max(container.clientWidth, 260);
     const initialH = Math.max(container.clientHeight, 260);
 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.setSize(initialW, initialH, false);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.18;
@@ -350,7 +350,7 @@ export function EllikEmblem3D({
       const h = Math.max(Math.round(entry.contentRect.height), 1);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
       renderer.setSize(w, h, false);
     });
     resizeObserver.observe(container);

@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
 const NUM_TUBES = 5;
-const POINTS = 20;
+const POINTS = 15;
 
 /**
  * 4 Paletas curadas que rotan suavemente al hacer clic (interpolación RGB en 0.5s)
@@ -89,12 +89,12 @@ export function TubesCursor() {
 
     let width = window.innerWidth;
     let height = window.innerHeight;
-    let dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    let dpr = Math.min(window.devicePixelRatio || 1, 1.25);
 
     const resizeCanvas = () => {
       width = window.innerWidth;
       height = window.innerHeight;
-      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      dpr = Math.min(window.devicePixelRatio || 1, 1.25);
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
       canvas.style.width = `${width}px`;
@@ -153,30 +153,43 @@ export function TubesCursor() {
     let paletteTransitionStart = 0;
     let isTransitioningPalette = false;
 
-    // Detección liviana y cacheada de la sección clara #servicios (#F4F1EA)
+    // Detección liviana y cacheada en coordenadas de documento de #servicios (#F4F1EA)
     let serviciosEl: HTMLElement | null = null;
-    let serviciosTop = -1;
-    let serviciosBottom = -1;
-    let lastRectUpdate = 0;
+    let serviciosDocTop = -1;
+    let serviciosDocBottom = -1;
     let isOverLightSection = false;
     let lightSectionBlend = 0;
 
-    const updateServiciosBounds = (now: number) => {
-      if (now - lastRectUpdate < 120) return;
-      lastRectUpdate = now;
+    const refreshServiciosDocBounds = () => {
       if (!serviciosEl || !serviciosEl.isConnected) {
         serviciosEl = document.getElementById("servicios");
       }
       if (serviciosEl) {
         const rect = serviciosEl.getBoundingClientRect();
-        serviciosTop = rect.top;
-        serviciosBottom = rect.bottom;
-        isOverLightSection =
-          mouseY >= serviciosTop && mouseY <= serviciosBottom;
+        serviciosDocTop = rect.top + window.scrollY;
+        serviciosDocBottom = serviciosDocTop + serviciosEl.offsetHeight;
       } else {
-        isOverLightSection = false;
+        serviciosDocTop = -1;
+        serviciosDocBottom = -1;
       }
     };
+
+    const syncOverLightSection = () => {
+      if (serviciosDocTop === -1) {
+        isOverLightSection = false;
+        return;
+      }
+      const docY = mouseY + window.scrollY;
+      isOverLightSection = docY >= serviciosDocTop && docY <= serviciosDocBottom;
+    };
+
+    refreshServiciosDocBounds();
+    let docResizeTimer = 0;
+    const docRo = new ResizeObserver(() => {
+      window.clearTimeout(docResizeTimer);
+      docResizeTimer = window.setTimeout(refreshServiciosDocBounds, 150);
+    });
+    docRo.observe(document.body);
 
     const snapAllNodesTo = (x: number, y: number) => {
       guideX = x;
@@ -204,7 +217,7 @@ export function TubesCursor() {
       // Suavizado exponencial sin rebote (critically damped lerp)
       const factor = (rate: number) => 1 - Math.exp(-rate * dt);
 
-      updateServiciosBounds(now);
+      syncOverLightSection();
 
       // Transición suave entre secciones oscuras y sección clara #servicios
       const targetLightBlend = isOverLightSection ? 1 : 0;
@@ -461,11 +474,7 @@ export function TubesCursor() {
       mouseX = nextX;
       mouseY = nextY;
       lastMoveTimestamp = now;
-
-      if (serviciosTop !== -1 || serviciosBottom !== -1) {
-        isOverLightSection =
-          mouseY >= serviciosTop && mouseY <= serviciosBottom;
-      }
+      syncOverLightSection();
 
       ensureLoopRunning();
     };
@@ -482,24 +491,25 @@ export function TubesCursor() {
       ensureLoopRunning();
     };
 
-    const handleScroll = () => {
-      lastRectUpdate = 0;
+    const handleResize = () => {
+      resizeCanvas();
+      refreshServiciosDocBounds();
     };
 
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
     window.addEventListener("pointerdown", handlePointerDown, { passive: true });
-    window.addEventListener("resize", resizeCanvas, { passive: true });
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleResize, { passive: true });
 
     return () => {
       if (rafId !== null) {
         window.cancelAnimationFrame(rafId);
         rafId = null;
       }
+      window.clearTimeout(docResizeTimer);
+      docRo.disconnect();
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerdown", handlePointerDown);
-      window.removeEventListener("resize", resizeCanvas);
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
     };
   }, [enabled]);
 

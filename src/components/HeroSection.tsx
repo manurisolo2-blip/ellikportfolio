@@ -233,8 +233,10 @@ function computeScreenFrame(
 
   // Plano trasero (Z < 0): detrás del emblema central (zIndex 1..8 < 10)
   const rearDepth = Math.min(1, -zCos);
-  const blurPx = 0.4 + rearDepth * 1.4;
-  const brightness = 0.9 - rearDepth * 0.18; // 0.90 .. 0.72
+  const rawBlurPx = 0.4 + rearDepth * 1.4;
+  const blurPx = Math.round(rawBlurPx * 2) / 2;
+  const rawBrightness = 0.9 - rearDepth * 0.18; // 0.90 .. 0.72
+  const brightness = Math.round(rawBrightness * 20) / 20;
   const rearOpacity = (0.9 - rearDepth * 0.25) * exitFade;
 
   return {
@@ -272,6 +274,16 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
   const [finePointer, setFinePointer] = useState<boolean>(false);
   const radiusZRef = useRef<number>(DEFAULT_RADIUS_Z);
   const yScaleRef = useRef<number>(DEFAULT_Y_SCALE);
+  const isInViewRef = useRef<boolean>(true);
+  const prevStyleRef = useRef<
+    Array<{
+      zIndex: string;
+      opacity: string;
+      filter: string;
+      boxShadow: string;
+      sheenOpacity: string;
+    }>
+  >([]);
 
   // Cámara 3D reactiva al cursor sobre contenedor con perspective: 1000px
   const pointerNormX = useMotionValue(0);
@@ -378,8 +390,21 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
     };
   }, [rawCursorX, rawCursorY]);
 
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        isInViewRef.current = entries[0] ? entries[0].isIntersecting : true;
+      },
+      { rootMargin: "150px 0px", threshold: 0 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   useAnimationFrame((_, delta) => {
-    if (document.hidden) return;
+    if (document.hidden || !isInViewRef.current) return;
     const dt = Math.min(delta, 50) / 1000;
     const scrollP = scrollProgressRef.current;
 
@@ -416,17 +441,51 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
         scrollP
       );
 
+      let prev = prevStyleRef.current[i];
+      if (!prev) {
+        prev = {
+          zIndex: "",
+          opacity: "",
+          filter: "",
+          boxShadow: "",
+          sheenOpacity: "",
+        };
+        prevStyleRef.current[i] = prev;
+      }
+
       screenEl.style.transform = frame.transform;
-      screenEl.style.zIndex = String(frame.zIndex);
-      screenEl.style.opacity = String(frame.opacity);
-      surfaceEl.style.filter = frame.filter;
-      surfaceEl.style.boxShadow = frame.boxShadow;
+
+      const nextZIndex = String(frame.zIndex);
+      if (prev.zIndex !== nextZIndex) {
+        screenEl.style.zIndex = nextZIndex;
+        prev.zIndex = nextZIndex;
+      }
+
+      const nextOpacity = frame.opacity.toFixed(3);
+      if (prev.opacity !== nextOpacity) {
+        screenEl.style.opacity = nextOpacity;
+        prev.opacity = nextOpacity;
+      }
+
+      if (prev.filter !== frame.filter) {
+        surfaceEl.style.filter = frame.filter;
+        prev.filter = frame.filter;
+      }
+
+      if (prev.boxShadow !== frame.boxShadow) {
+        surfaceEl.style.boxShadow = frame.boxShadow;
+        prev.boxShadow = frame.boxShadow;
+      }
 
       if (sheenEl) {
         sheenEl.style.transform = `translate3d(${frame.sheenTranslateX.toFixed(
           1
         )}%, 0, 0)`;
-        sheenEl.style.opacity = String(frame.sheenOpacity.toFixed(3));
+        const nextSheenOpacity = frame.sheenOpacity.toFixed(3);
+        if (prev.sheenOpacity !== nextSheenOpacity) {
+          sheenEl.style.opacity = nextSheenOpacity;
+          prev.sheenOpacity = nextSheenOpacity;
+        }
       }
     }
   });
@@ -486,10 +545,16 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
           Math.max(0, proyectos.offsetHeight - window.innerHeight) * 0.15
         )
       );
-      window.scrollTo({
-        top: proyectosTop + holdOffset,
-        behavior: "smooth",
-      });
+      const targetY = proyectosTop + holdOffset;
+      const lenis = window.__ellikLenis;
+      if (lenis) {
+        lenis.scrollTo(targetY, { duration: 1.05 });
+      } else {
+        window.scrollTo({
+          top: targetY,
+          behavior: "smooth",
+        });
+      }
     }
   };
 

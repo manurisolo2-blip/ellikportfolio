@@ -177,19 +177,26 @@ export function AstronautScrollTracker() {
 
   const starBurstTimeRef = useRef<number>(-10);
 
-  // Detección cacheada de #servicios (#F4F1EA) para inversión limpia de tinta
-  const serviciosCacheRef = useRef<{
-    el: HTMLElement | null;
-    lastCheck: number;
-    overLight: boolean;
-  }>({
-    el: null,
-    lastCheck: 0,
-    overLight: false,
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const pctLabelRef = useRef<HTMLSpanElement | null>(null);
+  const scrollPctRef = useRef<number>(0);
+  const lastAriaPctRef = useRef<number>(-1);
+
+  const isVisibleDesktopRef = useRef<boolean>(true);
+  const trackRectRef = useRef<{ left: number; top: number }>({
+    left: 12,
+    top: 96,
   });
+  const serviciosDocBoundsRef = useRef<{ top: number; bottom: number }>({
+    top: -1,
+    bottom: -1,
+  });
+  const overLightRef = useRef<boolean>(false);
+  const lastLightCheckRef = useRef<number>(0);
+  const wasFlowHiddenRef = useRef<boolean>(false);
+  const wasBurstClearedRef = useRef<boolean>(false);
 
   const [trackHeight, setTrackHeight] = useState<number>(520);
-  const [scrollPct, setScrollPct] = useState<number>(0);
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
   const { scrollYProgress } = useScroll();
@@ -201,25 +208,63 @@ export function AstronautScrollTracker() {
     hoveredRef.current = isHovered;
   }, [isHovered]);
 
-  // Medición responsiva de la altura del carril
+  // Medición responsiva de la altura/posición del carril, #servicios y visibilidad sm+
   useEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
+    const mq = window.matchMedia("(min-width: 640px)");
+    const syncDesktopVisibility = () => {
+      isVisibleDesktopRef.current = mq.matches;
+    };
+    syncDesktopVisibility();
+    mq.addEventListener("change", syncDesktopVisibility);
 
-    const updateHeight = () => {
-      const h = el.clientHeight || 520;
-      trackHeightRef.current = h;
-      setTrackHeight(h);
+    const refreshServiciosDocBounds = () => {
+      const servEl = document.getElementById("servicios");
+      if (servEl) {
+        const sr = servEl.getBoundingClientRect();
+        const docTop = sr.top + window.scrollY;
+        serviciosDocBoundsRef.current = {
+          top: docTop,
+          bottom: docTop + servEl.offsetHeight,
+        };
+      } else {
+        serviciosDocBoundsRef.current = { top: -1, bottom: -1 };
+      }
     };
 
-    updateHeight();
-    const ro = new ResizeObserver(updateHeight);
-    ro.observe(el);
-    window.addEventListener("resize", updateHeight, { passive: true });
+    const el = trackRef.current;
+    const updateTrackMetrics = () => {
+      if (el) {
+        const h = el.clientHeight || 520;
+        const r = el.getBoundingClientRect();
+        trackHeightRef.current = h;
+        trackRectRef.current = { left: r.left, top: r.top };
+        setTrackHeight(h);
+      }
+      refreshServiciosDocBounds();
+    };
+
+    updateTrackMetrics();
+
+    let docResizeTimer = 0;
+    const handleDocResize = () => {
+      window.clearTimeout(docResizeTimer);
+      docResizeTimer = window.setTimeout(refreshServiciosDocBounds, 150);
+    };
+
+    const ro = el ? new ResizeObserver(updateTrackMetrics) : null;
+    if (el && ro) ro.observe(el);
+
+    const docRo = new ResizeObserver(handleDocResize);
+    docRo.observe(document.body);
+
+    window.addEventListener("resize", updateTrackMetrics, { passive: true });
 
     return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", updateHeight);
+      mq.removeEventListener("change", syncDesktopVisibility);
+      ro?.disconnect();
+      docRo.disconnect();
+      window.clearTimeout(docResizeTimer);
+      window.removeEventListener("resize", updateTrackMetrics);
     };
   }, []);
 
@@ -315,7 +360,24 @@ export function AstronautScrollTracker() {
 
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
     const nextPct = Math.round(clamp(latest, 0, 1) * 100);
-    setScrollPct((prev) => (prev === nextPct ? prev : nextPct));
+    scrollPctRef.current = nextPct;
+
+    if (pctLabelRef.current) {
+      pctLabelRef.current.textContent = `${nextPct}%`;
+    }
+
+    if (
+      buttonRef.current &&
+      (nextPct === 0 ||
+        nextPct === 100 ||
+        Math.abs(nextPct - lastAriaPctRef.current) >= 5)
+    ) {
+      lastAriaPctRef.current = nextPct;
+      buttonRef.current.setAttribute(
+        "aria-label",
+        `Astronauta editorial: ${nextPct}% del recorrido`
+      );
+    }
   });
 
   const handleAstronautPointerDown = (
@@ -349,7 +411,7 @@ export function AstronautScrollTracker() {
   };
 
   useAnimationFrame((timeMs, deltaMs) => {
-    if (document.hidden) return;
+    if (document.hidden || !isVisibleDesktopRef.current) return;
 
     const dt = clamp(deltaMs, 1, 33) / 1000;
     const t = timeMs * 0.001;
@@ -395,16 +457,14 @@ export function AstronautScrollTracker() {
     const scrollStrength = Math.max(downStrength, upStrength);
     const isScrolling = Math.abs(p.velPx) > 75;
 
-    // 2. Brisa ingrávida cercana cuando el mouse pasa cerca (sin espantar al botón en hover)
+    // 2. Brisa ingrávida cercana usando coordenadas cacheadas del carril (sin reflow)
     let targetBreezeX = 0;
     let targetBreezeY = 0;
-    const trackEl = trackRef.current;
     const ptr = pointerRef.current;
 
-    if (ptr.active && trackEl && !drag.dragging && !hoveredRef.current) {
-      const tRect = trackEl.getBoundingClientRect();
-      const astroCx = tRect.left + 12 + p.bodyX + 36;
-      const astroCy = tRect.top + p.bodyY + 56;
+    if (ptr.active && !drag.dragging && !hoveredRef.current) {
+      const astroCx = trackRectRef.current.left + 12 + p.bodyX + 36;
+      const astroCy = trackRectRef.current.top + p.bodyY + 56;
       const dxPtr = astroCx - ptr.x;
       const dyPtr = astroCy - ptr.y;
       const distPtr = Math.hypot(dxPtr, dyPtr);
@@ -712,26 +772,22 @@ export function AstronautScrollTracker() {
       );
     }
 
-    // 6. Detección cacheada de sección clara #servicios (#F4F1EA)
-    const cache = serviciosCacheRef.current;
+    // 6. Detección cacheada de sección clara #servicios (#F4F1EA) sin reflows en scroll
     const nowMs = performance.now();
-    if (nowMs - cache.lastCheck >= 110) {
-      cache.lastCheck = nowMs;
-      if (!cache.el || !cache.el.isConnected) {
-        cache.el = document.getElementById("servicios");
-      }
-      if (cache.el && trackEl) {
-        const sRect = cache.el.getBoundingClientRect();
-        const tRect = trackEl.getBoundingClientRect();
-        const astroViewportY = tRect.top + p.bodyY + 56;
-        cache.overLight =
-          astroViewportY >= sRect.top && astroViewportY <= sRect.bottom;
+    if (nowMs - lastLightCheckRef.current >= 90) {
+      lastLightCheckRef.current = nowMs;
+      const bounds = serviciosDocBoundsRef.current;
+      if (bounds.top !== -1) {
+        const astroDocY =
+          currentScrollY + trackRectRef.current.top + p.bodyY + 56;
+        overLightRef.current =
+          astroDocY >= bounds.top && astroDocY <= bounds.bottom;
       } else {
-        cache.overLight = false;
+        overLightRef.current = false;
       }
     }
 
-    p.lightBlend += ((cache.overLight ? 1 : 0) - p.lightBlend) * ease(9);
+    p.lightBlend += ((overLightRef.current ? 1 : 0) - p.lightBlend) * ease(9);
 
     // 7. Tres líneas de flujo/velocidad ultrafinas estilo tinta cómic al scrollear
     const targetFlowAlpha = isScrolling
@@ -749,6 +805,7 @@ export function AstronautScrollTracker() {
 
     if (flowGroupRef.current) {
       if (p.flowAlpha > 0.02) {
+        wasFlowHiddenRef.current = false;
         const streakStretch = 0.72 + scrollStrength * 0.55;
         const jitter = Math.sin(t * 24) * 1.4;
         flowGroupRef.current.setAttribute("opacity", p.flowAlpha.toFixed(2));
@@ -762,39 +819,46 @@ export function AstronautScrollTracker() {
           const lineEl = flowLineRefs.current[i];
           if (lineEl) lineEl.setAttribute("stroke", flowColor);
         }
-      } else {
+      } else if (!wasFlowHiddenRef.current) {
+        wasFlowHiddenRef.current = true;
         flowGroupRef.current.setAttribute("opacity", "0");
       }
     }
 
     // 8. Pequeñas líneas de trazo estelar alrededor al hacer clic
     const burstAge = nowSec - starBurstTimeRef.current;
-    for (let i = 0; i < CLICK_STAR_ANGLES.length; i++) {
-      const lineEl = clickStarRefs.current[i];
-      if (!lineEl) continue;
-
-      if (burstAge < 0 || burstAge > 0.65) {
-        lineEl.setAttribute("opacity", "0");
-        continue;
+    if (burstAge < 0 || burstAge > 0.65) {
+      if (!wasBurstClearedRef.current) {
+        wasBurstClearedRef.current = true;
+        for (let i = 0; i < CLICK_STAR_ANGLES.length; i++) {
+          const lineEl = clickStarRefs.current[i];
+          if (lineEl) lineEl.setAttribute("opacity", "0");
+        }
       }
+    } else {
+      wasBurstClearedRef.current = false;
+      for (let i = 0; i < CLICK_STAR_ANGLES.length; i++) {
+        const lineEl = clickStarRefs.current[i];
+        if (!lineEl) continue;
 
-      const bp = burstAge / 0.65;
-      const eased = 1 - Math.pow(1 - bp, 2);
-      const rad = (CLICK_STAR_ANGLES[i] * Math.PI) / 180;
-      const rInner = 34 + eased * 18;
-      const rOuter = rInner + 9 * (1 - bp * 0.6);
+        const bp = burstAge / 0.65;
+        const eased = 1 - Math.pow(1 - bp, 2);
+        const rad = (CLICK_STAR_ANGLES[i] * Math.PI) / 180;
+        const rInner = 34 + eased * 18;
+        const rOuter = rInner + 9 * (1 - bp * 0.6);
 
-      const x1 = 54 + Math.cos(rad) * rInner;
-      const y1 = 76 + Math.sin(rad) * rInner;
-      const x2 = 54 + Math.cos(rad) * rOuter;
-      const y2 = 76 + Math.sin(rad) * rOuter;
+        const x1 = 54 + Math.cos(rad) * rInner;
+        const y1 = 76 + Math.sin(rad) * rInner;
+        const x2 = 54 + Math.cos(rad) * rOuter;
+        const y2 = 76 + Math.sin(rad) * rOuter;
 
-      lineEl.setAttribute("x1", x1.toFixed(1));
-      lineEl.setAttribute("y1", y1.toFixed(1));
-      lineEl.setAttribute("x2", x2.toFixed(1));
-      lineEl.setAttribute("y2", y2.toFixed(1));
-      lineEl.setAttribute("stroke", `rgba(${inkR}, ${inkG}, ${inkB}, 0.85)`);
-      lineEl.setAttribute("opacity", (1 - bp).toFixed(2));
+        lineEl.setAttribute("x1", x1.toFixed(1));
+        lineEl.setAttribute("y1", y1.toFixed(1));
+        lineEl.setAttribute("x2", x2.toFixed(1));
+        lineEl.setAttribute("y2", y2.toFixed(1));
+        lineEl.setAttribute("stroke", `rgba(${inkR}, ${inkG}, ${inkB}, 0.85)`);
+        lineEl.setAttribute("opacity", (1 - bp).toFixed(2));
+      }
     }
 
     // 9. Cable umbilical físico con integración Verlet de 8 nodos
@@ -948,9 +1012,10 @@ export function AstronautScrollTracker() {
         className="pointer-events-none absolute left-[12px] top-0 will-change-transform"
       >
         <button
+          ref={buttonRef}
           type="button"
           data-cursor="action"
-          aria-label={`Astronauta editorial: ${scrollPct}% del recorrido`}
+          aria-label="Astronauta editorial: 0% del recorrido"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           onFocus={() => setIsHovered(true)}
@@ -1509,13 +1574,14 @@ export function AstronautScrollTracker() {
           <AnimatePresence>
             {isHovered && (
               <motion.span
+                ref={pctLabelRef}
                 initial={{ opacity: 0, x: -4, scale: 0.92 }}
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 exit={{ opacity: 0, x: -4, scale: 0.92 }}
                 transition={{ duration: 0.16, ease: "easeOut" }}
                 className="pointer-events-none absolute left-full ml-1.5 top-2 whitespace-nowrap border border-[#F4F1EA]/45 bg-[#050505] px-2 py-0.5 font-sans font-medium tabular-nums text-[10px] tracking-[0.12em] text-[#F4F1EA]"
               >
-                {scrollPct}%
+                {scrollPctRef.current}%
               </motion.span>
             )}
           </AnimatePresence>

@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import Lenis from "lenis";
+import { cancelFrame, frame } from "framer-motion";
 
 declare global {
   interface Window {
@@ -15,32 +16,37 @@ interface SmoothScrollProps {
 
 export function SmoothScroll({ children }: SmoothScrollProps) {
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
     const lenis = new Lenis({
-      duration: 1.15,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      lerp: 0.095,
+      wheelMultiplier: 0.95,
+      touchMultiplier: 1.35,
       smoothWheel: true,
-      touchMultiplier: 1.5,
+      syncTouch: false,
     });
 
     window.__ellikLenis = lenis;
 
-    let rafId = 0;
+    let isRunning = false;
 
-    const raf = (time: number) => {
-      lenis.raf(time);
-      rafId = window.requestAnimationFrame(raf);
+    const update = (data: { timestamp: number }) => {
+      lenis.raf(data.timestamp);
     };
 
     const startLoop = () => {
-      if (!rafId) {
-        rafId = window.requestAnimationFrame(raf);
+      if (!isRunning) {
+        isRunning = true;
+        frame.update(update, true);
       }
     };
 
     const stopLoop = () => {
-      if (rafId) {
-        window.cancelAnimationFrame(rafId);
-        rafId = 0;
+      if (isRunning) {
+        isRunning = false;
+        cancelFrame(update);
       }
     };
 

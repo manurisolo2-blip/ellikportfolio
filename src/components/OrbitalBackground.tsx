@@ -1,7 +1,31 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+
+const ORBITAL_RING_CSS = `
+@keyframes ellik-orbit-cw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes ellik-orbit-ccw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+.ellik-orbit-cw {
+  animation: ellik-orbit-cw 240s linear infinite;
+  will-change: transform;
+}
+.ellik-orbit-ccw {
+  animation: ellik-orbit-ccw 300s linear infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ellik-orbit-cw,
+  .ellik-orbit-ccw {
+    animation-play-state: paused;
+  }
+}
+`;
 
 interface Star {
   xNorm: number;
@@ -120,8 +144,8 @@ export function OrbitalBackground() {
 
     // Generación determinista de las 3 capas estelares
     const stars: Star[] = [];
-    const warmStarTint = "244, 241, 234";
-    const coolStarTint = "224, 234, 252";
+    const warmStarTint = "#F4F1EA";
+    const coolStarTint = "#E0EAFC";
 
     // Capa 0 (Lejana): diminutas, fijas y sobrias
     for (let i = 0; i < 115; i++) {
@@ -163,7 +187,7 @@ export function OrbitalBackground() {
         baseAlpha: 0.48 + rng() * 0.42,
         twinkleSpeed: 0.7 + rng() * 1.2,
         twinklePhase: rng() * Math.PI * 2,
-        tint: rng() > 0.4 ? warmStarTint : "255, 255, 255",
+        tint: rng() > 0.4 ? warmStarTint : "#FFFFFF",
         crosshair: i < 8,
       });
     }
@@ -183,7 +207,7 @@ export function OrbitalBackground() {
 
     let width = window.innerWidth;
     let height = window.innerHeight;
-    let dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    let dpr = Math.min(window.devicePixelRatio || 1, 1.25);
 
     // Pre-cálculo de atmósfera en canvas offscreen (evita crear gradientes en cada frame)
     const ATMOSPHERE_PAD = 48;
@@ -229,28 +253,62 @@ export function OrbitalBackground() {
       atmosphereCtx.fillRect(0, 0, aw, ah);
     };
 
-    const sectionElements: Record<string, HTMLElement | null> = {};
-    const syncSectionElements = () => {
+    const sectionDocBounds: Record<
+      string,
+      { left: number; top: number; width: number; height: number }
+    > = {};
+    let serviciosDocTop = -1;
+    let serviciosDocBottom = -1;
+
+    const refreshDocBounds = () => {
+      const sy = window.scrollY;
       for (const c of SECTION_CONSTELLATIONS) {
-        sectionElements[c.sectionId] = document.getElementById(c.sectionId);
+        const el = document.getElementById(c.sectionId);
+        if (!el) continue;
+        const r = el.getBoundingClientRect();
+        sectionDocBounds[c.sectionId] = {
+          left: r.left,
+          top: r.top + sy,
+          width: el.offsetWidth || r.width,
+          height: el.offsetHeight || r.height,
+        };
+      }
+      const servEl = document.getElementById("servicios");
+      if (servEl) {
+        const sr = servEl.getBoundingClientRect();
+        serviciosDocTop = sr.top + sy;
+        serviciosDocBottom = serviciosDocTop + servEl.offsetHeight;
+      } else {
+        serviciosDocTop = -1;
+        serviciosDocBottom = -1;
       }
     };
 
     const resizeCanvas = () => {
       width = window.innerWidth;
       height = window.innerHeight;
-      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      dpr = Math.min(window.devicePixelRatio || 1, 1.25);
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       buildAtmosphereCache();
-      syncSectionElements();
+      refreshDocBounds();
     };
 
     resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
+    let resizeTimer = 0;
+    const handleResize = () => {
+      resizeCanvas();
+    };
+    const handleDocResize = () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(refreshDocBounds, 150);
+    };
+    const docRo = new ResizeObserver(handleDocResize);
+    docRo.observe(document.body);
+    window.addEventListener("resize", handleResize);
 
     // Estado de puntero y scroll para paralaje y efecto warp
     let targetMouseX = 0;
@@ -329,16 +387,14 @@ export function OrbitalBackground() {
       );
     };
 
-    const drawConstellations = (dt: number) => {
+    const drawConstellations = (dt: number, currentScrollY: number) => {
       for (const constellation of SECTION_CONSTELLATIONS) {
-        const sectionEl =
-          sectionElements[constellation.sectionId] ??
-          document.getElementById(constellation.sectionId);
-        if (!sectionEl) continue;
-        sectionElements[constellation.sectionId] = sectionEl;
+        const bounds = sectionDocBounds[constellation.sectionId];
+        if (!bounds) continue;
 
-        const rect = sectionEl.getBoundingClientRect();
-        const inView = rect.top < height * 0.88 && rect.bottom > height * 0.1;
+        const rectTop = bounds.top - currentScrollY;
+        const rectBottom = rectTop + bounds.height;
+        const inView = rectTop < height * 0.88 && rectBottom > height * 0.1;
 
         if (!prefersReducedMotion) {
           const current = constellationProgress[constellation.sectionId] ?? 0;
@@ -347,7 +403,7 @@ export function OrbitalBackground() {
               1,
               current + dt * 0.75
             );
-          } else if (rect.top > height * 1.15) {
+          } else if (rectTop > height * 1.15) {
             // Reinicio sutil solo si vuelve muy arriba para mantener vivo el recorrido
             constellationProgress[constellation.sectionId] = Math.max(
               0,
@@ -362,9 +418,9 @@ export function OrbitalBackground() {
         const visibilityFade =
           Math.min(
             1,
-            Math.max(0, (height * 0.96 - rect.top) / (height * 0.25))
+            Math.max(0, (height * 0.96 - rectTop) / (height * 0.25))
           ) *
-          Math.min(1, Math.max(0, rect.bottom / (height * 0.22)));
+          Math.min(1, Math.max(0, rectBottom / (height * 0.22)));
 
         if (visibilityFade <= 0.02) continue;
 
@@ -373,8 +429,8 @@ export function OrbitalBackground() {
         const pMouseY = -smoothMouseY * 10;
 
         const screenNodes = constellation.nodes.map((node) => ({
-          x: rect.left + rect.width * node.rx + pMouseX,
-          y: rect.top + rect.height * node.ry + pMouseY,
+          x: bounds.left + bounds.width * node.rx + pMouseX,
+          y: rectTop + bounds.height * node.ry + pMouseY,
           magnitude: node.magnitude,
         }));
 
@@ -493,13 +549,30 @@ export function OrbitalBackground() {
       prevTime = nowMs;
       const tSec = nowMs / 1000;
 
+      // Velocidad vertical del scroll para el efecto warp
+      const currentScrollY = window.scrollY;
+
+      // Omitir repintado cuando #servicios opaco (#F4F1EA) cubre toda la ventana
+      if (
+        serviciosDocTop !== -1 &&
+        serviciosDocTop - currentScrollY <= 0 &&
+        serviciosDocBottom - currentScrollY >= height
+      ) {
+        lastScrollY = currentScrollY;
+        smoothScrollVel = 0;
+        if (!prefersReducedMotion && !document.hidden) {
+          rafId = window.requestAnimationFrame(renderFrame);
+        } else {
+          rafId = 0;
+        }
+        return;
+      }
+
       // Suavizado exponencial del puntero
       const pointerEase = 1 - Math.exp(-dt * 6.5);
       smoothMouseX += (targetMouseX - smoothMouseX) * pointerEase;
       smoothMouseY += (targetMouseY - smoothMouseY) * pointerEase;
 
-      // Velocidad vertical del scroll para el efecto warp
-      const currentScrollY = window.scrollY;
       const rawScrollVel =
         dt > 0.001 ? (currentScrollY - lastScrollY) / dt : 0;
       lastScrollY = currentScrollY;
@@ -516,7 +589,8 @@ export function OrbitalBackground() {
 
       drawCosmicAtmosphere(tSec);
 
-      // Polvo cósmico flotante
+      // Polvo cósmico flotante (sin allocs de strings rgba por frame)
+      ctx.fillStyle = warmStarTint;
       for (let i = 0; i < dustMotes.length; i++) {
         const mote = dustMotes[i];
         if (!prefersReducedMotion) {
@@ -532,10 +606,9 @@ export function OrbitalBackground() {
           height
         );
 
-        ctx.fillStyle = `rgba(244, 241, 234, ${mote.alpha})`;
-        ctx.beginPath();
-        ctx.arc(mx, my, mote.radius, 0, Math.PI * 2);
-        ctx.fill();
+        const size = mote.radius * 1.6;
+        ctx.globalAlpha = mote.alpha;
+        ctx.fillRect(mx - size * 0.5, my - size * 0.5, size, size);
       }
 
       // 3 Capas de estrellas con paralaje y estiramiento warp por scroll
@@ -583,8 +656,8 @@ export function OrbitalBackground() {
 
         if (absStreak > 0.75) {
           // Trazo vertical estirado durante el scroll rápido (warp suave)
-          const streakAlpha = Math.min(1, alpha * (1 + absStreak * 0.025));
-          ctx.strokeStyle = `rgba(${star.tint}, ${streakAlpha.toFixed(3)})`;
+          ctx.globalAlpha = Math.min(1, alpha * (1 + absStreak * 0.025));
+          ctx.strokeStyle = star.tint;
           ctx.lineWidth = star.radius * 1.15;
           ctx.lineCap = "round";
           ctx.beginPath();
@@ -592,15 +665,23 @@ export function OrbitalBackground() {
           ctx.lineTo(sx, sy + streakY * 0.5);
           ctx.stroke();
         } else {
-          ctx.fillStyle = `rgba(${star.tint}, ${alpha.toFixed(3)})`;
-          ctx.beginPath();
-          ctx.arc(sx, sy, star.radius, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = star.tint;
+
+          if (star.radius <= 0.85) {
+            const d = star.radius * 2;
+            ctx.fillRect(sx - star.radius, sy - star.radius, d, d);
+          } else {
+            ctx.beginPath();
+            ctx.arc(sx, sy, star.radius, 0, Math.PI * 2);
+            ctx.fill();
+          }
 
           // Destello cruciforme sutil solo en las estrellas cercanas principales
           if (star.crosshair && alpha > 0.4) {
             const arm = star.radius * 3.1;
-            ctx.strokeStyle = `rgba(${star.tint}, ${(alpha * 0.35).toFixed(3)})`;
+            ctx.globalAlpha = alpha * 0.35;
+            ctx.strokeStyle = star.tint;
             ctx.lineWidth = 0.6;
             ctx.beginPath();
             ctx.moveTo(sx - arm, sy);
@@ -612,7 +693,8 @@ export function OrbitalBackground() {
         }
       }
 
-      drawConstellations(dt);
+      ctx.globalAlpha = 1;
+      drawConstellations(dt, currentScrollY);
       drawMeteor(dt, nowMs);
 
       if (!prefersReducedMotion && !document.hidden) {
@@ -633,18 +715,22 @@ export function OrbitalBackground() {
             star.layer === 0 ? 0.025 : star.layer === 1 ? 0.11 : 0.26;
           const sx = star.xNorm * width;
           const sy = wrapCoord(star.yNorm * height - scrollY * scrollMult, height);
-          ctx.fillStyle = `rgba(${star.tint}, ${star.baseAlpha.toFixed(3)})`;
+          ctx.globalAlpha = star.baseAlpha;
+          ctx.fillStyle = star.tint;
           ctx.beginPath();
           ctx.arc(sx, sy, star.radius, 0, Math.PI * 2);
           ctx.fill();
         }
-        drawConstellations(0);
+        ctx.globalAlpha = 1;
+        drawConstellations(0, scrollY);
       };
       renderReduced();
       window.addEventListener("scroll", renderReduced, { passive: true });
       return () => {
+        window.clearTimeout(resizeTimer);
+        docRo.disconnect();
         window.removeEventListener("scroll", renderReduced);
-        window.removeEventListener("resize", resizeCanvas);
+        window.removeEventListener("resize", handleResize);
         window.removeEventListener("pointermove", handlePointerMove);
         window.removeEventListener("blur", handlePointerLeave);
       };
@@ -672,7 +758,9 @@ export function OrbitalBackground() {
       if (rafId) {
         window.cancelAnimationFrame(rafId);
       }
-      window.removeEventListener("resize", resizeCanvas);
+      window.clearTimeout(resizeTimer);
+      docRo.disconnect();
+      window.removeEventListener("resize", handleResize);
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("blur", handlePointerLeave);
     };
@@ -683,10 +771,11 @@ export function OrbitalBackground() {
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
     >
+      <style>{ORBITAL_RING_CSS}</style>
       {/* Cosmos multicapa interactivo a 60fps: estrellas, warp de scroll, constelaciones y meteorito */}
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
 
-      {/* Dos anillos orbitales gigantes ultrafinos */}
+      {/* Dos anillos orbitales gigantes ultrafinos animados por compositor CSS */}
       <svg
         viewBox="0 0 1440 900"
         fill="none"
@@ -694,9 +783,8 @@ export function OrbitalBackground() {
         className="relative h-full w-full"
         preserveAspectRatio="xMidYMid slice"
       >
-        <motion.g
-          animate={{ rotate: 360 }}
-          transition={{ duration: 240, repeat: Infinity, ease: "linear" }}
+        <g
+          className="ellik-orbit-cw"
           style={{ transformOrigin: "920px 440px" }}
         >
           <circle
@@ -706,11 +794,10 @@ export function OrbitalBackground() {
             stroke="rgba(255, 255, 255, 0.045)"
             strokeWidth="1"
           />
-        </motion.g>
+        </g>
 
-        <motion.g
-          animate={{ rotate: -360 }}
-          transition={{ duration: 300, repeat: Infinity, ease: "linear" }}
+        <g
+          className="ellik-orbit-ccw"
           style={{ transformOrigin: "720px 450px" }}
         >
           <ellipse
@@ -722,7 +809,7 @@ export function OrbitalBackground() {
             stroke="rgba(255, 255, 255, 0.045)"
             strokeWidth="1"
           />
-        </motion.g>
+        </g>
       </svg>
     </div>
   );
