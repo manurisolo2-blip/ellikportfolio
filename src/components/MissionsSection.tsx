@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import {
   AnimatePresence,
   motion,
@@ -11,6 +11,12 @@ import {
 } from "framer-motion";
 import { MISSIONS } from "@/data/ellikData";
 import { WarpCarousel, type WarpCard } from "@/components/ui/warp-carousel";
+
+const MISSIONS_SCOPED_CSS = `
+.ellik-missions-pill {
+  border-radius: 9999px !important;
+}
+`;
 
 interface ProjectCardVisualMeta {
   title: string;
@@ -139,6 +145,14 @@ export function MissionsSection() {
     setActiveIndex(normalized);
   }, []);
 
+  const handlePrev = useCallback(() => {
+    handleIndexChange(safeIndex - 1);
+  }, [handleIndexChange, safeIndex]);
+
+  const handleNext = useCallback(() => {
+    handleIndexChange(safeIndex + 1);
+  }, [handleIndexChange, safeIndex]);
+
   const handleCardClick = useCallback(
     (clickedIndex: number) => {
       const total = MISSIONS.length;
@@ -159,6 +173,7 @@ export function MissionsSection() {
       id="proyectos"
       className="relative z-[44] w-full h-[220vh] md:h-[250vh]"
     >
+      <style>{MISSIONS_SCOPED_CSS}</style>
       {MISSIONS.map((mission) => (
         <span
           key={`anchor-${mission.id}`}
@@ -184,18 +199,61 @@ export function MissionsSection() {
           />
 
           {/* Encabezado compacto dentro del escenario fullscreen */}
-          <header className="relative z-20 shrink-0 flex items-center justify-between gap-4 border-b border-white/10 bg-[#050505]/95 pt-[76px] lg:pt-[92px] pb-3.5 md:pb-4 px-6 sm:px-10 lg:pl-32 lg:pr-12">
-            <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-white leading-none">
+          <header className="relative z-20 shrink-0 flex items-center justify-between gap-3 sm:gap-4 border-b border-white/10 bg-[#050505]/95 pt-[76px] lg:pt-[92px] pb-3.5 md:pb-4 px-5 sm:pl-28 sm:pr-10 lg:pl-32 lg:pr-28 xl:pl-36 xl:pr-32">
+            <h2 className="font-display text-[21px] sm:text-3xl md:text-4xl font-semibold tracking-[-0.015em] [word-spacing:0.06em] text-white leading-none whitespace-nowrap">
               Obra reciente.
             </h2>
 
-            <div className="flex items-center gap-5">
-              <span className="hidden sm:inline font-sans font-medium text-[11px] uppercase tracking-[0.2em] text-white/45">
-                Arrastrá o usá ← →
+            <div className="flex items-center gap-3 sm:gap-5 shrink-0">
+              <span className="hidden xl:inline text-[11px] font-sans text-white/35 mr-2">
+                Deslizá o elegí
               </span>
-              <span className="font-sans font-medium text-xs sm:text-sm tracking-[0.18em] text-[#F4F1EA] tabular-nums">
-                {activeMission.index} / 0{MISSIONS.length}
-              </span>
+
+              <div
+                data-missions-counter
+                className="flex items-baseline select-none whitespace-nowrap shrink-0"
+              >
+                <span className="relative inline-flex overflow-hidden min-w-[2ch] justify-end">
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.span
+                      key={activeMission.index}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                      className="font-display font-medium text-xl sm:text-2xl text-white tabular-nums leading-none"
+                    >
+                      {activeMission.index}
+                    </motion.span>
+                  </AnimatePresence>
+                </span>
+                <span className="font-sans text-xs text-white/35 tabular-nums ml-1 whitespace-nowrap shrink-0">
+                  / {String(MISSIONS.length).padStart(2, "0")}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  data-missions-prev
+                  data-cursor="action"
+                  aria-label="Proyecto anterior"
+                  onClick={handlePrev}
+                  className="ellik-missions-pill w-9 h-9 rounded-full border border-white/15 bg-white/[0.02] hover:border-white/50 hover:bg-white/[0.08] flex items-center justify-center text-white/80 hover:text-white transition-all cursor-pointer"
+                >
+                  <ArrowLeft size={15} strokeWidth={1.7} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  data-missions-next
+                  data-cursor="action"
+                  aria-label="Proyecto siguiente"
+                  onClick={handleNext}
+                  className="ellik-missions-pill w-9 h-9 rounded-full border border-white/15 bg-white/[0.02] hover:border-white/50 hover:bg-white/[0.08] flex items-center justify-center text-white/80 hover:text-white transition-all cursor-pointer"
+                >
+                  <ArrowRight size={15} strokeWidth={1.7} aria-hidden="true" />
+                </button>
+              </div>
             </div>
           </header>
 
@@ -218,28 +276,37 @@ export function MissionsSection() {
             />
           </div>
 
-          {/* Dock inferior minimalista: ficha editorial del proyecto activo + CTA en una sola fila */}
-          <div className="relative z-20 shrink-0 border-t border-white/10 bg-[#050505]/95 px-6 sm:px-10 lg:pl-32 lg:pr-12 pt-4 pb-20 lg:pb-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {/* Dock inferior editorial: meta + título + descripción en 3 niveles y CTA directo */}
+          <div className="relative z-20 shrink-0 border-t border-white/[0.08] bg-[#050505]/95 px-6 sm:pl-28 sm:pr-10 lg:pl-32 lg:pr-28 xl:pl-36 xl:pr-32 pt-5 md:pt-6 pb-20 lg:pb-6">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 md:gap-6">
               <div className="min-w-0 flex-1">
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={activeMission.id}
-                    initial={{ opacity: 0, y: 6 }}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="space-y-1"
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                    data-missions-meta={activeMission.id}
                   >
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-sans font-medium text-[11px] uppercase tracking-[0.14em] leading-snug">
-                      <span className="text-[#F4F1EA]">
+                    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 mb-2.5">
+                      <span className="font-sans font-medium text-[11px] uppercase tracking-[0.14em] text-white/50">
                         {activeMission.category}
                       </span>
-                      <span className="text-white/55">
+                      <span
+                        aria-hidden="true"
+                        className="hidden sm:block ellik-missions-pill w-1 h-1 rounded-full bg-white/25 shrink-0"
+                      />
+                      <span className="ellik-missions-pill text-[11px] font-sans font-medium text-[#F4F1EA]/90 bg-white/[0.06] border border-white/[0.12] px-2.5 py-0.5 rounded-full">
                         {activeMission.highlight}
                       </span>
                     </div>
-                    <p className="hidden sm:block text-sm leading-relaxed text-white/75 line-clamp-1 max-w-3xl">
+
+                    <h3 className="font-display font-medium text-2xl sm:text-3xl tracking-[-0.01em] [word-spacing:0.06em] text-white leading-tight mb-2">
+                      {activeMission.title}
+                    </h3>
+
+                    <p className="max-w-xl font-sans text-sm sm:text-[15px] text-[#A1A1AA] leading-relaxed">
                       {activeMission.description}
                     </p>
                   </motion.div>
@@ -251,12 +318,13 @@ export function MissionsSection() {
                 href={activeMission.liveUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                data-missions-cta
                 data-cursor="action"
-                className="group/btn relative inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2.5 whitespace-nowrap overflow-hidden border border-white/35 px-5 py-3 font-sans font-medium text-xs tracking-[0.12em] uppercase text-white transition-colors duration-300 hover:border-white"
+                className="group/btn relative inline-flex min-h-[44px] shrink-0 self-start md:self-auto items-center justify-center gap-2.5 whitespace-nowrap overflow-hidden border border-white/30 px-5 py-3 font-sans font-medium text-[11px] tracking-[0.16em] uppercase text-white transition-colors duration-300 hover:border-[#F4F1EA]"
               >
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 bg-white translate-y-[102%] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-y-0 group-focus-visible/btn:translate-y-0"
+                  className="pointer-events-none absolute inset-0 bg-[#F4F1EA] translate-y-[102%] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-y-0 group-focus-visible/btn:translate-y-0"
                 />
                 <span className="relative z-10 inline-flex items-center gap-2.5 whitespace-nowrap transition-colors duration-300 group-hover/btn:text-[#050505] group-focus-visible/btn:text-[#050505]">
                   <span>VISITAR SITIO EN VIVO</span>
