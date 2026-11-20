@@ -139,10 +139,10 @@ function ActionNotch({
         style={{ background: ground }}
       >
         <span className="flex flex-col leading-tight">
-          <span className="font-display font-semibold text-[#050505] text-[16px] sm:text-[18px] tracking-[0em] [word-spacing:0.04em] leading-tight whitespace-nowrap">
+          <span className="font-display font-semibold text-[#050505] text-[16.5px] sm:text-[19px] tracking-[-0.01em] [word-spacing:0.04em] leading-tight whitespace-nowrap">
             {item.ctaLabel}
           </span>
-          <span className="font-sans text-[#3F3F46] text-[12px] sm:text-[13px] leading-snug whitespace-nowrap">
+          <span className="font-sans font-medium text-[#3F3F46] text-[12px] sm:text-[13px] leading-snug whitespace-nowrap">
             {item.ctaSublabel}
           </span>
         </span>
@@ -234,7 +234,7 @@ function DeckCard({
       <div
         data-cursor="action"
         onClick={handleAction}
-        className="ellik-deck-card group/card relative grid w-full grid-cols-1 grid-rows-[auto_1fr] lg:grid-cols-12 lg:grid-rows-1 h-[555px] sm:h-[570px] lg:h-[min(68svh,560px)] overflow-hidden cursor-pointer select-none text-[#F4F1EA] border border-white/[0.1] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.55)]"
+        className="ellik-deck-card group/card relative grid w-full grid-cols-1 grid-rows-[auto_1fr] lg:grid-cols-12 lg:grid-rows-1 h-[555px] sm:h-[570px] lg:h-[min(68svh,560px)] overflow-hidden cursor-pointer select-none text-[#F4F1EA] border border-white/[0.15] border-t-white/[0.24] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.55)]"
         style={{ backgroundColor: item.surfaceBg }}
       >
         {/* Lomo superior clickable cuando la tarjeta está apilada detrás */}
@@ -252,37 +252,61 @@ function DeckCard({
             e.stopPropagation();
             onJumpToCard(index);
           }}
-          className="absolute inset-x-0 top-0 z-30 h-[36px] px-5 sm:px-9 lg:px-12 flex items-center justify-between border-b border-white/[0.08] text-left transition-colors hover:bg-white/[0.03] outline-none"
+          className="absolute inset-x-0 top-0 z-30 h-[36px] px-5 sm:px-9 lg:px-12 flex items-center justify-between border-b border-white/[0.12] text-left transition-colors hover:bg-white/[0.04] outline-none"
         >
-          <span className="font-sans font-medium text-[11px] tracking-[0.06em] text-white/75 truncate">
-            {item.index} / {paddedCount} — {item.name}
+          <span className="flex items-baseline gap-2 min-w-0 truncate">
+            <span className="font-display font-medium text-[13px] sm:text-[14.5px] tracking-[-0.01em] text-[#F4F1EA] shrink-0">
+              {item.index}
+            </span>
+            <span className="font-sans text-[11px] text-white/45 shrink-0">
+              / {paddedCount}
+            </span>
+            <span aria-hidden="true" className="text-white/25 shrink-0">
+              —
+            </span>
+            <span className="font-display font-medium text-[13px] sm:text-[14.5px] tracking-[-0.01em] text-[#F4F1EA] truncate">
+              {item.name}
+            </span>
           </span>
-          <span className="font-sans font-medium text-[10px] uppercase tracking-[0.16em] text-white/45 shrink-0 ml-4">
+          <span className="font-sans font-semibold text-[10.5px] uppercase tracking-[0.16em] text-[#F4F1EA]/80 shrink-0 ml-4">
             {labels.viewSpine}
           </span>
         </motion.button>
 
         {/* Columna izquierda (5/12): Lámina editorial mate sin cajas ni divisores internos */}
-        <div className="relative z-[5] lg:col-span-5 p-4 sm:p-8 lg:p-8 xl:p-11 flex flex-col justify-between min-w-0">
-          <p className="font-sans font-medium text-[10.5px] sm:text-[11px] uppercase tracking-[0.16em] text-white/40 truncate">
-            {item.index} / {paddedCount} — {item.eyebrow}
-          </p>
+        <div className="relative z-[5] lg:col-span-5 p-4 sm:p-7 lg:p-7 xl:p-9 flex flex-col justify-between min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="font-display font-semibold text-[22px] sm:text-[28px] xl:text-[30px] leading-none tracking-[-0.02em] text-[#F4F1EA] shrink-0">
+              {item.index}
+            </span>
+            <span className="font-sans font-medium text-[11px] text-white/35 shrink-0">
+              / {paddedCount}
+            </span>
+            <span aria-hidden="true" className="h-3.5 w-px bg-white/[0.18] shrink-0" />
+            <p className="font-sans font-semibold text-[10.5px] sm:text-[11px] uppercase tracking-[0.16em] text-[#F4F1EA]/75 truncate">
+              {item.eyebrow}
+            </p>
+          </div>
 
           <div className="my-2 sm:my-0">
-            <h3 className="font-display font-medium text-[24px] sm:text-4xl lg:text-[34px] xl:text-[42px] leading-[1.04] tracking-[-0.015em] [word-spacing:0.05em] text-[#F4F1EA]">
+            <h3 className="font-display font-semibold text-[26px] sm:text-[38px] lg:text-[38px] xl:text-[45px] leading-[0.98] tracking-[-0.022em] [word-spacing:0.04em] text-white">
               {item.name}
             </h3>
 
-            <p className="font-sans text-[13px] sm:text-[14px] xl:text-[15px] text-white/60 leading-relaxed mt-2 sm:mt-4 xl:mt-5 max-w-sm">
+            <p className="font-sans text-[13px] sm:text-[14.5px] lg:text-[14px] xl:text-[15.5px] text-[#D4D4D8] leading-[1.42] mt-2 sm:mt-3 max-w-[40ch]">
               {item.summary}
             </p>
 
-            <ul className="mt-3 sm:mt-5 xl:mt-7 text-[12px] sm:text-[13px] text-white/80 leading-relaxed flex flex-col gap-1 sm:gap-1.5">
+            <ul className="mt-2.5 sm:mt-3.5 pt-2.5 sm:pt-3 border-t border-white/[0.1] flex flex-col gap-1.5 sm:gap-2">
               {item.deliverables.map((point, idx) => (
-                <li key={idx} className="flex items-baseline gap-2">
-                  <span aria-hidden="true" className="text-white/30 shrink-0">
-                    —
-                  </span>
+                <li
+                  key={idx}
+                  className="flex items-start gap-2.5 font-sans font-medium text-[12.5px] sm:text-[13.5px] lg:text-[13px] xl:text-[14px] leading-snug text-[#F4F1EA]/95"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="w-3.5 h-[1.5px] bg-[#F4F1EA]/60 shrink-0 mt-[0.58em]"
+                  />
                   <span>{point}</span>
                 </li>
               ))}
@@ -291,21 +315,22 @@ function DeckCard({
 
           <div
             data-deck-metrics={item.id}
-            className="pt-3 sm:pt-5 xl:pt-6 border-t border-white/[0.08] flex items-center gap-6 sm:gap-8"
+            className="pt-2.5 sm:pt-3.5 border-t border-white/[0.12] flex items-center gap-5 sm:gap-7"
           >
             <div>
-              <p className="font-sans text-[10px] uppercase tracking-[0.14em] text-white/35">
+              <p className="font-sans font-medium text-[10px] uppercase tracking-[0.16em] text-white/45">
                 {labels.estimatedTime}
               </p>
-              <p className="font-sans text-[12.5px] sm:text-[13px] font-medium text-white/90 mt-0.5">
+              <p className="font-display font-medium text-[15px] sm:text-[18px] lg:text-[17px] xl:text-[20px] leading-tight tracking-[-0.01em] text-[#F4F1EA] mt-0.5">
                 {item.estimatedTime}
               </p>
             </div>
+            <span aria-hidden="true" className="h-7 w-px bg-white/[0.12] shrink-0" />
             <div>
-              <p className="font-sans text-[10px] uppercase tracking-[0.14em] text-white/35">
+              <p className="font-sans font-medium text-[10px] uppercase tracking-[0.16em] text-white/45">
                 {labels.focus}
               </p>
-              <p className="font-sans text-[12.5px] sm:text-[13px] font-medium text-white/90 mt-0.5">
+              <p className="font-display font-medium text-[15px] sm:text-[18px] lg:text-[17px] xl:text-[20px] leading-tight tracking-[-0.01em] text-[#F4F1EA] mt-0.5">
                 {item.focus}
               </p>
             </div>
@@ -313,8 +338,8 @@ function DeckCard({
         </div>
 
         {/* Columna derecha (7/12): Encuadre completo 16:10 sin recortes laterales */}
-        <div className="relative z-[5] lg:col-span-7 px-4 pt-0.5 pb-4 sm:p-7 lg:p-8 lg:pl-2 lg:pb-16 flex items-start sm:items-center min-h-0">
-          <div className="ellik-deck-media relative w-full aspect-[16/10] overflow-hidden border border-white/[0.1] bg-[#050505] shadow-[0_24px_60px_-20px_rgba(0,0,0,0.75)]">
+        <div className="relative z-[5] lg:col-span-7 px-4 pt-0.5 pb-4 sm:p-6 lg:p-6 lg:pl-2 lg:pb-14 xl:p-7 xl:pl-2 xl:pb-16 flex items-start sm:items-center min-h-0">
+          <div className="ellik-deck-media relative w-full aspect-[16/10] overflow-hidden border border-white/[0.16] bg-[#050505] shadow-[0_24px_60px_-20px_rgba(0,0,0,0.75)]">
             <motion.div
               className="relative h-full w-full will-change-transform"
               style={still ? undefined : { scale: imgScale, y: imgY }}
