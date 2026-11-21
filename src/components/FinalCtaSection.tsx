@@ -131,7 +131,7 @@ export function EllikFooter() {
         title: locale === "es" ? "CONTACTO" : "CONTACT",
         links: [
           { label: "WhatsApp ↗", href: directWhatsappUrl },
-          { label: "Instagram ↗", href: ELLIK_CONFIG.instagramUrl },
+          { label: "LinkedIn ↗", href: ELLIK_CONFIG.linkedinUrl },
           {
             label: ELLIK_CONFIG.email,
             href: `mailto:${ELLIK_CONFIG.email}`,

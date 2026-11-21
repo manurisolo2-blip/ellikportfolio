@@ -69,9 +69,9 @@ export const RUBRO_COPY: Record<
 
 export const ELLIK_CONFIG = {
   brandName: "ELLIK",
-  whatsappNumber: "5493571000000", // Reemplazar por número real con código de país sin +
-  instagramUrl: "https://instagram.com/ellik.web",
-  email: "hola@ellik.com.ar",
+  whatsappNumber: "5493571345390",
+  linkedinUrl: "https://www.linkedin.com/in/juan-manuel-risolo-luconi-4003572aa",
+  email: "manurluconi@gmail.com",
 } as const;
 
 export const NAV_SECTIONS: NavSection[] = [

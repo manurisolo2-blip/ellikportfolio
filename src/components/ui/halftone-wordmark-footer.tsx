@@ -81,7 +81,7 @@ const DEFAULT_COLUMNS: FooterColumn[] = [
   {
     title: "Contact",
     links: [
-      { label: "hola@ellik.com.ar", href: "mailto:hola@ellik.com.ar" },
+      { label: "manurluconi@gmail.com", href: "mailto:manurluconi@gmail.com" },
     ],
   },
 ];
