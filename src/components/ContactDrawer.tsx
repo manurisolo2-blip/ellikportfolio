@@ -33,94 +33,148 @@ interface ContactDrawerProps {
 }
 
 const DRAWER_SCOPED_CSS = `
-.ellik-glass-drawer {
-  border: 1px solid rgba(255, 248, 240, 0.24);
-  background: linear-gradient(152deg, rgba(255, 250, 244, 0.14) 0%, rgba(255, 250, 244, 0.03) 34%, rgba(16, 16, 20, 0.56) 100%), rgba(14, 14, 18, 0.58);
-  box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.38), inset -1px -1px 1px rgba(0, 0, 0, 0.45), 0 30px 90px rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(28px) saturate(1.45);
-  -webkit-backdrop-filter: blur(28px) saturate(1.45);
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 248, 240, 0.18) transparent;
-}
-.ellik-glass-tray {
-  --mx: 32%;
-  --my: 24%;
-}
-.ellik-liquid-indicator {
-  background:
-    radial-gradient(
-      circle at var(--mx, 32%) var(--my, 24%),
-      rgba(255, 255, 255, 0.46),
-      rgba(226, 234, 248, 0.18) 54%,
-      rgba(110, 126, 158, 0.24) 100%
-    ),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.22), rgba(244, 241, 234, 0.08));
-  border: 1px solid rgba(255, 255, 255, 0.44);
-  box-shadow:
-    inset 1px 1px 1px rgba(255, 255, 255, 0.68),
-    inset -1px -1px 1px rgba(10, 14, 24, 0.38),
-    inset 0 0 14px rgba(255, 255, 255, 0.16),
-    0 10px 26px rgba(0, 0, 0, 0.38);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-}
-.ellik-liquid-morph {
-  animation: ellik-meniscus 0.46s cubic-bezier(0.22, 1.32, 0.36, 1);
-  transform-origin: center;
-}
-.ellik-liquid-ripple {
-  background: radial-gradient(
-    circle at center,
-    rgba(255, 255, 255, 0.45) 0%,
-    rgba(226, 234, 248, 0.18) 45%,
-    transparent 74%
+.ellik-liquid-panel {
+  --gx: 24%;
+  --gy: 14%;
+  position: relative;
+  isolation: isolate;
+  border-radius: 32px !important;
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.11) 0%,
+    rgba(255, 255, 255, 0.03) 28%,
+    rgba(12, 14, 18, 0.42) 100%
   );
-  animation: ellik-caustic-wave 0.56s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.ellik-glass-field {
-  color-scheme: dark;
-  transition:
-    background 0.28s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.28s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.32s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.ellik-glass-field:hover:not(:focus) {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.22);
-}
-.ellik-glass-field:focus {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
-  border-color: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(36px) saturate(185%) brightness(1.12);
+  -webkit-backdrop-filter: blur(36px) saturate(185%) brightness(1.12);
   box-shadow:
-    inset 1px 1px 1px rgba(255, 255, 255, 0.42),
-    0 0 0 3px rgba(255, 255, 255, 0.09),
-    0 10px 24px -8px rgba(0, 0, 0, 0.45);
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.42),
+    inset 0 -1px 2px rgba(255, 255, 255, 0.08),
+    inset 1px 0 1px rgba(255, 255, 255, 0.14),
+    0 32px 90px -12px rgba(0, 0, 0, 0.72);
 }
-@keyframes ellik-meniscus {
-  0% {
-    transform: scale(1.08, 0.92);
-  }
-  48% {
-    transform: scale(0.97, 1.03);
-  }
-  100% {
-    transform: scale(1, 1);
-  }
+.ellik-liquid-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1.25px;
+  border-radius: 32px !important;
+  pointer-events: none;
+  z-index: 20;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.62) 0%,
+    rgba(255, 255, 255, 0.14) 26%,
+    rgba(140, 215, 200, 0.08) 55%,
+    rgba(255, 255, 255, 0.28) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
 }
-@keyframes ellik-caustic-wave {
-  0% {
-    opacity: 0.8;
-    transform: scale(0.45);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.55);
-  }
+.ellik-liquid-panel .ellik-liquid-glare {
+  border-radius: 32px !important;
+  background: radial-gradient(
+    280px circle at var(--gx) var(--gy),
+    rgba(255, 255, 255, 0.11),
+    rgba(117, 218, 192, 0.03) 45%,
+    transparent 72%
+  );
+  mix-blend-mode: screen;
+}
+.ellik-liquid-panel .ellik-liquid-caustics {
+  border-radius: 32px !important;
+  background:
+    radial-gradient(240px circle at 10% 8%, rgba(244, 241, 234, 0.07), transparent 70%),
+    radial-gradient(280px circle at 92% 94%, rgba(30, 116, 97, 0.12), transparent 72%);
+}
+.ellik-liquid-panel .ellik-thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+.ellik-liquid-panel .ellik-liquid-pill,
+.ellik-liquid-panel .ellik-liquid-dot {
+  border-radius: 9999px !important;
+}
+.ellik-liquid-panel .ellik-liquid-rail {
+  border-radius: 22px !important;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.ellik-liquid-panel .ellik-liquid-tab {
+  border-radius: 16px !important;
+}
+.ellik-liquid-panel .ellik-liquid-lens {
+  border-radius: 16px !important;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.24) 0%,
+    rgba(255, 255, 255, 0.08) 42%,
+    rgba(30, 116, 97, 0.24) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.72),
+    inset 0 -1px 3px rgba(117, 218, 192, 0.28),
+    0 8px 20px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+}
+.ellik-liquid-panel .ellik-liquid-field {
+  border-radius: 16px !important;
+  background: rgba(5, 6, 9, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.14);
+  color-scheme: dark;
+  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.ellik-liquid-panel .ellik-liquid-field:hover:not(:focus) {
+  background: rgba(8, 10, 14, 0.5);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.ellik-liquid-panel .ellik-liquid-field:focus {
+  background: rgba(12, 16, 20, 0.58);
+  border-color: rgba(255, 255, 255, 0.36);
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.4),
+    0 0 0 3px rgba(255, 255, 255, 0.08);
+}
+.ellik-liquid-panel .ellik-liquid-cta {
+  position: relative;
+  overflow: hidden;
+  border-radius: 9999px !important;
+  box-shadow:
+    inset 0 1.5px 1px #ffffff,
+    inset 0 -2px 4px rgba(0, 0, 0, 0.12),
+    0 14px 32px -10px rgba(244, 241, 234, 0.35);
+}
+.ellik-liquid-panel .ellik-cta-sheen {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 55%;
+  transform: translateX(-160%) skewX(-20deg);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.72),
+    transparent
+  );
+  pointer-events: none;
+}
+.ellik-liquid-panel .ellik-liquid-cta:hover .ellik-cta-sheen {
+  transform: translateX(280%) skewX(-20deg);
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
 }
 @media (prefers-reduced-motion: reduce) {
-  .ellik-liquid-morph,
-  .ellik-liquid-ripple {
-    animation: none;
+  .ellik-liquid-panel .ellik-cta-sheen {
+    display: none;
   }
 }
 `;
@@ -179,28 +233,16 @@ export function ContactDrawer({
   const [businessAndCity, setBusinessAndCity] = useState<string>("");
   const [need, setNeed] = useState<string>("");
   const [emailCopied, setEmailCopied] = useState<boolean>(false);
-  const [rippleKey, setRippleKey] = useState<number>(0);
-  const [isMorphing, setIsMorphing] = useState<boolean>(false);
 
-  const trayRef = useRef<HTMLDivElement | null>(null);
-  const morphTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const panelRef = useRef<HTMLElement | null>(null);
   const reducedMotion = useReducedMotion() ?? false;
 
   useEffect(() => {
     if (isOpen) {
       setRubro(initialRubro);
       setSelectedPlan(initialPlan);
-      setIsMorphing(false);
     }
   }, [isOpen, initialRubro, initialPlan]);
-
-  useEffect(() => {
-    return () => {
-      if (morphTimerRef.current) {
-        clearTimeout(morphTimerRef.current);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -221,24 +263,10 @@ export function ContactDrawer({
     };
   }, [isOpen, onClose]);
 
-  const handleSelectRubro = (nextValue: BusinessCategory) => {
-    if (nextValue !== rubro) {
-      setRubro(nextValue);
-      setRippleKey((prev) => prev + 1);
-      setIsMorphing(true);
-      if (morphTimerRef.current) {
-        clearTimeout(morphTimerRef.current);
-      }
-      morphTimerRef.current = setTimeout(() => {
-        setIsMorphing(false);
-      }, 460);
-    }
-  };
-
-  const handleTrayPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    const tray = trayRef.current;
-    if (!tray) return;
-    const rect = tray.getBoundingClientRect();
+  const handlePanelPointerMove = (e: React.PointerEvent<HTMLElement>) => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    const rect = panel.getBoundingClientRect();
     const xPct = Math.max(
       0,
       Math.min(100, ((e.clientX - rect.left) / Math.max(rect.width, 1)) * 100)
@@ -247,15 +275,15 @@ export function ContactDrawer({
       0,
       Math.min(100, ((e.clientY - rect.top) / Math.max(rect.height, 1)) * 100)
     );
-    tray.style.setProperty("--mx", `${xPct.toFixed(1)}%`);
-    tray.style.setProperty("--my", `${yPct.toFixed(1)}%`);
+    panel.style.setProperty("--gx", `${xPct.toFixed(1)}%`);
+    panel.style.setProperty("--gy", `${yPct.toFixed(1)}%`);
   };
 
-  const handleTrayPointerLeave = () => {
-    const tray = trayRef.current;
-    if (!tray) return;
-    tray.style.setProperty("--mx", "32%");
-    tray.style.setProperty("--my", "24%");
+  const handlePanelPointerLeave = () => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    panel.style.setProperty("--gx", "24%");
+    panel.style.setProperty("--gy", "14%");
   };
 
   const handleSendWhatsApp = (e: React.FormEvent) => {
@@ -308,7 +336,7 @@ export function ContactDrawer({
 
   return (
     <>
-      <style>{DRAWER_SCOPED_CSS}</style>
+      <style dangerouslySetInnerHTML={{ __html: DRAWER_SCOPED_CSS }} />
       <AnimatePresence>
         {isOpen && (
           <div
@@ -318,19 +346,22 @@ export function ContactDrawer({
             aria-labelledby="contact-drawer-title"
             className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:justify-end p-3 sm:p-6 pointer-events-none"
           >
-            {/* Overlay translúcido para refractar estrellas y secciones detrás del vidrio */}
+            {/* Overlay limpio para que la escena y estrellas se refracten a través del vidrio */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.24 }}
               onClick={onClose}
-              className="fixed inset-0 bg-black/40 backdrop-blur-[8px] pointer-events-auto"
+              className="fixed inset-0 bg-black/35 backdrop-blur-[6px] pointer-events-auto"
             />
 
-            {/* Panel flotante compacto de vidrio esmerilado con ángulos rectos */}
+            {/* Panel flotante óptico de vidrio líquido con borde Fresnel y glare reactivo */}
             <motion.aside
+              ref={panelRef}
               data-lenis-prevent
+              onPointerMove={handlePanelPointerMove}
+              onPointerLeave={handlePanelPointerLeave}
               initial={
                 reducedMotion
                   ? { opacity: 0 }
@@ -343,325 +374,324 @@ export function ContactDrawer({
                   : { x: 40, scale: 0.97, opacity: 0 }
               }
               transition={{ duration: 0.36, ease: DRAWER_EASE }}
-              className="ellik-glass-drawer relative z-10 w-full max-w-[460px] h-auto max-h-[calc(100svh-32px)] overflow-y-auto overflow-x-hidden overscroll-contain text-[#F4F1EA] pointer-events-auto"
+              className="ellik-liquid-panel relative z-10 w-full max-w-[468px] h-auto max-h-[calc(100svh-32px)] overflow-hidden text-[#F4F1EA] pointer-events-auto"
             >
-              <motion.div
-                className="p-6 sm:p-7 flex flex-col gap-5"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
+              {/* Capas ópticas internas: cáustica ambiental + brillo líquido al puntero */}
+              <div
+                aria-hidden="true"
+                className="ellik-liquid-caustics pointer-events-none absolute inset-0 z-0"
+              />
+              <div
+                aria-hidden="true"
+                className="ellik-liquid-glare pointer-events-none absolute inset-0 z-[1]"
+              />
+
+              <div
+                data-lenis-prevent
+                className="ellik-thin-scroll relative z-10 max-h-[calc(100svh-32px)] overflow-y-auto overflow-x-hidden overscroll-contain"
               >
-                {/* Cabecera limpia sin punto indicador ni barra cerrada */}
                 <motion.div
-                  variants={activeItemVariants}
-                  className="flex items-center justify-between gap-3"
+                  className="p-6 sm:p-7 flex flex-col gap-5"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
                 >
-                  <div
-                    data-drawer-topbar
-                    className="px-3 py-1.5 bg-white/[0.06] border border-white/[0.14] shadow-[inset_1px_1px_1px_rgba(255,255,255,0.22)] flex items-center min-w-0"
-                  >
-                    <span className="font-sans font-medium text-[11px] uppercase tracking-[0.12em] text-white/85 truncate">
-                      {locale === "es" ? "Contacto directo" : "Direct contact"}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    data-drawer-close
-                    data-cursor="action"
-                    aria-label={
-                      locale === "es"
-                        ? "Cerrar panel de contacto"
-                        : "Close contact panel"
-                    }
-                    onClick={onClose}
-                    className="w-9 h-9 bg-white/[0.07] hover:bg-white/[0.16] border border-white/[0.18] shadow-[inset_1px_1px_1px_rgba(255,255,255,0.24)] flex items-center justify-center text-white/85 hover:text-white transition-all cursor-pointer shrink-0"
-                  >
-                    <X size={15} strokeWidth={1.75} aria-hidden="true" />
-                  </button>
-                </motion.div>
-
-                {/* Titular directo */}
-                <motion.div variants={activeItemVariants}>
-                  <h2
-                    id="contact-drawer-title"
-                    className="font-display font-medium text-[28px] sm:text-[32px] leading-[1.06] tracking-[-0.015em] [word-spacing:0.05em]"
-                  >
-                    {locale === "es" ? (
-                      <>
-                        <span className="text-white">Contame sobre</span>{" "}
-                        <span className="text-[#F4F1EA]/55">tu negocio.</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-white">Tell me about</span>{" "}
-                        <span className="text-[#F4F1EA]/55">
-                          your business.
-                        </span>
-                      </>
-                    )}
-                  </h2>
-
-                  <p className="font-sans text-[13.5px] text-white/60 mt-1.5 leading-snug">
-                    {locale === "es"
-                      ? "Elegí tu rubro, dejame dos datos y seguimos directo en WhatsApp"
-                      : "Pick your category, share two details, and let's chat on WhatsApp"}
-                  </p>
-
-                  {selectedPlan && (
-                    <div
-                      data-drawer-plan-chip
-                      className="inline-flex items-center gap-2 mt-2.5 px-3 py-1 text-[11px] font-sans font-medium bg-white/[0.14] border border-white/[0.34] shadow-[inset_1px_1px_1px_rgba(255,255,255,0.4)] text-white max-w-full"
-                    >
-                      <span className="truncate">
-                        {locale === "es" ? "Modalidad" : "Option"}:{" "}
-                        {selectedPlan}
-                      </span>
-                      <button
-                        type="button"
-                        aria-label={
-                          locale === "es"
-                            ? "Quitar modalidad"
-                            : "Remove option"
-                        }
-                        onClick={() => setSelectedPlan("")}
-                        className="shrink-0 text-white/75 hover:text-white transition-colors cursor-pointer"
-                      >
-                        <X size={12} strokeWidth={1.75} aria-hidden="true" />
-                      </button>
-                    </div>
-                  )}
-                </motion.div>
-
-                <form
-                  onSubmit={handleSendWhatsApp}
-                  className="flex flex-col gap-4"
-                >
-                  {/* Selector de rubro con física y refracción de cristal líquido */}
-                  <motion.div variants={activeItemVariants}>
-                    <span className="font-sans font-medium text-[11px] text-white/55 mb-1.5 block">
-                      {locale === "es"
-                        ? "Rubro de tu proyecto"
-                        : "Project category"}
-                    </span>
-                    <PresenceContext.Provider value={null}>
-                      <LayoutGroup id="contact-rubro-selector">
-                        <div
-                          ref={trayRef}
-                          data-drawer-rubro-tray
-                          onPointerMove={handleTrayPointerMove}
-                          onPointerLeave={handleTrayPointerLeave}
-                          className="ellik-glass-tray grid grid-cols-3 gap-1.5 p-1.5 bg-black/30 border border-white/[0.12] shadow-[inset_0_1px_2px_rgba(0,0,0,0.45)]"
-                        >
-                          {RUBRO_OPTIONS.map((option) => {
-                            const active = rubro === option.value;
-                            const Icon = option.Icon;
-                            const label =
-                              RUBRO_COPY[option.value][locale].cardLabel;
-                            return (
-                              <button
-                                key={option.value}
-                                type="button"
-                                data-drawer-rubro={option.value}
-                                aria-pressed={active}
-                                onClick={() => handleSelectRubro(option.value)}
-                                className={`relative py-3 px-1.5 sm:px-2.5 flex flex-col items-center justify-center gap-1.5 text-center cursor-pointer transition-colors duration-200 min-w-0 ${
-                                  active
-                                    ? "text-white"
-                                    : "bg-transparent hover:bg-white/[0.06] text-white/60 hover:text-white"
-                                }`}
-                              >
-                                {active && (
-                                  <motion.div
-                                    layoutId="activeGlassTab"
-                                    transition={{
-                                      type: "spring",
-                                      stiffness: 320,
-                                      damping: 24,
-                                      mass: 0.75,
-                                    }}
-                                    className={`ellik-liquid-indicator absolute inset-0 overflow-hidden ${
-                                      isMorphing ? "ellik-liquid-morph" : ""
-                                    }`}
-                                  >
-                                    {rippleKey > 0 && (
-                                      <span
-                                        key={rippleKey}
-                                        aria-hidden="true"
-                                        className="ellik-liquid-ripple pointer-events-none absolute inset-0"
-                                      />
-                                    )}
-                                  </motion.div>
-                                )}
-
-                                <motion.span
-                                  aria-hidden="true"
-                                  animate={
-                                    active && !reducedMotion
-                                      ? { scale: 1.08, y: -1 }
-                                      : { scale: 1, y: 0 }
-                                  }
-                                  transition={{
-                                    type: "spring",
-                                    stiffness: 380,
-                                    damping: 20,
-                                  }}
-                                  className="relative z-10 inline-flex shrink-0"
-                                >
-                                  <Icon size={16} strokeWidth={1.75} />
-                                </motion.span>
-
-                                <span
-                                  data-rubro-label
-                                  className={`relative z-10 font-sans text-[11px] sm:text-[12px] leading-tight whitespace-nowrap ${
-                                    active
-                                      ? "font-semibold text-white"
-                                      : "font-medium"
-                                  }`}
-                                >
-                                  {label}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </LayoutGroup>
-                    </PresenceContext.Provider>
-                  </motion.div>
-
-                  {/* Campos rectos de cristal líquido */}
+                  {/* A. Cabecera: píldora + gota circular de cierre */}
                   <motion.div
                     variants={activeItemVariants}
-                    className="space-y-3"
+                    className="flex items-center justify-between gap-3"
                   >
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="group">
-                        <label
-                          htmlFor="ellik-name"
-                          className="font-sans font-medium text-[11px] text-white/55 mb-1.5 block transition-colors group-focus-within:text-white/90"
-                        >
-                          {locale === "es" ? "Tu nombre" : "Your name"}
-                        </label>
-                        <input
-                          id="ellik-name"
-                          type="text"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          placeholder={
-                            locale === "es" ? "Martín Gómez" : "Alex Morgan"
-                          }
-                          className="ellik-glass-field w-full px-3.5 py-2.5 font-sans text-[13.5px] text-white placeholder:text-white/30 bg-white/[0.045] border border-white/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] outline-none"
-                        />
-                      </div>
-
-                      <div className="group">
-                        <label
-                          htmlFor="ellik-business"
-                          className="font-sans font-medium text-[11px] text-white/55 mb-1.5 block transition-colors group-focus-within:text-white/90"
-                        >
-                          {locale === "es"
-                            ? "Negocio y ciudad"
-                            : "Business & city"}
-                        </label>
-                        <input
-                          id="ellik-business"
-                          type="text"
-                          value={businessAndCity}
-                          onChange={(e) => setBusinessAndCity(e.target.value)}
-                          placeholder={
-                            locale === "es"
-                              ? "Pizzería Sur — Río Tercero"
-                              : "Mojo Grille — Miami"
-                          }
-                          className="ellik-glass-field w-full px-3.5 py-2.5 font-sans text-[13.5px] text-white placeholder:text-white/30 bg-white/[0.045] border border-white/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="group">
-                      <label
-                        htmlFor="ellik-need"
-                        className="font-sans font-medium text-[11px] text-white/55 mb-1.5 block transition-colors group-focus-within:text-white/90"
-                      >
-                        {locale === "es"
-                          ? "¿Qué necesitás resolver? (opcional)"
-                          : "What do you need to solve? (optional)"}
-                      </label>
-                      <textarea
-                        id="ellik-need"
-                        rows={2}
-                        value={need}
-                        onChange={(e) => setNeed(e.target.value)}
-                        placeholder={
-                          locale === "es"
-                            ? "Recibir pedidos sin audios eternos los viernes a la noche"
-                            : "Take direct orders on WhatsApp without back-and-forth messages"
-                        }
-                        className="ellik-glass-field w-full resize-none px-3.5 py-2.5 font-sans text-[13.5px] text-white placeholder:text-white/30 bg-white/[0.045] border border-white/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] outline-none"
-                      />
-                    </div>
-                  </motion.div>
-
-                  {/* Botón principal recto con brillo especular */}
-                  <motion.div variants={activeItemVariants} className="pt-1">
-                    <button
-                      type="submit"
-                      data-drawer-submit
-                      data-cursor="action"
-                      className="w-full py-3.5 px-6 bg-[#F4F1EA] hover:bg-white text-[#0B0B0D] font-sans font-semibold text-[13.5px] flex items-center justify-center gap-2 transition-all active:scale-[0.985] shadow-[inset_0_1px_1px_#FFFFFF,0_12px_30px_-8px_rgba(244,241,234,0.35)] cursor-pointer group"
+                    <div
+                      data-drawer-topbar
+                      className="ellik-liquid-pill px-3.5 py-1.5 bg-white/[0.05] border border-white/[0.16] shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] flex items-center gap-2 min-w-0"
                     >
-                      <span>
-                        {locale === "es"
-                          ? "Continuar en WhatsApp"
-                          : "Continue on WhatsApp"}
-                      </span>
-                      <ArrowUpRight
-                        className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                      <span
                         aria-hidden="true"
+                        className="ellik-liquid-dot w-1.5 h-1.5 bg-[#5eead4] shrink-0"
                       />
+                      <span className="font-sans font-medium text-[11px] tracking-[0.06em] text-white/85 truncate">
+                        {locale === "es" ? "Contacto directo" : "Direct contact"}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      data-drawer-close
+                      data-cursor="action"
+                      aria-label={
+                        locale === "es"
+                          ? "Cerrar panel de contacto"
+                          : "Close contact panel"
+                      }
+                      onClick={onClose}
+                      className="ellik-liquid-pill w-9 h-9 bg-white/[0.06] hover:bg-white/[0.15] border border-white/[0.16] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] flex items-center justify-center text-white/80 hover:text-white transition-all cursor-pointer shrink-0"
+                    >
+                      <X size={15} strokeWidth={1.75} aria-hidden="true" />
                     </button>
                   </motion.div>
-                </form>
 
-                {/* Pie compacto */}
-                <motion.div
-                  variants={activeItemVariants}
-                  className="pt-4 border-t border-white/[0.09] flex items-center justify-between gap-3"
-                >
-                  <a
-                    href={`mailto:${ELLIK_CONFIG.email}`}
-                    data-drawer-email-pill
-                    className="text-[12px] font-sans text-white/55 hover:text-white transition-colors truncate min-w-0"
-                  >
-                    {ELLIK_CONFIG.email}
-                  </a>
+                  {/* Titular directo */}
+                  <motion.div variants={activeItemVariants}>
+                    <h2
+                      id="contact-drawer-title"
+                      className="font-display font-medium text-[28px] sm:text-[32px] leading-[1.06] tracking-[-0.015em] [word-spacing:0.05em]"
+                    >
+                      {locale === "es" ? (
+                        <>
+                          <span className="text-white">Contame sobre</span>{" "}
+                          <span className="text-[#F4F1EA]/55">tu negocio.</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-white">Tell me about</span>{" "}
+                          <span className="text-[#F4F1EA]/55">
+                            your business.
+                          </span>
+                        </>
+                      )}
+                    </h2>
 
-                  <button
-                    type="button"
-                    data-drawer-copy-email
-                    onClick={handleCopyEmail}
-                    className={`px-3 py-1.5 border text-[11.5px] font-sans font-medium flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
-                      emailCopied
-                        ? "border-white/45 bg-white/[0.18] text-white shadow-[inset_1px_1px_1px_rgba(255,255,255,0.5)]"
-                        : "bg-white/[0.06] hover:bg-white/[0.14] border-white/[0.14] text-white/80"
-                    }`}
-                  >
-                    {emailCopied ? (
-                      <>
-                        <Check size={12} aria-hidden="true" />
-                        <span>{locale === "es" ? "Copiado" : "Copied"}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy size={12} aria-hidden="true" />
-                        <span>
-                          {locale === "es" ? "Copiar mail" : "Copy email"}
+                    <p className="font-sans text-[13.5px] text-white/60 mt-1.5 leading-snug">
+                      {locale === "es"
+                        ? "Elegí tu rubro, dejame dos datos y seguimos directo en WhatsApp."
+                        : "Pick your category, share two details, and let's chat on WhatsApp."}
+                    </p>
+
+                    {selectedPlan && (
+                      <div
+                        data-drawer-plan-chip
+                        className="ellik-liquid-pill inline-flex items-center gap-2 mt-2.5 px-3 py-1 text-[11px] font-sans font-medium bg-[#1e7461]/30 border border-[#75dac0]/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.22)] text-[#b8f1dd] max-w-full"
+                      >
+                        <span className="truncate">
+                          {locale === "es" ? "Modalidad" : "Option"}:{" "}
+                          {selectedPlan}
                         </span>
-                      </>
+                        <button
+                          type="button"
+                          aria-label={
+                            locale === "es"
+                              ? "Quitar modalidad"
+                              : "Remove option"
+                          }
+                          onClick={() => setSelectedPlan("")}
+                          className="shrink-0 text-[#b8f1dd]/75 hover:text-white transition-colors cursor-pointer"
+                        >
+                          <X size={12} strokeWidth={1.75} aria-hidden="true" />
+                        </button>
+                      </div>
                     )}
-                  </button>
+                  </motion.div>
+
+                  <form
+                    onSubmit={handleSendWhatsApp}
+                    className="flex flex-col gap-4"
+                  >
+                    {/* B. Selector de Rubro: Riel hundido + lente convexa deslizante */}
+                    <motion.div variants={activeItemVariants}>
+                      <span className="font-sans font-medium text-[11px] text-white/55 mb-1.5 ml-1 block">
+                        {locale === "es"
+                          ? "Rubro de tu proyecto"
+                          : "Project category"}
+                      </span>
+                      <PresenceContext.Provider value={null}>
+                        <LayoutGroup id="contact-rubro-selector">
+                          <div
+                            data-drawer-rubro-tray
+                            className="ellik-liquid-rail grid grid-cols-3 gap-1.5 p-1.5"
+                          >
+                            {RUBRO_OPTIONS.map((option) => {
+                              const active = rubro === option.value;
+                              const Icon = option.Icon;
+                              const label =
+                                RUBRO_COPY[option.value][locale].cardLabel;
+                              return (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  data-drawer-rubro={option.value}
+                                  aria-pressed={active}
+                                  onClick={() => setRubro(option.value)}
+                                  className={`ellik-liquid-tab relative py-3 px-1.5 sm:px-2.5 flex flex-col items-center justify-center gap-1.5 text-center cursor-pointer transition-colors min-w-0 ${
+                                    active
+                                      ? "text-white"
+                                      : "bg-transparent text-white/55 hover:text-white/90"
+                                  }`}
+                                >
+                                  {active && (
+                                    <motion.div
+                                      layoutId="liquidRubroLens"
+                                      transition={{
+                                        type: "spring",
+                                        stiffness: 420,
+                                        damping: 32,
+                                      }}
+                                      className="ellik-liquid-lens absolute inset-0 overflow-hidden pointer-events-none"
+                                    >
+                                      <span
+                                        aria-hidden="true"
+                                        className="absolute top-0 left-1/2 -translate-x-1/2 w-[62%] h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent"
+                                      />
+                                    </motion.div>
+                                  )}
+
+                                  <Icon
+                                    size={16}
+                                    strokeWidth={1.75}
+                                    className="relative z-10 shrink-0"
+                                    aria-hidden="true"
+                                  />
+
+                                  <span
+                                    data-rubro-label
+                                    className={`relative z-10 font-sans text-[11px] sm:text-[12px] leading-tight whitespace-nowrap ${
+                                      active ? "font-semibold" : "font-medium"
+                                    }`}
+                                  >
+                                    {label}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </LayoutGroup>
+                      </PresenceContext.Provider>
+                    </motion.div>
+
+                    {/* C. Inputs tallados en el vidrio (Carved Glass) */}
+                    <motion.div
+                      variants={activeItemVariants}
+                      className="space-y-3"
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="group">
+                          <label
+                            htmlFor="ellik-name"
+                            className="font-sans font-medium text-[11px] text-white/55 mb-1.5 ml-1 block transition-colors group-focus-within:text-white/85"
+                          >
+                            {locale === "es" ? "Tu nombre" : "Your name"}
+                          </label>
+                          <input
+                            id="ellik-name"
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder={
+                              locale === "es" ? "Martín Gómez" : "Alex Morgan"
+                            }
+                            className="ellik-liquid-field w-full px-3.5 py-2.5 font-sans text-[13.5px] text-white placeholder:text-white/30 outline-none"
+                          />
+                        </div>
+
+                        <div className="group">
+                          <label
+                            htmlFor="ellik-business"
+                            className="font-sans font-medium text-[11px] text-white/55 mb-1.5 ml-1 block transition-colors group-focus-within:text-white/85"
+                          >
+                            {locale === "es"
+                              ? "Negocio y ciudad"
+                              : "Business & city"}
+                          </label>
+                          <input
+                            id="ellik-business"
+                            type="text"
+                            value={businessAndCity}
+                            onChange={(e) => setBusinessAndCity(e.target.value)}
+                            placeholder={
+                              locale === "es"
+                                ? "Pizzería Sur — Río Tercero"
+                                : "Mojo Grille — Miami"
+                            }
+                            className="ellik-liquid-field w-full px-3.5 py-2.5 font-sans text-[13.5px] text-white placeholder:text-white/30 outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="group">
+                        <label
+                          htmlFor="ellik-need"
+                          className="font-sans font-medium text-[11px] text-white/55 mb-1.5 ml-1 block transition-colors group-focus-within:text-white/85"
+                        >
+                          {locale === "es"
+                            ? "¿Qué necesitás resolver? (opcional)"
+                            : "What do you need to solve? (optional)"}
+                        </label>
+                        <textarea
+                          id="ellik-need"
+                          rows={2}
+                          value={need}
+                          onChange={(e) => setNeed(e.target.value)}
+                          placeholder={
+                            locale === "es"
+                              ? "Recibir pedidos sin audios eternos los viernes a la noche"
+                              : "Take direct orders on WhatsApp without back-and-forth messages"
+                          }
+                          className="ellik-liquid-field w-full resize-none px-3.5 py-2.5 font-sans text-[13.5px] text-white placeholder:text-white/30 outline-none"
+                        />
+                      </div>
+                    </motion.div>
+
+                    {/* D1. CTA principal píldora marfil con destello único */}
+                    <motion.div variants={activeItemVariants} className="pt-1">
+                      <button
+                        type="submit"
+                        data-drawer-submit
+                        data-cursor="action"
+                        className="ellik-liquid-cta w-full py-3.5 px-6 bg-[#F4F1EA] hover:bg-white text-[#0B0B0D] font-sans font-semibold text-[13.5px] flex items-center justify-center gap-2 transition-all active:scale-[0.985] cursor-pointer group"
+                      >
+                        <span aria-hidden="true" className="ellik-cta-sheen" />
+                        <span className="relative z-10">
+                          {locale === "es"
+                            ? "Continuar en WhatsApp"
+                            : "Continue on WhatsApp"}
+                        </span>
+                        <ArrowUpRight
+                          className="relative z-10 size-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                          aria-hidden="true"
+                        />
+                      </button>
+                    </motion.div>
+                  </form>
+
+                  {/* D2. Pie limpio */}
+                  <motion.div
+                    variants={activeItemVariants}
+                    className="pt-4 border-t border-white/[0.09] flex items-center justify-between gap-3"
+                  >
+                    <a
+                      href={`mailto:${ELLIK_CONFIG.email}`}
+                      data-drawer-email-pill
+                      className="text-[12px] font-sans text-white/60 hover:text-white transition-colors truncate min-w-0"
+                    >
+                      {ELLIK_CONFIG.email}
+                    </a>
+
+                    <button
+                      type="button"
+                      data-drawer-copy-email
+                      onClick={handleCopyEmail}
+                      className={`ellik-liquid-pill px-3 py-1.5 border text-[11.5px] font-sans font-medium flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
+                        emailCopied
+                          ? "bg-[#1e7461]/30 border-[#75dac0]/40 text-[#75dac0] shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]"
+                          : "bg-white/[0.06] hover:bg-white/[0.15] border-white/[0.16] shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] text-white/85"
+                      }`}
+                    >
+                      {emailCopied ? (
+                        <>
+                          <Check size={12} aria-hidden="true" />
+                          <span>{locale === "es" ? "Copiado" : "Copied"}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={12} aria-hidden="true" />
+                          <span>
+                            {locale === "es" ? "Copiar mail" : "Copy email"}
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  </motion.div>
                 </motion.div>
-              </motion.div>
+              </div>
             </motion.aside>
           </div>
         )}
