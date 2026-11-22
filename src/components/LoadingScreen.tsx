@@ -3,6 +3,12 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import {
+  ELLIK_LOGO_RIBBON_A,
+  ELLIK_LOGO_RIBBON_B,
+  ELLIK_LOGO_STROKE_WIDTH,
+  ELLIK_LOGO_VIEWBOX,
+} from "@/lib/ellikLogoGeometry";
 
 const TOTAL_DURATION_MS = 2300;
 const PROGRESS_RADIUS = 68;
@@ -180,95 +186,49 @@ export function LoadingScreen() {
             />
           </svg>
 
-          {/* Emblema EllikEmblem 120x120px con 3 físicas independientes que encastran en 100 */}
+          {/* Emblema oficial de ELLIK (120x120px) con trazado secuencial y encastre en 100 */}
           <motion.svg
             width="120"
             height="120"
-            viewBox="0 0 64 64"
+            viewBox={ELLIK_LOGO_VIEWBOX}
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            animate={shockwaveActive ? { scale: [1, 1.07, 1] } : { scale: 1 }}
-            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ rotate: -120, scale: 0.84 }}
+            animate={
+              shockwaveActive
+                ? { rotate: 0, scale: [1, 1.07, 1] }
+                : { rotate: 0, scale: 1 }
+            }
+            transition={{
+              rotate: { duration: 2.05, ease: [0.16, 1, 0.3, 1] },
+              scale: { duration: 0.32, ease: [0.22, 1, 0.36, 1] },
+            }}
             className="relative h-[120px] w-[120px] overflow-visible"
           >
-            {/* 1. Anillo exterior excéntrico: giro lento horario hasta encastrar en 0° */}
-            <motion.g
-              initial={{ rotate: -270, opacity: 0.25 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              transition={{ duration: 2.15, ease: [0.16, 1, 0.3, 1] }}
-              style={{ transformOrigin: "32px 32px" }}
-            >
-              <circle
-                cx="33"
-                cy="25"
-                r="21"
-                stroke="#FFFFFF"
-                strokeWidth="1.75"
-                strokeOpacity="0.46"
-              />
-            </motion.g>
-
-            {/* 2. Anillo intermedio: giro antihorario hasta encastrar con los nodos en 0° */}
-            <motion.g
-              initial={{ rotate: 320, opacity: 0.3 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              transition={{ duration: 2.15, ease: [0.2, 0.95, 0.32, 1] }}
-              style={{ transformOrigin: "32px 32px" }}
-            >
-              <circle
-                cx="30"
-                cy="36"
-                r="21"
-                stroke="#FFFFFF"
-                strokeWidth="2"
-                strokeOpacity="0.95"
-              />
-              <motion.rect
-                x="23.5"
-                y="11.5"
-                width="7.5"
-                height="7.5"
-                fill="#FFFFFF"
-                initial={{ opacity: 0, scale: 0.4 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1.4, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                style={{ transformOrigin: "27.25px 15.25px" }}
-              />
-              <motion.circle
-                cx="44.8"
-                cy="21.2"
-                r="3.2"
-                fill="var(--accent-signal)"
-                initial={{ opacity: 0, scale: 0.4 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1.5, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                style={{ transformOrigin: "44.8px 21.2px" }}
-              />
-            </motion.g>
-
-            {/* 3. Anillo interno: pulso elástico hasta encastrar exactamente en escala 1 */}
-            <motion.g
-              initial={{ scale: 0.42, opacity: 0.25 }}
-              animate={{
-                scale: [0.42, 1.18, 0.86, 1.07, 1],
-                opacity: [0.25, 0.85, 0.65, 0.95, 1],
-              }}
+            <motion.path
+              d={ELLIK_LOGO_RIBBON_A}
+              stroke="#FFFFFF"
+              strokeWidth={ELLIK_LOGO_STROKE_WIDTH}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              initial={{ pathLength: 0, opacity: 0.2 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{ duration: 1.95, ease: [0.16, 1, 0.3, 1] }}
+            />
+            <motion.path
+              d={ELLIK_LOGO_RIBBON_B}
+              stroke="#F4F1EA"
+              strokeWidth={ELLIK_LOGO_STROKE_WIDTH}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              initial={{ pathLength: 0, opacity: 0.2 }}
+              animate={{ pathLength: 1, opacity: 1 }}
               transition={{
-                duration: 2.15,
-                times: [0, 0.34, 0.58, 0.82, 1],
-                ease: "easeOut",
+                duration: 1.95,
+                delay: 0.08,
+                ease: [0.16, 1, 0.3, 1],
               }}
-              style={{ transformOrigin: "25.5px 38.5px" }}
-            >
-              <circle
-                cx="25.5"
-                cy="38.5"
-                r="12.5"
-                stroke="#FFFFFF"
-                strokeWidth="1.75"
-                strokeOpacity="0.62"
-              />
-            </motion.g>
+            />
           </motion.svg>
         </div>
 
