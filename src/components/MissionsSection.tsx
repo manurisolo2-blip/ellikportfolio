@@ -6,7 +6,6 @@ import {
   AnimatePresence,
   motion,
   useScroll,
-  useSpring,
   useTransform,
 } from "framer-motion";
 import { MISSIONS, MISSIONS_BY_LOCALE } from "@/data/ellikData";
@@ -68,29 +67,23 @@ export function MissionsSection() {
     offset: ["start end", "end start"],
   });
 
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 110,
-    damping: 24,
-    mass: 0.4,
-  });
-
   const stageScale = useTransform(
-    smoothProgress,
+    scrollYProgress,
     [0.04, 0.28, 0.72, 0.96],
     [0.76, 1, 1, 0.76]
   );
   const stageOpacity = useTransform(
-    smoothProgress,
+    scrollYProgress,
     [0.02, 0.22, 0.78, 0.98],
     [0.28, 1, 1, 0.28]
   );
   const stageY = useTransform(
-    smoothProgress,
+    scrollYProgress,
     [0.04, 0.28, 0.72, 0.96],
     [28, 0, 0, -28]
   );
   const frameBorderOpacity = useTransform(
-    smoothProgress,
+    scrollYProgress,
     [0.16, 0.28, 0.72, 0.84],
     [1, 0, 0, 1]
   );

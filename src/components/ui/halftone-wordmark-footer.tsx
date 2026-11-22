@@ -277,12 +277,13 @@ export default function HalftoneWordmarkFooter({
     let px = -1e5;
     let py = -1e5;
     let raf = 0;
-    let visible = true;
+    let visible = false;
     let awake = true;
     let ring = { x: 0, y: 0, t: -1 };
     let dots = new Float32Array(0);
     let count = 0;
     let grainTile: HTMLCanvasElement | null = null;
+    let grainPattern: CanvasPattern | null = null;
     const ink = hwfHex(opts.current.colors.ink) || [244, 241, 234];
     const warm = hwfHex(opts.current.colors.warm) || [255, 255, 255];
 
@@ -299,7 +300,7 @@ export default function HalftoneWordmarkFooter({
       const rect = root.getBoundingClientRect();
       w = Math.max(1, Math.round(rect.width));
       h = Math.max(1, Math.round(rect.height));
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
 
@@ -379,6 +380,7 @@ export default function HalftoneWordmarkFooter({
         }
         g.putImageData(id, 0, 0);
       }
+      grainPattern = grainTile ? ctx.createPattern(grainTile, "repeat") : null;
       awake = true;
     };
 
@@ -392,6 +394,11 @@ export default function HalftoneWordmarkFooter({
       const ringAge = ring.t < 0 ? 1e9 : now - ring.t;
       const ringR = ringAge * 0.9;
       let moving = false;
+      const warmIndices: number[] = [];
+      const warmValues: number[] = [];
+
+      ctx.fillStyle = o.colors.ink;
+      ctx.beginPath();
       for (let i = 0; i < count; i++) {
         const j = i * 7;
         let x = dots[j];
@@ -434,27 +441,34 @@ export default function HalftoneWordmarkFooter({
           dots[j + 3] = vy;
         }
         const k = hwfWarmth(x, y, hx, hy, 28);
-        ctx.fillStyle =
-          k > 0.02
-            ? `rgb(${Math.round(ink[0] + (warm[0] - ink[0]) * k)},${Math.round(
-                ink[1] + (warm[1] - ink[1]) * k
-              )},${Math.round(ink[2] + (warm[2] - ink[2]) * k)})`
-            : o.colors.ink;
+        if (k > 0.02) {
+          warmIndices.push(j);
+          warmValues.push(k);
+        } else {
+          const rDot = dots[j + 6];
+          ctx.moveTo(x + rDot, y);
+          ctx.arc(x, y, rDot, 0, 6.2832);
+        }
+      }
+      ctx.fill();
+
+      for (let m = 0; m < warmIndices.length; m++) {
+        const j = warmIndices[m];
+        const k = warmValues[m];
+        ctx.fillStyle = `rgb(${Math.round(ink[0] + (warm[0] - ink[0]) * k)},${Math.round(
+          ink[1] + (warm[1] - ink[1]) * k
+        )},${Math.round(ink[2] + (warm[2] - ink[2]) * k)})`;
         ctx.beginPath();
-        ctx.arc(x, y, dots[j + 6], 0, 6.2832);
+        ctx.arc(dots[j], dots[j + 1], dots[j + 6], 0, 6.2832);
         ctx.fill();
       }
 
-      if (grainTile && o.grain > 0) {
-        ctx.globalAlpha = Math.min(1, o.grain) * 0.09;
-        ctx.globalCompositeOperation = "overlay";
-        const pattern = ctx.createPattern(grainTile, "repeat");
-        if (pattern) {
-          ctx.fillStyle = pattern;
-          ctx.fillRect(0, 0, w, h);
-        }
-        ctx.globalAlpha = 1;
+      if (grainPattern && o.grain > 0) {
+        ctx.globalAlpha = Math.min(1, o.grain) * 0.055;
         ctx.globalCompositeOperation = "source-over";
+        ctx.fillStyle = grainPattern;
+        ctx.fillRect(0, 0, w, h);
+        ctx.globalAlpha = 1;
       }
       awake = moving || ringAge < 900 || px > -1e4;
     };
@@ -507,8 +521,12 @@ export default function HalftoneWordmarkFooter({
     });
     ro.observe(root);
     const io = new IntersectionObserver((entries) => {
-      visible = entries[0] ? entries[0].isIntersecting : true;
+      visible = entries[0] ? entries[0].isIntersecting : false;
       if (visible) wake();
+      else if (raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
     });
     io.observe(root);
 

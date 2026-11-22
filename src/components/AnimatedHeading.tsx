@@ -76,6 +76,7 @@ export function AnimatedHeading({
 }: AnimatedHeadingProps) {
   const ref = useRef<HTMLHeadingElement | null>(null);
   const isInView = useInView(ref, { once: true, margin: "-12%" });
+  const visibleRef = useRef<boolean>(false);
   const rawId = useId();
   const safeId = rawId.replace(/:/g, "");
 
@@ -86,7 +87,19 @@ export function AnimatedHeading({
     if (typeof window === "undefined") return;
     if (!window.matchMedia("(pointer: fine)").matches) return;
 
+    const el = ref.current;
+    const io = el
+      ? new IntersectionObserver(
+          (entries) => {
+            visibleRef.current = entries[0]?.isIntersecting ?? false;
+          },
+          { rootMargin: "80px 0px", threshold: 0 }
+        )
+      : null;
+    if (el && io) io.observe(el);
+
     const handlePointerMove = (e: PointerEvent) => {
+      if (!visibleRef.current) return;
       const vw = Math.max(window.innerWidth, 1);
       const vh = Math.max(window.innerHeight, 1);
       eclipseX.set((e.clientX / vw - 0.5) * 28);
@@ -101,6 +114,7 @@ export function AnimatedHeading({
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
     window.addEventListener("blur", handleLeave);
     return () => {
+      io?.disconnect();
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("blur", handleLeave);
     };
@@ -410,69 +424,62 @@ export function MagneticButton({
   ariaLabel,
   dataCursor = "action",
 }: MagneticButtonProps) {
-  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const rectRef = useRef<DOMRect | null>(null);
+  const finePointerRef = useRef<boolean>(false);
   const springX = useSpring(0, { stiffness: 220, damping: 18 });
   const springY = useSpring(0, { stiffness: 220, damping: 18 });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!window.matchMedia("(pointer: fine)").matches) return;
-
-    const handlePointerMove = (e: PointerEvent) => {
-      const el = buttonRef.current;
-      if (!el) return;
-
-      const rect = el.getBoundingClientRect();
-      const clampedX = Math.max(rect.left, Math.min(e.clientX, rect.right));
-      const clampedY = Math.max(rect.top, Math.min(e.clientY, rect.bottom));
-      const edgeDistance = Math.hypot(
-        e.clientX - clampedX,
-        e.clientY - clampedY
-      );
-
-      if (edgeDistance < 60) {
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        const normX = Math.max(
-          -1,
-          Math.min(1, (e.clientX - centerX) / (rect.width / 2 + 60))
-        );
-        const normY = Math.max(
-          -1,
-          Math.min(1, (e.clientY - centerY) / (rect.height / 2 + 60))
-        );
-        const pullFactor = 0.5 + 0.5 * (1 - edgeDistance / 60);
-        springX.set(normX * 8 * pullFactor);
-        springY.set(normY * 8 * pullFactor);
-      } else {
-        springX.set(0);
-        springY.set(0);
-      }
+    const mq = window.matchMedia("(pointer: fine)");
+    const sync = () => {
+      finePointerRef.current = mq.matches;
     };
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
-    const handleWindowLeave = () => {
-      springX.set(0);
-      springY.set(0);
-    };
+  const handlePointerEnter = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!finePointerRef.current || e.pointerType !== "mouse") return;
+    rectRef.current = e.currentTarget.getBoundingClientRect();
+  };
 
-    window.addEventListener("pointermove", handlePointerMove, { passive: true });
-    window.addEventListener("blur", handleWindowLeave);
+  const handlePointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const rect = rectRef.current;
+    if (!finePointerRef.current || !rect) return;
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const normX = Math.max(
+      -1,
+      Math.min(1, (e.clientX - centerX) / Math.max(rect.width / 2, 1))
+    );
+    const normY = Math.max(
+      -1,
+      Math.min(1, (e.clientY - centerY) / Math.max(rect.height / 2, 1))
+    );
+    springX.set(normX * 7);
+    springY.set(normY * 7);
+  };
 
-    return () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("blur", handleWindowLeave);
-    };
-  }, [springX, springY]);
+  const resetMagnetic = () => {
+    rectRef.current = null;
+    springX.set(0);
+    springY.set(0);
+  };
 
   const hasExplicitPosition = /\b(fixed|absolute|sticky)\b/.test(className);
 
   return (
     <motion.button
-      ref={buttonRef}
       type={type}
       data-cursor={dataCursor}
       aria-label={ariaLabel}
       onClick={onClick}
+      onPointerEnter={handlePointerEnter}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={resetMagnetic}
+      onBlur={resetMagnetic}
       style={{ x: springX, y: springY }}
       className={`group ${hasExplicitPosition ? "" : "relative "}overflow-hidden ${className}`}
     >

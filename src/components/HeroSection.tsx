@@ -162,8 +162,6 @@ interface ScreenFrame {
   transform: string;
   zIndex: number;
   opacity: number;
-  filter: string;
-  boxShadow: string;
   sheenTranslateX: number;
   sheenOpacity: number;
 }
@@ -225,28 +223,19 @@ function computeScreenFrame(
       transform,
       zIndex: isHovered ? 50 : 20 + Math.round(frontFactor * 20),
       opacity: (isDimmedByHover ? 0.48 : 1) * exitFade,
-      filter: "none",
-      boxShadow:
-        "0 34px 85px rgba(0, 0, 0, 0.92), 0 0 1px rgba(255, 255, 255, 0.25)",
       sheenTranslateX: -sinVal * 42,
       sheenOpacity: isHovered ? 0.92 : 0.16 + frontFactor * 0.38,
     };
   }
 
-  // Plano trasero (Z < 0): detrás del emblema central (zIndex 1..8 < 10)
+  // Plano trasero (Z < 0): detrás del emblema central (zIndex 1..8 < 10), profundidad vía opacidad GPU
   const rearDepth = Math.min(1, -zCos);
-  const rawBlurPx = 0.4 + rearDepth * 1.4;
-  const blurPx = Math.round(rawBlurPx * 2) / 2;
-  const rawBrightness = 0.9 - rearDepth * 0.18; // 0.90 .. 0.72
-  const brightness = Math.round(rawBrightness * 20) / 20;
-  const rearOpacity = (0.9 - rearDepth * 0.25) * exitFade;
+  const rearOpacity = (0.76 - rearDepth * 0.28) * exitFade;
 
   return {
     transform,
     zIndex: Math.max(1, 8 + Math.round(zCos * 7)),
     opacity: isDimmedByHover ? Math.min(rearOpacity, 0.34) : rearOpacity,
-    filter: `blur(${blurPx.toFixed(2)}px) brightness(${brightness.toFixed(2)})`,
-    boxShadow: "0 12px 30px rgba(0, 0, 0, 0.6)",
     sheenTranslateX: 0,
     sheenOpacity: 0,
   };
@@ -258,7 +247,6 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const screenRefs = useRef<Array<HTMLDivElement | null>>([]);
-  const surfaceRefs = useRef<Array<HTMLDivElement | null>>([]);
   const sheenRefs = useRef<Array<HTMLDivElement | null>>([]);
 
   // Estado orbital y arrastre físico con inercia
@@ -283,8 +271,6 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
     Array<{
       zIndex: string;
       opacity: string;
-      filter: string;
-      boxShadow: string;
       sheenOpacity: string;
     }>
   >([]);
@@ -313,22 +299,16 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
     offset: ["start start", "end start"],
   });
 
-  const smoothScrollProgress = useSpring(scrollYProgress, {
-    stiffness: 120,
-    damping: 24,
-    mass: 0.4,
-  });
-
-  useMotionValueEvent(smoothScrollProgress, "change", (latest) => {
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
     scrollProgressRef.current = latest;
   });
 
   const coreOpacity = useTransform(
-    smoothScrollProgress,
+    scrollYProgress,
     [0, 0.72, 1],
     [1, 0.35, 0]
   );
-  const coreScale = useTransform(smoothScrollProgress, [0, 1], [1, 2.1]);
+  const coreScale = useTransform(scrollYProgress, [0, 1], [1, 2.1]);
 
   useEffect(() => {
     const mq = window.matchMedia("(pointer: fine)");
@@ -361,8 +341,10 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
 
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
-      rawCursorX.set(e.clientX);
-      rawCursorY.set(e.clientY);
+      if (hoveredIndexRef.current !== null || isDraggingRef.current) {
+        rawCursorX.set(e.clientX);
+        rawCursorY.set(e.clientY);
+      }
 
       if (!isDraggingRef.current) return;
       const dx = e.clientX - dragLastXRef.current;
@@ -431,9 +413,8 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
 
     for (let i = 0; i < ORBIT_SCREENS.length; i++) {
       const screenEl = screenRefs.current[i];
-      const surfaceEl = surfaceRefs.current[i];
       const sheenEl = sheenRefs.current[i];
-      if (!screenEl || !surfaceEl) continue;
+      if (!screenEl) continue;
 
       const frame = computeScreenFrame(
         ORBIT_SCREENS[i],
@@ -450,8 +431,6 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
         prev = {
           zIndex: "",
           opacity: "",
-          filter: "",
-          boxShadow: "",
           sheenOpacity: "",
         };
         prevStyleRef.current[i] = prev;
@@ -471,16 +450,6 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
         prev.opacity = nextOpacity;
       }
 
-      if (prev.filter !== frame.filter) {
-        surfaceEl.style.filter = frame.filter;
-        prev.filter = frame.filter;
-      }
-
-      if (prev.boxShadow !== frame.boxShadow) {
-        surfaceEl.style.boxShadow = frame.boxShadow;
-        prev.boxShadow = frame.boxShadow;
-      }
-
       if (sheenEl) {
         sheenEl.style.transform = `translate3d(${frame.sheenTranslateX.toFixed(
           1
@@ -495,8 +464,10 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
   });
 
   const handleStagePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    rawCursorX.set(e.clientX);
-    rawCursorY.set(e.clientY);
+    if (hoveredIndexRef.current !== null || isDraggingRef.current) {
+      rawCursorX.set(e.clientX);
+      rawCursorY.set(e.clientY);
+    }
 
     const rect = e.currentTarget.getBoundingClientRect();
     const nx = (e.clientX - rect.left) / Math.max(rect.width, 1) - 0.5;
@@ -522,7 +493,11 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
     angularVelocityRef.current = 0;
   };
 
-  const handleScreenEnter = (idx: number) => {
+  const handleScreenEnter = (idx: number, e?: React.MouseEvent<HTMLDivElement>) => {
+    if (e) {
+      rawCursorX.set(e.clientX);
+      rawCursorY.set(e.clientY);
+    }
     targetSpeedFactorRef.current = 0.08;
     hoveredIndexRef.current = idx;
     setHoveredIndex(idx);
@@ -644,7 +619,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
                   data-cursor="action"
                   role="button"
                   tabIndex={0}
-                  onMouseEnter={() => handleScreenEnter(idx)}
+                  onMouseEnter={(e) => handleScreenEnter(idx, e)}
                   onMouseLeave={handleScreenLeave}
                   onFocus={() => handleScreenEnter(idx)}
                   onBlur={handleScreenLeave}
@@ -668,14 +643,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
                   className="pointer-events-auto absolute w-[195px] sm:w-[275px] md:w-[335px] lg:w-[375px] aspect-[16/10] cursor-pointer will-change-transform focus:outline-none"
                 >
                   <div
-                    ref={(el) => {
-                      surfaceRefs.current[idx] = el;
-                    }}
-                    style={{
-                      filter: initialFrame.filter,
-                      boxShadow: initialFrame.boxShadow,
-                    }}
-                    className={`relative h-full w-full transition-[outline-color,transform] duration-300 ${
+                    className={`relative h-full w-full shadow-[0_24px_60px_rgba(0,0,0,0.82)] transition-[outline-color,transform] duration-300 ${
                       isHovered
                         ? "ring-1 ring-white/55 scale-[1.02]"
                         : "ring-1 ring-white/[0.10]"

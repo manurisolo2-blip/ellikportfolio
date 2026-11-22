@@ -509,6 +509,9 @@ function paintCard(
 
   if (hasLoadedImg && previewImg) {
     drawCoverImage(ctx, previewImg, w, h);
+  } else if (card.image) {
+    ctx.fillStyle = "#0B0B0D";
+    ctx.fillRect(0, 0, w, h);
   } else {
     paintMesh(ctx, w, h, card.mesh);
   }
@@ -1399,13 +1402,13 @@ export function WarpCarousel({
     let unit = 1;
     const resize = () => {
       const r = wrap.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       W = Math.max(2, Math.round(r.width * dpr));
       H = Math.max(2, Math.round(r.height * dpr));
       if (canvas.width !== W) canvas.width = W;
       if (canvas.height !== H) canvas.height = H;
       unit = Math.min(W / 720, H / 440);
-      const want = Math.min(1024, Math.max(256, Math.round(CW * unit * 1.25)));
+      const want = Math.min(896, Math.max(256, Math.round(CW * unit * 1.15)));
       if (want !== texW) paintAll(want);
     };
 
@@ -1570,7 +1573,18 @@ export function WarpCarousel({
       L.nextAuto = t0 + props.current.gap;
     }
 
-    // Precarga de imágenes reales para tarjetas con `image`
+    // Precarga de imágenes reales para tarjetas con `image` (coalescing en 1 rAF)
+    let uploadRaf = 0;
+    const scheduleUploadAndDraw = () => {
+      if (uploadRaf || disposed) return;
+      uploadRaf = requestAnimationFrame(() => {
+        uploadRaf = 0;
+        if (disposed || !cardCanvases.length) return;
+        if (gls) uploadCards(gls, cardCanvases);
+        draw(performance.now() / 1000);
+      });
+    };
+
     const uniqueUrls = Array.from(
       new Set(list.map((c) => c.image).filter((u): u is string => Boolean(u)))
     );
@@ -1588,8 +1602,7 @@ export function WarpCarousel({
           }
         });
         if (updated) {
-          if (gls) uploadCards(gls, cardCanvases);
-          draw(performance.now() / 1000);
+          scheduleUploadAndDraw();
         }
       };
       img.src = url;
@@ -1648,27 +1661,35 @@ export function WarpCarousel({
     canvas.addEventListener("webglcontextlost", onLost);
     canvas.addEventListener("webglcontextrestored", onRestored);
 
-    const fonts = (document as unknown as { fonts?: FontFaceSet }).fonts;
+    const needsFontRepaint = list.some((c) => !c.image || !c.hideOverlay);
+    const fonts = needsFontRepaint
+      ? (document as unknown as { fonts?: FontFaceSet }).fonts
+      : undefined;
     const repaint = () => {
       if (disposed) return;
       texW = 0;
       resize();
       draw(performance.now() / 1000);
     };
-    fonts?.ready?.then?.(repaint);
-    fonts?.addEventListener?.("loadingdone", repaint);
+    if (needsFontRepaint) {
+      fonts?.ready?.then?.(repaint);
+      fonts?.addEventListener?.("loadingdone", repaint);
+    }
 
     draw(t0);
     kick();
     return () => {
       disposed = true;
       if (raf) cancelAnimationFrame(raf);
+      if (uploadRaf) cancelAnimationFrame(uploadRaf);
       ro.disconnect();
       io.disconnect();
       document.removeEventListener("visibilitychange", onVis);
       canvas.removeEventListener("webglcontextlost", onLost);
       canvas.removeEventListener("webglcontextrestored", onRestored);
-      fonts?.removeEventListener?.("loadingdone", repaint);
+      if (needsFontRepaint) {
+        fonts?.removeEventListener?.("loadingdone", repaint);
+      }
       if (gls) {
         gls.gl.deleteTexture(gls.tex);
         gls.gl.deleteProgram(gls.prog);

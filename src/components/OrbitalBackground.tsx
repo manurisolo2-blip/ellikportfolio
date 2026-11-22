@@ -2,31 +2,6 @@
 
 import React, { useEffect, useRef } from "react";
 
-const ORBITAL_RING_CSS = `
-@keyframes ellik-orbit-cw {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-@keyframes ellik-orbit-ccw {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(-360deg); }
-}
-.ellik-orbit-cw {
-  animation: ellik-orbit-cw 240s linear infinite;
-  will-change: transform;
-}
-.ellik-orbit-ccw {
-  animation: ellik-orbit-ccw 300s linear infinite;
-  will-change: transform;
-}
-@media (prefers-reduced-motion: reduce) {
-  .ellik-orbit-cw,
-  .ellik-orbit-ccw {
-    animation-play-state: paused;
-  }
-}
-`;
-
 interface Star {
   xNorm: number;
   yNorm: number;
@@ -259,6 +234,8 @@ export function OrbitalBackground() {
     > = {};
     let serviciosDocTop = -1;
     let serviciosDocBottom = -1;
+    let proyectosDocTop = -1;
+    let proyectosDocBottom = -1;
 
     const refreshDocBounds = () => {
       const sy = window.scrollY;
@@ -281,6 +258,15 @@ export function OrbitalBackground() {
       } else {
         serviciosDocTop = -1;
         serviciosDocBottom = -1;
+      }
+      const proyEl = document.getElementById("proyectos");
+      if (proyEl) {
+        const pr = proyEl.getBoundingClientRect();
+        proyectosDocTop = pr.top + sy;
+        proyectosDocBottom = proyectosDocTop + proyEl.offsetHeight;
+      } else {
+        proyectosDocTop = -1;
+        proyectosDocBottom = -1;
       }
     };
 
@@ -375,6 +361,30 @@ export function OrbitalBackground() {
 
     let rafId = 0;
     let prevTime = performance.now();
+
+    const drawOrbitalRings = (tSec: number) => {
+      const ringScale = Math.max(width / 1440, height / 900);
+      ctx.save();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.045)";
+      ctx.lineWidth = 1;
+
+      const c1x = (920 / 1440) * width;
+      const c1y = (440 / 900) * height;
+      ctx.beginPath();
+      ctx.arc(c1x, c1y, 460 * ringScale, 0, Math.PI * 2);
+      ctx.stroke();
+
+      const c2x = (720 / 1440) * width;
+      const c2y = (450 / 900) * height;
+      const ccwAngle =
+        (-16 * Math.PI) / 180 - (prefersReducedMotion ? 0 : (tSec / 300) * Math.PI * 2);
+      ctx.translate(c2x, c2y);
+      ctx.rotate(ccwAngle);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 680 * ringScale, 270 * ringScale, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    };
 
     const drawCosmicAtmosphere = (tSec: number) => {
       if (atmosphereCanvas.width === 0 || atmosphereCanvas.height === 0) return;
@@ -552,12 +562,17 @@ export function OrbitalBackground() {
       // Velocidad vertical del scroll para el efecto warp
       const currentScrollY = window.scrollY;
 
-      // Omitir repintado cuando #servicios opaco (#F4F1EA) cubre toda la ventana
-      if (
+      // Omitir repintado cuando #servicios opaco (#F4F1EA) o #proyectos fullscreen cubren toda la ventana
+      const coveredByServicios =
         serviciosDocTop !== -1 &&
         serviciosDocTop - currentScrollY <= 0 &&
-        serviciosDocBottom - currentScrollY >= height
-      ) {
+        serviciosDocBottom - currentScrollY >= height;
+      const coveredByProyectos =
+        proyectosDocTop !== -1 &&
+        proyectosDocTop - currentScrollY <= -height * 0.25 &&
+        proyectosDocBottom - currentScrollY >= height * 1.25;
+
+      if (coveredByServicios || coveredByProyectos) {
         lastScrollY = currentScrollY;
         smoothScrollVel = 0;
         if (!prefersReducedMotion && !document.hidden) {
@@ -694,6 +709,7 @@ export function OrbitalBackground() {
       }
 
       ctx.globalAlpha = 1;
+      drawOrbitalRings(tSec);
       drawConstellations(dt, currentScrollY);
       drawMeteor(dt, nowMs);
 
@@ -722,6 +738,7 @@ export function OrbitalBackground() {
           ctx.fill();
         }
         ctx.globalAlpha = 1;
+        drawOrbitalRings(0);
         drawConstellations(0, scrollY);
       };
       renderReduced();
@@ -771,46 +788,8 @@ export function OrbitalBackground() {
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
     >
-      <style>{ORBITAL_RING_CSS}</style>
-      {/* Cosmos multicapa interactivo a 60fps: estrellas, warp de scroll, constelaciones y meteorito */}
+      {/* Cosmos multicapa interactivo: estrellas, warp de scroll, anillos orbitales, constelaciones y meteorito */}
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
-
-      {/* Dos anillos orbitales gigantes ultrafinos animados por compositor CSS */}
-      <svg
-        viewBox="0 0 1440 900"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="relative h-full w-full"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        <g
-          className="ellik-orbit-cw"
-          style={{ transformOrigin: "920px 440px" }}
-        >
-          <circle
-            cx="920"
-            cy="440"
-            r="460"
-            stroke="rgba(255, 255, 255, 0.045)"
-            strokeWidth="1"
-          />
-        </g>
-
-        <g
-          className="ellik-orbit-ccw"
-          style={{ transformOrigin: "720px 450px" }}
-        >
-          <ellipse
-            cx="720"
-            cy="450"
-            rx="680"
-            ry="270"
-            transform="rotate(-16 720 450)"
-            stroke="rgba(255, 255, 255, 0.045)"
-            strokeWidth="1"
-          />
-        </g>
-      </svg>
     </div>
   );
 }

@@ -202,6 +202,20 @@ export function AstronautScrollTracker() {
   const lastLightCheckRef = useRef<number>(0);
   const wasFlowHiddenRef = useRef<boolean>(false);
   const wasBurstClearedRef = useRef<boolean>(false);
+  const idleAccumMsRef = useRef<number>(0);
+  const lastAttrsRef = useRef<Record<string, string>>({});
+
+  const setAttrIfChanged = (
+    el: Element | null,
+    cacheKey: string,
+    attr: string,
+    value: string
+  ) => {
+    if (!el) return;
+    if (lastAttrsRef.current[cacheKey] === value) return;
+    lastAttrsRef.current[cacheKey] = value;
+    el.setAttribute(attr, value);
+  };
 
   const [trackHeight, setTrackHeight] = useState<number>(520);
   const [isHovered, setIsHovered] = useState<boolean>(false);
@@ -422,16 +436,40 @@ export function AstronautScrollTracker() {
   useAnimationFrame((timeMs, deltaMs) => {
     if (document.hidden || !isVisibleDesktopRef.current) return;
 
-    const dt = clamp(deltaMs, 1, 33) / 1000;
-    const t = timeMs * 0.001;
-    const nowSec = performance.now() * 0.001;
-    const ease = (rate: number) => 1 - Math.exp(-rate * dt);
-
     const p = physRef.current;
     const drag = dragRef.current;
+    const currentScrollY = window.scrollY;
+    const nowSec = performance.now() * 0.001;
+    const burstAge = nowSec - starBurstTimeRef.current;
+
+    const isIdle =
+      p.initialized &&
+      Math.abs(currentScrollY - p.prevScrollY) < 0.5 &&
+      Math.abs(p.velPx) <= 75 &&
+      !drag.active &&
+      !hoveredRef.current &&
+      (burstAge < 0 || burstAge > 0.65) &&
+      Math.abs(p.bodyVx) < 1.0 &&
+      Math.abs(p.bodyVy) < 1.0 &&
+      Math.abs(p.rootAngVel) < 1.2 &&
+      !pointerRef.current.active;
+
+    let effectiveDeltaMs = deltaMs;
+    if (isIdle) {
+      idleAccumMsRef.current += deltaMs;
+      if (idleAccumMsRef.current < 30) return;
+      effectiveDeltaMs = idleAccumMsRef.current;
+      idleAccumMsRef.current = 0;
+    } else {
+      idleAccumMsRef.current = 0;
+    }
+
+    const dt = clamp(effectiveDeltaMs, 1, 50) / 1000;
+    const t = timeMs * 0.001;
+    const ease = (rate: number) => 1 - Math.exp(-rate * dt);
+
     const travel = Math.max(trackHeightRef.current - 112, 1);
     const scrollTargetY = clamp(scrollYProgress.get(), 0, 1) * travel;
-    const currentScrollY = window.scrollY;
 
     if (!p.initialized) {
       p.initialized = true;
@@ -533,8 +571,12 @@ export function AstronautScrollTracker() {
     p.bodyY = clamp(p.bodyY, -28, travel + 28);
     p.bodyAy = clamp(lastAy, -3600, 3600);
 
-    bodyPosX.set(p.bodyX);
-    bodyPosY.set(p.bodyY);
+    if (Math.abs(p.bodyX - bodyPosX.get()) > 0.04) {
+      bodyPosX.set(p.bodyX);
+    }
+    if (Math.abs(p.bodyY - bodyPosY.get()) > 0.04) {
+      bodyPosY.set(p.bodyY);
+    }
 
     // 4. Dinámica angular del torso (picada/ascenso + latigazo de frenada + giro 360°)
     const idleTiltTarget = Math.sin(t * 0.9) * 3.5;
@@ -573,16 +615,18 @@ export function AstronautScrollTracker() {
       p.spinTurns = 0;
     }
 
-    if (rigRootRef.current) {
-      rigRootRef.current.setAttribute(
-        "transform",
-        `rotate(${p.rootAngle.toFixed(2)} 54 78)`
-      );
-    }
+    setAttrIfChanged(
+      rigRootRef.current,
+      "rig",
+      "transform",
+      `rotate(${p.rootAngle.toFixed(2)} 54 78)`
+    );
 
     if (torsoRef.current) {
       const torsoBreath = Math.sin(t * 1.3) * 0.8;
-      torsoRef.current.setAttribute(
+      setAttrIfChanged(
+        torsoRef.current,
+        "torso",
         "transform",
         `translate(0 ${torsoBreath.toFixed(2)})`
       );
@@ -611,12 +655,12 @@ export function AstronautScrollTracker() {
       28,
       dt
     );
-    if (headRef.current) {
-      headRef.current.setAttribute(
-        "transform",
-        `rotate(${headDeg.toFixed(2)} 55 39)`
-      );
-    }
+    setAttrIfChanged(
+      headRef.current,
+      "head",
+      "transform",
+      `rotate(${headDeg.toFixed(2)} 55 39)`
+    );
 
     const shoulderTarget = lerp(
       Math.sin(t * 1.35 - 0.75) * 7.5 * (1 - scrollStrength) +
@@ -672,24 +716,24 @@ export function AstronautScrollTracker() {
       dt
     );
 
-    if (upperArmRef.current) {
-      upperArmRef.current.setAttribute(
-        "transform",
-        `rotate(${shoulderDeg.toFixed(2)} 49 50)`
-      );
-    }
-    if (forearmRef.current) {
-      forearmRef.current.setAttribute(
-        "transform",
-        `rotate(${elbowDeg.toFixed(2)} 47 74)`
-      );
-    }
-    if (farArmRef.current) {
-      farArmRef.current.setAttribute(
-        "transform",
-        `rotate(${farArmDeg.toFixed(2)} 64 52)`
-      );
-    }
+    setAttrIfChanged(
+      upperArmRef.current,
+      "upperArm",
+      "transform",
+      `rotate(${shoulderDeg.toFixed(2)} 49 50)`
+    );
+    setAttrIfChanged(
+      forearmRef.current,
+      "forearm",
+      "transform",
+      `rotate(${elbowDeg.toFixed(2)} 47 74)`
+    );
+    setAttrIfChanged(
+      farArmRef.current,
+      "farArm",
+      "transform",
+      `rotate(${farArmDeg.toFixed(2)} 64 52)`
+    );
 
     const legPhase = t * 1.2;
     const frontHipTarget =
@@ -756,30 +800,30 @@ export function AstronautScrollTracker() {
       dt
     );
 
-    if (frontLegRef.current) {
-      frontLegRef.current.setAttribute(
-        "transform",
-        `rotate(${frontHipDeg.toFixed(2)} 52 96)`
-      );
-    }
-    if (frontShinRef.current) {
-      frontShinRef.current.setAttribute(
-        "transform",
-        `rotate(${frontKneeDeg.toFixed(2)} 70 122)`
-      );
-    }
-    if (backLegRef.current) {
-      backLegRef.current.setAttribute(
-        "transform",
-        `rotate(${backHipDeg.toFixed(2)} 46 94)`
-      );
-    }
-    if (backShinRef.current) {
-      backShinRef.current.setAttribute(
-        "transform",
-        `rotate(${backKneeDeg.toFixed(2)} 57 123)`
-      );
-    }
+    setAttrIfChanged(
+      frontLegRef.current,
+      "frontLeg",
+      "transform",
+      `rotate(${frontHipDeg.toFixed(2)} 52 96)`
+    );
+    setAttrIfChanged(
+      frontShinRef.current,
+      "frontShin",
+      "transform",
+      `rotate(${frontKneeDeg.toFixed(2)} 70 122)`
+    );
+    setAttrIfChanged(
+      backLegRef.current,
+      "backLeg",
+      "transform",
+      `rotate(${backHipDeg.toFixed(2)} 46 94)`
+    );
+    setAttrIfChanged(
+      backShinRef.current,
+      "backShin",
+      "transform",
+      `rotate(${backKneeDeg.toFixed(2)} 57 123)`
+    );
 
     // 6. Detección cacheada de sección clara #servicios (#F4F1EA) sin reflows en scroll
     const nowMs = performance.now();
@@ -817,25 +861,35 @@ export function AstronautScrollTracker() {
         wasFlowHiddenRef.current = false;
         const streakStretch = 0.72 + scrollStrength * 0.55;
         const jitter = Math.sin(t * 24) * 1.4;
-        flowGroupRef.current.setAttribute("opacity", p.flowAlpha.toFixed(2));
-        flowGroupRef.current.setAttribute(
+        setAttrIfChanged(
+          flowGroupRef.current,
+          "flowOpacity",
+          "opacity",
+          p.flowAlpha.toFixed(2)
+        );
+        setAttrIfChanged(
+          flowGroupRef.current,
+          "flowTransform",
           "transform",
           `translate(25 66) rotate(${p.flowAngle.toFixed(1)}) scale(1 ${streakStretch.toFixed(
             2
           )}) translate(${jitter.toFixed(2)} 0) translate(-25 -66)`
         );
         for (let i = 0; i < flowLineRefs.current.length; i++) {
-          const lineEl = flowLineRefs.current[i];
-          if (lineEl) lineEl.setAttribute("stroke", flowColor);
+          setAttrIfChanged(
+            flowLineRefs.current[i],
+            `flowStroke-${i}`,
+            "stroke",
+            flowColor
+          );
         }
       } else if (!wasFlowHiddenRef.current) {
         wasFlowHiddenRef.current = true;
-        flowGroupRef.current.setAttribute("opacity", "0");
+        setAttrIfChanged(flowGroupRef.current, "flowOpacity", "opacity", "0");
       }
     }
 
     // 8. Pequeñas líneas de trazo estelar alrededor al hacer clic
-    const burstAge = nowSec - starBurstTimeRef.current;
     if (burstAge < 0 || burstAge > 0.65) {
       if (!wasBurstClearedRef.current) {
         wasBurstClearedRef.current = true;
@@ -914,8 +968,8 @@ export function AstronautScrollTracker() {
         n.y = Math.max(1, n.y + vy + spaceDriftY);
       }
 
-      // 6 iteraciones de restricción de distancia entre los 8 nodos
-      for (let iter = 0; iter < 6; iter++) {
+      // 4 iteraciones de restricción de distancia entre los 8 nodos
+      for (let iter = 0; iter < 4; iter++) {
         nodes[0].x = anchorX;
         nodes[0].y = anchorY;
         nodes[ROPE_NODES - 1].x = endX;
@@ -970,12 +1024,14 @@ export function AstronautScrollTracker() {
       const last = nodes[ROPE_NODES - 1];
       pathD += ` L ${last.x.toFixed(1)},${last.y.toFixed(1)}`;
 
-      cableEl.setAttribute("d", pathD);
+      setAttrIfChanged(cableEl, "cableD", "d", pathD);
 
       const cableColor = `rgba(${inkR}, ${inkG}, ${inkB}, 0.55)`;
-      cableEl.setAttribute("stroke", cableColor);
-      anchorEl.setAttribute("fill", cableColor);
-      anchorEl.setAttribute(
+      setAttrIfChanged(cableEl, "cableStroke", "stroke", cableColor);
+      setAttrIfChanged(anchorEl, "anchorFill", "fill", cableColor);
+      setAttrIfChanged(
+        anchorEl,
+        "anchorStroke",
         "stroke",
         p.lightBlend > 0.5 ? "#F4F1EA" : "#09090B"
       );

@@ -10,7 +10,7 @@ import {
   ELLIK_LOGO_VIEWBOX,
 } from "@/lib/ellikLogoGeometry";
 
-const TOTAL_DURATION_MS = 2300;
+const TOTAL_DURATION_MS = 1350;
 const PROGRESS_RADIUS = 68;
 const PROGRESS_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RADIUS;
 
@@ -58,9 +58,9 @@ export function LoadingScreen() {
             setCurtainsOpen(true);
             doneTimer = setTimeout(() => {
               setIsDone(true);
-            }, 780);
-          }, 300);
-        }, 80);
+            }, 550);
+          }, 180);
+        }, 50);
       }
     };
 
@@ -91,13 +91,13 @@ export function LoadingScreen() {
       <motion.div
         initial={{ y: "0%" }}
         animate={{ y: curtainsOpen ? "-100%" : "0%" }}
-        transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1] }}
+        transition={{ duration: 0.55, ease: [0.76, 0, 0.24, 1] }}
         className="fixed top-0 left-0 right-0 h-1/2 bg-[#050505]"
       />
       <motion.div
         initial={{ y: "0%" }}
         animate={{ y: curtainsOpen ? "100%" : "0%" }}
-        transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1] }}
+        transition={{ duration: 0.55, ease: [0.76, 0, 0.24, 1] }}
         className="fixed bottom-0 left-0 right-0 h-1/2 bg-[#050505]"
       />
 
@@ -200,7 +200,7 @@ export function LoadingScreen() {
                 : { rotate: 0, scale: 1 }
             }
             transition={{
-              rotate: { duration: 2.05, ease: [0.16, 1, 0.3, 1] },
+              rotate: { duration: 1.25, ease: [0.16, 1, 0.3, 1] },
               scale: { duration: 0.32, ease: [0.22, 1, 0.36, 1] },
             }}
             className="relative h-[120px] w-[120px] overflow-visible"
@@ -213,7 +213,7 @@ export function LoadingScreen() {
               strokeLinejoin="round"
               initial={{ pathLength: 0, opacity: 0.2 }}
               animate={{ pathLength: 1, opacity: 1 }}
-              transition={{ duration: 1.95, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
             />
             <motion.path
               d={ELLIK_LOGO_RIBBON_B}
@@ -224,8 +224,8 @@ export function LoadingScreen() {
               initial={{ pathLength: 0, opacity: 0.2 }}
               animate={{ pathLength: 1, opacity: 1 }}
               transition={{
-                duration: 1.95,
-                delay: 0.08,
+                duration: 1.2,
+                delay: 0.05,
                 ease: [0.16, 1, 0.3, 1],
               }}
             />

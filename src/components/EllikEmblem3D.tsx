@@ -219,7 +219,7 @@ export function EllikEmblem3D({
       new THREE.Vector3((x - 256) * worldScale, -(y - 256) * worldScale, z);
     const tubeRadius = (ELLIK_LOGO_STROKE_WIDTH / 2) * worldScale;
 
-    const capGeo = new THREE.SphereGeometry(tubeRadius, 28, 28);
+    const capGeo = new THREE.SphereGeometry(tubeRadius, 18, 18);
     disposables.push(capGeo);
 
     const buildRibbonMesh = (
@@ -243,9 +243,9 @@ export function EllikEmblem3D({
 
       const tubeGeo = new THREE.TubeGeometry(
         curvePath,
-        180,
+        96,
         tubeRadius,
-        32,
+        20,
         false
       );
       const ribbonMesh = new THREE.Mesh(tubeGeo, material);
@@ -338,7 +338,7 @@ export function EllikEmblem3D({
     const clampTilt = (val: number) => Math.max(-0.38, Math.min(0.38, val));
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!finePointerMq.matches) return;
+      if (!isIntersecting || !finePointerMq.matches) return;
       const vw = Math.max(window.innerWidth, 1);
       const vh = Math.max(window.innerHeight, 1);
       const nx = e.clientX / vw - 0.5;

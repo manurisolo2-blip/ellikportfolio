@@ -7,7 +7,6 @@ import {
   motion,
   useReducedMotion,
   useScroll,
-  useSpring,
   useTransform,
   type MotionValue,
 } from "framer-motion";
@@ -396,12 +395,6 @@ export function ProjectDeck({
     offset: ["start start", "end end"],
   });
 
-  const progress = useSpring(scrollYProgress, {
-    stiffness: 380,
-    damping: 48,
-    mass: 0.35,
-  });
-
   const handleScrollToCard = (targetIdx: number) => {
     const el = containerRef.current;
     if (!el) return;
@@ -449,7 +442,7 @@ export function ProjectDeck({
               item={item}
               index={idx}
               count={count}
-              progress={progress}
+              progress={scrollYProgress}
               still={still}
               ground={ground}
               labels={labels}

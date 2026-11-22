@@ -6,7 +6,6 @@ import {
   useMotionValueEvent,
   useReducedMotion,
   useScroll,
-  useSpring,
   useTransform,
   type MotionValue,
 } from "framer-motion";
@@ -475,11 +474,6 @@ export function ProblemSequenceSection() {
     offset: ["start start", "end end"],
   });
 
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 260,
-    damping: 34,
-  });
-
   useEffect(() => {
     const p = scrollYProgress.get();
     setAct1Count(countActiveWords(act1Words, p));
@@ -499,7 +493,7 @@ export function ProblemSequenceSection() {
 
   // El titular permanece fijo en su lugar y escala original; solo se desvanece en la salida (0.54 -> 0.66)
   const headlineOpacity = useTransform(
-    smoothProgress,
+    scrollYProgress,
     [0, 0.54, 0.66],
     [1, 1, 0]
   );
@@ -657,7 +651,7 @@ export function ProblemSequenceSection() {
                 key={card.id}
                 card={card}
                 index={idx}
-                progress={smoothProgress}
+                progress={scrollYProgress}
                 locale={locale}
               />
             ))}
