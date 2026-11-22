@@ -65,7 +65,7 @@ const DRAWER_SCOPED_CSS = `
     135deg,
     rgba(255, 255, 255, 0.62) 0%,
     rgba(255, 255, 255, 0.14) 26%,
-    rgba(140, 215, 200, 0.08) 55%,
+    rgba(244, 241, 234, 0.08) 55%,
     rgba(255, 255, 255, 0.28) 100%
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -78,7 +78,7 @@ const DRAWER_SCOPED_CSS = `
   background: radial-gradient(
     280px circle at var(--gx) var(--gy),
     rgba(255, 255, 255, 0.11),
-    rgba(117, 218, 192, 0.03) 45%,
+    rgba(244, 241, 234, 0.03) 45%,
     transparent 72%
   );
   mix-blend-mode: screen;
@@ -87,7 +87,7 @@ const DRAWER_SCOPED_CSS = `
   border-radius: 32px !important;
   background:
     radial-gradient(240px circle at 10% 8%, rgba(244, 241, 234, 0.07), transparent 70%),
-    radial-gradient(280px circle at 92% 94%, rgba(30, 116, 97, 0.12), transparent 72%);
+    radial-gradient(280px circle at 92% 94%, rgba(244, 241, 234, 0.05), transparent 72%);
 }
 .ellik-liquid-panel .ellik-thin-scroll {
   scrollbar-width: thin;
@@ -112,14 +112,14 @@ const DRAWER_SCOPED_CSS = `
   border-radius: 16px !important;
   background: linear-gradient(
     165deg,
-    rgba(255, 255, 255, 0.24) 0%,
-    rgba(255, 255, 255, 0.08) 42%,
-    rgba(30, 116, 97, 0.24) 100%
+    rgba(255, 255, 255, 0.26) 0%,
+    rgba(255, 255, 255, 0.09) 48%,
+    rgba(255, 255, 255, 0.04) 100%
   );
   border: 1px solid rgba(255, 255, 255, 0.38);
   box-shadow:
     inset 0 1.5px 1px rgba(255, 255, 255, 0.72),
-    inset 0 -1px 3px rgba(117, 218, 192, 0.28),
+    inset 0 -1px 3px rgba(0, 0, 0, 0.35),
     0 8px 20px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(14px) saturate(160%);
   -webkit-backdrop-filter: blur(14px) saturate(160%);
@@ -150,9 +150,9 @@ const DRAWER_SCOPED_CSS = `
   overflow: hidden;
   border-radius: 9999px !important;
   box-shadow:
-    inset 0 1.5px 1px #ffffff,
-    inset 0 -2px 4px rgba(0, 0, 0, 0.12),
-    0 14px 32px -10px rgba(244, 241, 234, 0.35);
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.45),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.18),
+    0 14px 32px -12px rgba(0, 0, 0, 0.55);
 }
 .ellik-liquid-panel .ellik-cta-sheen {
   position: absolute;
@@ -407,7 +407,7 @@ export function ContactDrawer({
                     >
                       <span
                         aria-hidden="true"
-                        className="ellik-liquid-dot w-1.5 h-1.5 bg-[#5eead4] shrink-0"
+                        className="ellik-liquid-dot w-1.5 h-1.5 bg-[var(--accent-signal)] shrink-0"
                       />
                       <span className="font-sans font-medium text-[11px] tracking-[0.06em] text-white/85 truncate">
                         {locale === "es" ? "Contacto directo" : "Direct contact"}
@@ -460,8 +460,12 @@ export function ContactDrawer({
                     {selectedPlan && (
                       <div
                         data-drawer-plan-chip
-                        className="ellik-liquid-pill inline-flex items-center gap-2 mt-2.5 px-3 py-1 text-[11px] font-sans font-medium bg-[#1e7461]/30 border border-[#75dac0]/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.22)] text-[#b8f1dd] max-w-full"
+                        className="ellik-liquid-pill inline-flex items-center gap-2 mt-2.5 px-3 py-1 text-[11px] font-sans font-medium bg-white/[0.08] border border-white/[0.18] shadow-[inset_0_1px_0_rgba(255,255,255,0.22)] text-[#F4F1EA] max-w-full"
                       >
+                        <span
+                          aria-hidden="true"
+                          className="ellik-liquid-dot w-1.5 h-1.5 bg-[var(--accent-signal)] shrink-0"
+                        />
                         <span className="truncate">
                           {locale === "es" ? "Modalidad" : "Option"}:{" "}
                           {selectedPlan}
@@ -474,7 +478,7 @@ export function ContactDrawer({
                               : "Remove option"
                           }
                           onClick={() => setSelectedPlan("")}
-                          className="shrink-0 text-[#b8f1dd]/75 hover:text-white transition-colors cursor-pointer"
+                          className="shrink-0 text-white/65 hover:text-white transition-colors cursor-pointer"
                         >
                           <X size={12} strokeWidth={1.75} aria-hidden="true" />
                         </button>
@@ -537,7 +541,11 @@ export function ContactDrawer({
                                   <Icon
                                     size={16}
                                     strokeWidth={1.75}
-                                    className="relative z-10 shrink-0"
+                                    className={
+                                      active
+                                        ? "relative z-10 shrink-0 text-[var(--accent-signal)]"
+                                        : "relative z-10 shrink-0"
+                                    }
                                     aria-hidden="true"
                                   />
 
@@ -630,13 +638,13 @@ export function ContactDrawer({
                       </div>
                     </motion.div>
 
-                    {/* D1. CTA principal píldora marfil con destello único */}
+                    {/* D1. CTA principal píldora señal con destello único */}
                     <motion.div variants={activeItemVariants} className="pt-1">
                       <button
                         type="submit"
                         data-drawer-submit
                         data-cursor="action"
-                        className="ellik-liquid-cta w-full py-3.5 px-6 bg-[#F4F1EA] hover:bg-white text-[#0B0B0D] font-sans font-semibold text-[13.5px] flex items-center justify-center gap-2 transition-all active:scale-[0.985] cursor-pointer group"
+                        className="ellik-liquid-cta w-full py-3.5 px-6 bg-[var(--accent-signal)] hover:brightness-110 text-[var(--accent-signal-ink)] font-sans font-semibold text-[13.5px] flex items-center justify-center gap-2 transition-all active:scale-[0.985] cursor-pointer group"
                       >
                         <span aria-hidden="true" className="ellik-cta-sheen" />
                         <span className="relative z-10">
@@ -671,7 +679,7 @@ export function ContactDrawer({
                       onClick={handleCopyEmail}
                       className={`ellik-liquid-pill px-3 py-1.5 border text-[11.5px] font-sans font-medium flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
                         emailCopied
-                          ? "bg-[#1e7461]/30 border-[#75dac0]/40 text-[#75dac0] shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]"
+                          ? "bg-[var(--accent-signal)] border-[var(--accent-signal)] text-[var(--accent-signal-ink)] shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]"
                           : "bg-white/[0.06] hover:bg-white/[0.15] border-white/[0.16] shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] text-white/85"
                       }`}
                     >

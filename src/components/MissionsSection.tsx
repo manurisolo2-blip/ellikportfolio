@@ -224,7 +224,7 @@ export function MissionsSection() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -6 }}
                       transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                      className="font-display font-medium text-xl sm:text-2xl text-white tabular-nums leading-none"
+                      className="font-display font-medium text-xl sm:text-2xl text-[var(--accent-signal)] tabular-nums leading-none"
                     >
                       {activeMission.index}
                     </motion.span>
@@ -331,13 +331,13 @@ export function MissionsSection() {
                 rel="noopener noreferrer"
                 data-missions-cta
                 data-cursor="action"
-                className="group/btn relative inline-flex min-h-[44px] shrink-0 self-start md:self-auto items-center justify-center gap-2.5 whitespace-nowrap overflow-hidden border border-white/30 px-5 py-3 font-sans font-medium text-[11px] tracking-[0.16em] uppercase text-white transition-colors duration-300 hover:border-[#F4F1EA]"
+                className="group/btn relative inline-flex min-h-[44px] shrink-0 self-start md:self-auto items-center justify-center gap-2.5 whitespace-nowrap overflow-hidden border border-white/30 px-5 py-3 font-sans font-medium text-[11px] tracking-[0.16em] uppercase text-white transition-colors duration-300 hover:border-[var(--accent-signal)]"
               >
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 bg-[#F4F1EA] translate-y-[102%] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-y-0 group-focus-visible/btn:translate-y-0"
+                  className="pointer-events-none absolute inset-0 bg-[var(--accent-signal)] translate-y-[102%] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/btn:translate-y-0 group-focus-visible/btn:translate-y-0"
                 />
-                <span className="relative z-10 inline-flex items-center gap-2.5 whitespace-nowrap transition-colors duration-300 group-hover/btn:text-[#050505] group-focus-visible/btn:text-[#050505]">
+                <span className="relative z-10 inline-flex items-center gap-2.5 whitespace-nowrap transition-colors duration-300 group-hover/btn:text-[var(--accent-signal-ink)] group-focus-visible/btn:text-[var(--accent-signal-ink)]">
                   <span>
                     {locale === "es" ? "VISITAR SITIO EN VIVO" : "VISIT LIVE SITE"}
                   </span>

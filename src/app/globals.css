@@ -14,6 +14,8 @@
   --text-secondary: #8A8A93;
   --text-muted: #52525B;
   --accent-starlight: #F4F1EA;
+  --accent-signal: #FF3B00;
+  --accent-signal-ink: #050505;
   --border-hairline: rgba(255, 255, 255, 0.12);
   --border-active: rgba(255, 255, 255, 0.45);
   --orbital-line: rgba(255, 255, 255, 0.055);
@@ -85,8 +87,8 @@ h3 {
 }
 
 ::selection {
-  background-color: #FFFFFF;
-  color: #050505;
+  background-color: var(--accent-signal);
+  color: var(--accent-signal-ink);
 }
 
 @layer utilities {

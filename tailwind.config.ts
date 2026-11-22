@@ -16,6 +16,8 @@ const config: Config = {
         secondary: "var(--text-secondary)",
         muted: "var(--text-muted)",
         starlight: "var(--accent-starlight)",
+        signal: "var(--accent-signal)",
+        "signal-ink": "var(--accent-signal-ink)",
         hairline: "var(--border-hairline)",
         active: "var(--border-active)",
         orbital: "var(--orbital-line)",

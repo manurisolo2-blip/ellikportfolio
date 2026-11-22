@@ -72,7 +72,7 @@ const PROBLEM_CARDS: readonly ProblemCardData[] = [
         {/* Línea plana de conversión abajo */}
         <path
           d="M 28 92 C 62 91.5, 110 92.5, 158 92"
-          stroke="rgba(255,255,255,0.65)"
+          stroke="var(--accent-signal)"
           strokeWidth="1.2"
           strokeLinecap="round"
         />
@@ -80,7 +80,7 @@ const PROBLEM_CARDS: readonly ProblemCardData[] = [
           cx="158"
           cy="92"
           r="2.2"
-          stroke="rgba(255,255,255,0.65)"
+          stroke="var(--accent-signal)"
           strokeWidth="1.2"
         />
       </svg>
@@ -158,7 +158,7 @@ const PROBLEM_CARDS: readonly ProblemCardData[] = [
         />
         <path
           d="M 134 36 L 134 44 M 134 48 L 134 49.5"
-          stroke="rgba(255,255,255,0.65)"
+          stroke="var(--accent-signal)"
           strokeWidth="1.2"
           strokeLinecap="round"
         />
@@ -170,7 +170,7 @@ const PROBLEM_CARDS: readonly ProblemCardData[] = [
         />
         <path
           d="M 146 74 L 146 82 M 146 86 L 146 87.5"
-          stroke="rgba(255,255,255,0.65)"
+          stroke="var(--accent-signal)"
           strokeWidth="1.2"
           strokeLinecap="round"
         />
@@ -237,7 +237,7 @@ const PROBLEM_CARDS: readonly ProblemCardData[] = [
         />
         <path
           d="M 86 50 C 86 46.5, 94 46.5, 94 50.5 C 94 53.5, 90 54, 90 57.5 M 90 61.5 L 90 63"
-          stroke="rgba(255,255,255,0.65)"
+          stroke="var(--accent-signal)"
           strokeWidth="1.2"
           strokeLinecap="round"
         />
@@ -308,7 +308,7 @@ const PROBLEM_CARDS: readonly ProblemCardData[] = [
         />
         <path
           d="M 79 40 L 101 62 M 101 40 L 79 62"
-          stroke="rgba(255,255,255,0.65)"
+          stroke="var(--accent-signal)"
           strokeWidth="1.2"
           strokeLinecap="round"
         />

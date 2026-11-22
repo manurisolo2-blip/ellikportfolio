@@ -175,7 +175,7 @@ export function InvestmentSection({ onOpenDrawer }: InvestmentSectionProps) {
   return (
     <section
       id="servicios"
-      className="relative w-full bg-[#F4F1EA] text-[#050505] pt-20 md:pt-28 pb-12 md:pb-16 selection:bg-[#050505] selection:text-[#F4F1EA]"
+      className="relative w-full bg-[#F4F1EA] text-[#050505] pt-20 md:pt-28 pb-12 md:pb-16"
     >
       <div className="px-6 sm:px-10 lg:px-28 xl:px-32">
         <div className="mx-auto w-full max-w-[1100px]">

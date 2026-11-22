@@ -147,7 +147,7 @@ function ActionNotch({
           </span>
         </span>
 
-        <span className="ellik-deck-orb grid size-11 sm:size-[52px] shrink-0 place-items-center bg-[#0B0B0D] text-[#F4F1EA] transition-all duration-200 ease-out group-hover/card:rotate-45 group-hover/cta:rotate-45 group-hover/cta:bg-[#1E1E24] group-active/cta:scale-90 group-focus-visible/cta:outline-2 group-focus-visible/cta:outline-offset-2 group-focus-visible/cta:outline-[#0B0B0D]">
+        <span className="ellik-deck-orb grid size-11 sm:size-[52px] shrink-0 place-items-center bg-[#0B0B0D] text-[#F4F1EA] transition-all duration-200 ease-out group-hover/card:rotate-45 group-hover/card:bg-[var(--accent-signal)] group-hover/card:text-[var(--accent-signal-ink)] group-hover/cta:rotate-45 group-hover/cta:bg-[var(--accent-signal)] group-hover/cta:text-[var(--accent-signal-ink)] group-active/cta:scale-90 group-focus-visible/cta:outline-2 group-focus-visible/cta:outline-offset-2 group-focus-visible/cta:outline-[#0B0B0D]">
           <ArrowUpRight className="size-5 sm:size-6" strokeWidth={2} />
         </span>
       </button>
@@ -255,7 +255,7 @@ function DeckCard({
           className="absolute inset-x-0 top-0 z-30 h-[36px] px-5 sm:px-9 lg:px-12 flex items-center justify-between border-b border-white/[0.12] text-left transition-colors hover:bg-white/[0.04] outline-none"
         >
           <span className="flex items-baseline gap-2 min-w-0 truncate">
-            <span className="font-display font-medium text-[13px] sm:text-[14.5px] tracking-[-0.01em] text-[#F4F1EA] shrink-0">
+            <span className="font-display font-medium text-[13px] sm:text-[14.5px] tracking-[-0.01em] text-[var(--accent-signal)] shrink-0">
               {item.index}
             </span>
             <span className="font-sans text-[11px] text-white/45 shrink-0">
@@ -276,7 +276,7 @@ function DeckCard({
         {/* Columna izquierda (5/12): Lámina editorial mate sin cajas ni divisores internos */}
         <div className="relative z-[5] lg:col-span-5 p-4 sm:p-7 lg:p-7 xl:p-9 flex flex-col justify-between min-w-0">
           <div className="flex items-center gap-3 min-w-0">
-            <span className="font-display font-semibold text-[22px] sm:text-[28px] xl:text-[30px] leading-none tracking-[-0.02em] text-[#F4F1EA] shrink-0">
+            <span className="font-display font-semibold text-[22px] sm:text-[28px] xl:text-[30px] leading-none tracking-[-0.02em] text-[var(--accent-signal)] shrink-0">
               {item.index}
             </span>
             <span className="font-sans font-medium text-[11px] text-white/35 shrink-0">

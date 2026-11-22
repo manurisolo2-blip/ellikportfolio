@@ -172,7 +172,7 @@ export function LoadingScreen() {
               cx="90"
               cy="90"
               r={PROGRESS_RADIUS}
-              stroke="#FFFFFF"
+              stroke="var(--accent-signal)"
               strokeWidth="1.5"
               strokeDasharray={PROGRESS_CIRCUMFERENCE}
               strokeDashoffset={strokeDashoffset}
@@ -238,7 +238,7 @@ export function LoadingScreen() {
                 cx="44.8"
                 cy="21.2"
                 r="3.2"
-                fill="#FFFFFF"
+                fill="var(--accent-signal)"
                 initial={{ opacity: 0, scale: 0.4 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 1.5, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}

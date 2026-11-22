@@ -76,7 +76,7 @@ export function FinalCtaSection({ onOpenDrawer }: FinalCtaSectionProps) {
         >
           <MagneticButton
             onClick={() => onOpenDrawer()}
-            className="inline-flex min-h-[44px] items-center border border-[rgba(255,255,255,0.35)] bg-[#050505] px-8 py-5 font-sans text-sm font-medium tracking-[0.02em] text-[var(--text-primary)] transition-colors duration-200 hover:border-[#FFFFFF]"
+            className="inline-flex min-h-[44px] items-center border border-[var(--accent-signal)] bg-[var(--accent-signal)] px-8 py-5 font-sans text-sm font-semibold tracking-[0.02em] text-[var(--accent-signal-ink)] transition-colors duration-200 hover:border-[#FFFFFF]"
           >
             {locale === "es"
               ? "Iniciar diagnóstico de 10 min"

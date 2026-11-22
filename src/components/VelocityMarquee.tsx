@@ -106,9 +106,13 @@ export function VelocityMarquee() {
                 {marqueeItems.map((item, itemIdx) => (
                   <span
                     key={`${copyIdx}-${repeatIdx}-${itemIdx}`}
-                    className="font-display text-4xl md:text-6xl font-medium uppercase tracking-[-0.02em] text-white/90 whitespace-nowrap pr-14 md:pr-20"
+                    className="inline-flex items-center gap-14 md:gap-20 font-display text-4xl md:text-6xl font-medium uppercase tracking-[-0.02em] text-white/90 whitespace-nowrap pr-14 md:pr-20"
                   >
-                    {item}
+                    <span>{item}</span>
+                    <span
+                      aria-hidden="true"
+                      className="inline-block h-2 w-2 shrink-0 bg-[var(--accent-signal)]"
+                    />
                   </span>
                 ))}
               </React.Fragment>
