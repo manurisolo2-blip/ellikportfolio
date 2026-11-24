@@ -7,6 +7,7 @@ import {
   useSpring,
   type Variants,
 } from "framer-motion";
+import { useHydratedReducedMotion } from "@/lib/fluidPhysics";
 
 const HEADING_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 const HAIRLINE_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -57,6 +58,14 @@ const accentRevealVariants: Variants = {
   },
 };
 
+const reducedWordVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.2 },
+  },
+};
+
 interface AnimatedHeadingProps {
   prefix: string;
   accent: string;
@@ -77,6 +86,7 @@ export function AnimatedHeading({
   const ref = useRef<HTMLHeadingElement | null>(null);
   const isInView = useInView(ref, { once: true, margin: "-12%" });
   const visibleRef = useRef<boolean>(false);
+  const reducedMotion = useHydratedReducedMotion();
   const rawId = useId();
   const safeId = rawId.replace(/:/g, "");
 
@@ -85,7 +95,7 @@ export function AnimatedHeading({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!window.matchMedia("(pointer: fine)").matches) return;
+    if (reducedMotion || !window.matchMedia("(pointer: fine)").matches) return;
 
     const el = ref.current;
     const io = el
@@ -118,7 +128,7 @@ export function AnimatedHeading({
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("blur", handleLeave);
     };
-  }, [eclipseX, eclipseY]);
+  }, [eclipseX, eclipseY, reducedMotion]);
 
   const prefixWords = prefix.trim().split(/\s+/);
   const accentWords = accent.trim().split(/\s+/);
@@ -136,7 +146,7 @@ export function AnimatedHeading({
       {/* Halo astronómico de eclipse detrás del titular principal */}
       <motion.span
         aria-hidden="true"
-        style={{ x: eclipseX, y: eclipseY }}
+        style={reducedMotion ? undefined : { x: eclipseX, y: eclipseY }}
         className="pointer-events-none absolute -left-8 -top-12 sm:-left-14 sm:-top-16 -z-10 h-[220px] w-[220px] sm:h-[310px] sm:w-[310px] select-none will-change-transform"
       >
         <svg
@@ -219,7 +229,7 @@ export function AnimatedHeading({
           className="relative z-10 inline-block overflow-hidden align-bottom pb-[0.08em] mr-[0.26em]"
         >
           <motion.span
-            variants={wordRevealVariants}
+            variants={reducedMotion ? reducedWordVariants : wordRevealVariants}
             className="inline-block origin-bottom-left text-white"
           >
             {word}
@@ -235,7 +245,11 @@ export function AnimatedHeading({
         >
           <motion.span
             variants={
-              toneVariant === "warm" ? accentRevealVariants : wordRevealVariants
+              reducedMotion
+                ? reducedWordVariants
+                : toneVariant === "warm"
+                ? accentRevealVariants
+                : wordRevealVariants
             }
             className={`inline-block origin-bottom-left ${accentColorClass}`}
           >
@@ -426,8 +440,9 @@ export function MagneticButton({
 }: MagneticButtonProps) {
   const rectRef = useRef<DOMRect | null>(null);
   const finePointerRef = useRef<boolean>(false);
-  const springX = useSpring(0, { stiffness: 220, damping: 18 });
-  const springY = useSpring(0, { stiffness: 220, damping: 18 });
+  const reducedMotion = useHydratedReducedMotion();
+  const springX = useSpring(0, { stiffness: 280, damping: 28, mass: 0.6 });
+  const springY = useSpring(0, { stiffness: 280, damping: 28, mass: 0.6 });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -441,13 +456,13 @@ export function MagneticButton({
   }, []);
 
   const handlePointerEnter = (e: React.PointerEvent<HTMLButtonElement>) => {
-    if (!finePointerRef.current || e.pointerType !== "mouse") return;
+    if (reducedMotion || !finePointerRef.current || e.pointerType !== "mouse") return;
     rectRef.current = e.currentTarget.getBoundingClientRect();
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
     const rect = rectRef.current;
-    if (!finePointerRef.current || !rect) return;
+    if (reducedMotion || !finePointerRef.current || !rect) return;
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     const normX = Math.max(
@@ -480,7 +495,9 @@ export function MagneticButton({
       onPointerMove={handlePointerMove}
       onPointerLeave={resetMagnetic}
       onBlur={resetMagnetic}
-      style={{ x: springX, y: springY }}
+      whileTap={reducedMotion ? undefined : { scale: 0.965 }}
+      transition={{ scale: { type: "spring", bounce: 0, duration: 0.14 } }}
+      style={reducedMotion ? undefined : { x: springX, y: springY }}
       className={`group ${hasExplicitPosition ? "" : "relative "}overflow-hidden ${className}`}
     >
       {/* Relleno blanco que entra deslizándose desde abajo hacia arriba */}

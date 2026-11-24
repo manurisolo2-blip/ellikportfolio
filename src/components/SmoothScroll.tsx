@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import Lenis from "lenis";
-import { cancelFrame, frame } from "framer-motion";
+import { MotionConfig, cancelFrame, frame } from "framer-motion";
 
 declare global {
   interface Window {
@@ -73,5 +73,5 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
     };
   }, []);
 
-  return <>{children}</>;
+  return <MotionConfig reducedMotion="user">{children}</MotionConfig>;
 }

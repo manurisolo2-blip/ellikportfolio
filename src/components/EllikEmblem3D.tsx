@@ -319,6 +319,9 @@ export function EllikEmblem3D({
     emblemGroup.add(dustPoints);
     disposables.push(dustGeo, dustMat);
 
+    const finePointerMq = window.matchMedia("(pointer: fine)");
+    const reducedMotionMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+
     const resizeObserver = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (!entry) return;
@@ -328,17 +331,19 @@ export function EllikEmblem3D({
       camera.updateProjectionMatrix();
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
       renderer.setSize(w, h, false);
+      if (reducedMotionMq.matches) {
+        renderer.render(scene, camera);
+      }
     });
     resizeObserver.observe(container);
 
-    const finePointerMq = window.matchMedia("(pointer: fine)");
     let targetMouseTiltX = 0;
     let targetMouseTiltY = 0;
 
     const clampTilt = (val: number) => Math.max(-0.38, Math.min(0.38, val));
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isIntersecting || !finePointerMq.matches) return;
+      if (!isIntersecting || !finePointerMq.matches || reducedMotionMq.matches) return;
       const vw = Math.max(window.innerWidth, 1);
       const vh = Math.max(window.innerHeight, 1);
       const nx = e.clientX / vw - 0.5;
@@ -415,6 +420,10 @@ export function EllikEmblem3D({
     };
 
     const startLoop = () => {
+      if (reducedMotionMq.matches) {
+        renderer.render(scene, camera);
+        return;
+      }
       if (!rafId && !document.hidden && isIntersecting) {
         clock.getDelta();
         rafId = window.requestAnimationFrame(animate);
@@ -425,6 +434,17 @@ export function EllikEmblem3D({
       if (rafId) {
         window.cancelAnimationFrame(rafId);
         rafId = 0;
+      }
+    };
+
+    const handleReducedMotionChange = () => {
+      if (reducedMotionMq.matches) {
+        stopLoop();
+        emblemGroup.position.y = 0;
+        emblemGroup.rotation.set(0, 0, 0);
+        renderer.render(scene, camera);
+      } else {
+        startLoop();
       }
     };
 
@@ -449,12 +469,14 @@ export function EllikEmblem3D({
     );
     intersectionObserver.observe(container);
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    reducedMotionMq.addEventListener("change", handleReducedMotionChange);
 
     startLoop();
 
     return () => {
       stopLoop();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      reducedMotionMq.removeEventListener("change", handleReducedMotionChange);
       intersectionObserver.disconnect();
       resizeObserver.disconnect();
       window.removeEventListener("mousemove", handleMouseMove);

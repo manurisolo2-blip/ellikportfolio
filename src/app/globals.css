@@ -37,6 +37,15 @@ html {
   scroll-behavior: auto;
   background-color: var(--bg-void);
   color: var(--text-primary);
+  font-optical-sizing: auto;
+  text-rendering: optimizeLegibility;
+}
+
+a,
+button,
+[role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html.lenis,
@@ -84,6 +93,12 @@ h1,
 h2,
 h3 {
   font-family: 'Clash Display', sans-serif;
+  text-wrap: balance;
+  font-optical-sizing: auto;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 ::selection {
@@ -168,6 +183,35 @@ h3 {
 
   .animate-pulse-star {
     animation: pulse-star 3.6s ease-in-out infinite;
+  }
+
+  .apple-press {
+    transition: transform 100ms ease-out;
+  }
+
+  .apple-press:active {
+    transform: scale(0.965);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .apple-press:active {
+    transform: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --text-secondary: #D4D4D8;
+    --text-muted: #A1A1AA;
+    --border-hairline: rgba(255, 255, 255, 0.34);
+    --border-active: #FFFFFF;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --bg-glass: #0B0B0D;
   }
 }
 

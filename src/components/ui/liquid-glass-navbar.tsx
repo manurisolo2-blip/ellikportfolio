@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { triggerHaptic } from "@/lib/fluidPhysics";
 import "./liquid-glass-navbar.css";
 
 export type LiquidNavFx = "spin" | "pop" | "drop" | "plane" | "none";
@@ -616,7 +617,7 @@ export function LiquidNavbar({
       const lo = PAD + 6 + T.r + T.q;
       const hi = Math.max(lo, PAD + axisLen - 6 - T.r - T.q);
 
-      const accA = 240 * (T.pos - s.a.pos) - 19 * s.a.vel;
+      const accA = 340 * (T.pos - s.a.pos) - 28.5 * s.a.vel;
       s.a.vel += accA * dt;
       s.a.pos += s.a.vel * dt;
       if (s.a.pos < lo) {
@@ -627,7 +628,7 @@ export function LiquidNavbar({
         s.a.vel = -Math.abs(s.a.vel) * 0.35;
       }
 
-      const accB = 135 * (s.a.pos - s.b.pos) - 17 * s.b.vel;
+      const accB = 190 * (s.a.pos - s.b.pos) - 22 * s.b.vel;
       s.b.vel += accB * dt;
       s.b.pos += s.b.vel * dt;
       if (s.b.pos < lo) {
@@ -769,6 +770,9 @@ export function LiquidNavbar({
       const prevIdx = prevActiveRef.current;
 
       if (!isControlled) setInnerActive(clamped);
+      if (clamped !== prevIdx) {
+        triggerHaptic(6);
+      }
       stateRef.current.targetIdx = clamped;
       prevActiveRef.current = clamped;
 

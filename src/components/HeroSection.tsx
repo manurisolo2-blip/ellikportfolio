@@ -260,10 +260,13 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
   const isDraggingRef = useRef<boolean>(false);
   const dragLastXRef = useRef<number>(0);
   const totalDragDistanceRef = useRef<number>(0);
+  const dragSamplesRef = useRef<Array<{ angle: number; t: number }>>([]);
+  const prefersReducedMotionRef = useRef<boolean>(false);
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isDraggingOrbit, setIsDraggingOrbit] = useState<boolean>(false);
   const [finePointer, setFinePointer] = useState<boolean>(false);
+  const [reducedMotion, setReducedMotion] = useState<boolean>(false);
   const radiusZRef = useRef<number>(DEFAULT_RADIUS_Z);
   const yScaleRef = useRef<number>(DEFAULT_Y_SCALE);
   const isInViewRef = useRef<boolean>(true);
@@ -316,6 +319,14 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
     syncPointer();
     mq.addEventListener("change", syncPointer);
 
+    const rmMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncReduced = () => {
+      prefersReducedMotionRef.current = rmMq.matches;
+      setReducedMotion(rmMq.matches);
+    };
+    syncReduced();
+    rmMq.addEventListener("change", syncReduced);
+
     const updateDimensions = () => {
       const vw = window.innerWidth;
       if (vw < 640) {
@@ -335,6 +346,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
 
     return () => {
       mq.removeEventListener("change", syncPointer);
+      rmMq.removeEventListener("change", syncReduced);
       window.removeEventListener("resize", updateDimensions);
     };
   }, []);
@@ -356,13 +368,34 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
 
       const angleDelta = dx * 0.34;
       orbitAngleRef.current += angleDelta;
-      angularVelocityRef.current = angleDelta;
+
+      const now = performance.now();
+      const samples = dragSamplesRef.current;
+      samples.push({ angle: orbitAngleRef.current, t: now });
+      while (samples.length > 4 || (samples.length > 1 && now - samples[0].t > 110)) {
+        samples.shift();
+      }
     };
 
     const handlePointerUp = () => {
       if (!isDraggingRef.current) return;
       isDraggingRef.current = false;
       setIsDraggingOrbit(false);
+
+      const now = performance.now();
+      const samples = dragSamplesRef.current;
+      if (samples.length >= 2) {
+        const oldest = samples[0];
+        const latest = samples[samples.length - 1];
+        const dtSec = Math.max(0.008, (latest.t - oldest.t) / 1000);
+        if (now - latest.t < 90) {
+          const degPerSec = (latest.angle - oldest.angle) / dtSec;
+          angularVelocityRef.current = Math.max(-520, Math.min(520, degPerSec));
+        } else {
+          angularVelocityRef.current = 0;
+        }
+      }
+      dragSamplesRef.current = [];
     };
 
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
@@ -398,14 +431,16 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
       (targetSpeedFactorRef.current - baseSpeedFactorRef.current) * 0.08;
 
     if (!isDraggingRef.current) {
-      orbitAngleRef.current += angularVelocityRef.current;
-      angularVelocityRef.current *= 0.95; // Inercia física suave
-      if (Math.abs(angularVelocityRef.current) < 0.004) {
+      orbitAngleRef.current += angularVelocityRef.current * dt;
+      angularVelocityRef.current *= Math.exp(-dt * 2.8);
+      if (Math.abs(angularVelocityRef.current) < 0.25) {
         angularVelocityRef.current = 0;
       }
 
-      orbitAngleRef.current +=
-        dt * (9.5 + scrollP * 16) * baseSpeedFactorRef.current;
+      if (!prefersReducedMotionRef.current) {
+        orbitAngleRef.current +=
+          dt * (9.5 + scrollP * 16) * baseSpeedFactorRef.current;
+      }
     }
 
     const effectiveRadiusZ = radiusZRef.current;
@@ -487,10 +522,14 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
   };
 
   const handleStagePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture?.(e.pointerId);
     isDraggingRef.current = true;
     dragLastXRef.current = e.clientX;
     totalDragDistanceRef.current = 0;
     angularVelocityRef.current = 0;
+    dragSamplesRef.current = [
+      { angle: orbitAngleRef.current, t: performance.now() },
+    ];
   };
 
   const handleScreenEnter = (idx: number, e?: React.MouseEvent<HTMLDivElement>) => {
@@ -556,12 +595,14 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
           onPointerLeave={handleStagePointerLeave}
           onPointerDown={handleStagePointerDown}
           style={{ perspective: "1000px" }}
-          className="relative flex w-full min-h-[420px] sm:min-h-[560px] md:min-h-[660px] items-center justify-center touch-pan-y select-none"
+          className={`relative flex w-full min-h-[420px] sm:min-h-[560px] md:min-h-[660px] items-center justify-center touch-pan-y select-none ${
+            isDraggingOrbit ? "cursor-grabbing" : "cursor-grab"
+          }`}
         >
           <motion.div
             style={{
-              rotateX: cameraRotateX,
-              rotateY: cameraRotateY,
+              rotateX: reducedMotion ? 0 : cameraRotateX,
+              rotateY: reducedMotion ? 0 : cameraRotateY,
             }}
             className="preserve-3d pointer-events-none relative flex h-[400px] sm:h-[540px] md:h-[640px] w-full items-center justify-center"
           >
@@ -569,7 +610,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
             <motion.div
               style={{
                 z: 0,
-                scale: coreScale,
+                scale: reducedMotion ? 1 : coreScale,
                 opacity: coreOpacity,
                 zIndex: 10,
               }}
@@ -643,7 +684,7 @@ export function HeroSection({ onOpenDrawer }: HeroSectionProps) {
                   className="pointer-events-auto absolute w-[195px] sm:w-[275px] md:w-[335px] lg:w-[375px] aspect-[16/10] cursor-pointer will-change-transform focus:outline-none"
                 >
                   <div
-                    className={`relative h-full w-full shadow-[0_24px_60px_rgba(0,0,0,0.82)] transition-[outline-color,transform] duration-300 ${
+                    className={`relative h-full w-full shadow-[0_24px_60px_rgba(0,0,0,0.82)] transition-[outline-color,transform] duration-150 ease-out active:scale-[0.985] ${
                       isHovered
                         ? "ring-1 ring-white/55 scale-[1.02]"
                         : "ring-1 ring-white/[0.10]"

@@ -4,12 +4,12 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   motion,
   useMotionValueEvent,
-  useReducedMotion,
   useScroll,
   useTransform,
   type MotionValue,
 } from "framer-motion";
 import { useLanguage, type Locale } from "@/context/LanguageContext";
+import { useHydratedReducedMotion } from "@/lib/fluidPhysics";
 
 interface ProblemCardData {
   id: string;
@@ -459,7 +459,7 @@ function StraightProblemCard({
 export function ProblemSequenceSection() {
   const { locale } = useLanguage();
   const sectionRef = useRef<HTMLElement | null>(null);
-  const reducedMotion = Boolean(useReducedMotion());
+  const reducedMotion = useHydratedReducedMotion();
 
   const act1Words = ACT1_WORDS_BY_LOCALE[locale];
   const act4Words = ACT4_WORDS_BY_LOCALE[locale];

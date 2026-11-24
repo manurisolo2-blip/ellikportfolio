@@ -2,6 +2,7 @@
 
 // Warp Carousel adapted from Louis Studios WebGL2 ring engine.
 import * as React from "react";
+import { triggerHaptic } from "@/lib/fluidPhysics";
 
 /** The small graphic under each numeral (used when no preview image is set). */
 export type WarpCardDetail = "slider" | "ring" | "wave" | "cross" | "none";
@@ -1236,6 +1237,7 @@ interface Live {
   lastT: number;
   visible: boolean;
   hiddenAt: number;
+  dragSamples: Array<{ P: number; t: number }>;
 }
 
 export function WarpCarousel({
@@ -1295,6 +1297,7 @@ export function WarpCarousel({
     lastT: 0,
     visible: true,
     hiddenAt: 0,
+    dragSamples: [],
   });
   const props = React.useRef({
     onIndexChange,
@@ -1450,7 +1453,7 @@ export function WarpCarousel({
         L.lastT = now;
         const sub = 4;
         for (let i = 0; i < sub; i++) {
-          const acc = -60 * (L.P - L.to) - 13 * L.v;
+          const acc = -145 * (L.P - L.to) - 19.8 * L.v;
           L.v += (acc * dt) / sub;
           L.P += (L.v * dt) / sub;
         }
@@ -1708,13 +1711,16 @@ export function WarpCarousel({
     if (seconds !== undefined || e.button > 0) return;
     const L = live.current;
     e.currentTarget.setPointerCapture?.(e.pointerId);
+    e.currentTarget.style.cursor = "grabbing";
+    const nowMs = performance.now();
     L.mode = "drag";
     L.dragX = e.clientX;
     L.downX = e.clientX;
     L.dragP = L.P;
     L.v = 0;
     L.moved = false;
-    L.lastT = performance.now() / 1000;
+    L.lastT = nowMs / 1000;
+    L.dragSamples = [{ P: L.P, t: nowMs }];
     handles.current.kick();
   };
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -1724,21 +1730,32 @@ export function WarpCarousel({
     if (!wrapEl) return;
     const r = wrapEl.getBoundingClientRect();
     const unitCss = Math.min(r.width / 720, r.height / 440);
-    const now = performance.now() / 1000;
+    const nowMs = performance.now();
+    const now = nowMs / 1000;
     const P = L.dragP - (e.clientX - L.dragX) / (unitCss * 210);
     const dt = Math.max(1 / 240, now - L.lastT);
     L.v = 0.6 * L.v + 0.4 * ((P - L.P) / dt);
     L.P = P;
     L.lastT = now;
+    L.dragSamples.push({ P, t: nowMs });
+    while (
+      L.dragSamples.length > 4 ||
+      (L.dragSamples.length > 1 && nowMs - L.dragSamples[0].t > 110)
+    ) {
+      L.dragSamples.shift();
+    }
     if (Math.abs(e.clientX - L.downX) > 5) L.moved = true;
     handles.current.draw();
   };
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     const L = live.current;
+    e.currentTarget.style.cursor = "grab";
     if (L.mode !== "drag") return;
-    const now = performance.now() / 1000;
+    const nowMs = performance.now();
+    const now = nowMs / 1000;
     L.nextAuto = now + gap;
     if (!L.moved) {
+      L.dragSamples = [];
       L.mode = "rest";
       const wrapEl = wrapRef.current;
       if (!wrapEl) return;
@@ -1756,10 +1773,25 @@ export function WarpCarousel({
       }
       return;
     }
-    if (now - L.lastT > 0.08) L.v = 0;
+
+    let releaseV = 0;
+    if (L.dragSamples.length >= 2) {
+      const oldest = L.dragSamples[0];
+      const latest = L.dragSamples[L.dragSamples.length - 1];
+      const dtSec = Math.max(0.008, (latest.t - oldest.t) / 1000);
+      if (nowMs - latest.t < 90) {
+        releaseV = (latest.P - oldest.P) / dtSec;
+      }
+    } else if (now - L.lastT <= 0.08) {
+      releaseV = L.v;
+    }
+    L.v = releaseV;
+    L.dragSamples = [];
+
     const dragOrigin = Math.round(L.dragP);
-    const velBoost = Math.max(-0.32, Math.min(0.32, L.v * 0.12));
-    let target = Math.round(L.P + velBoost);
+    const projected = L.P + releaseV * 0.24;
+    let target = Math.round(projected);
+    target = Math.max(dragOrigin - 2, Math.min(dragOrigin + 2, target));
     if (target === dragOrigin && Math.abs(L.P - L.dragP) >= 0.28) {
       target = dragOrigin + Math.sign(L.P - L.dragP);
     }
@@ -1770,14 +1802,17 @@ export function WarpCarousel({
     const nextMod = mod(target, p.realCount);
     const nextStored = p.controlled ? nextMod : target;
     if (nextStored !== lastIndex.current) {
+      triggerHaptic(6);
       lastIndex.current = nextStored;
       if (p.onIndexChange) p.onIndexChange(nextMod);
       if (!p.controlled) setInner(target);
     }
     handles.current.kick();
   };
-  const onPointerCancel = () => {
+  const onPointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
     const L = live.current;
+    e.currentTarget.style.cursor = "grab";
+    L.dragSamples = [];
     if (L.mode !== "drag") return;
     L.mode = "rest";
     L.moved = false;

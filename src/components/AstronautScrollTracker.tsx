@@ -10,6 +10,7 @@ import {
   useScroll,
 } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import { rubberband } from "@/lib/fluidPhysics";
 
 const CLICK_STAR_ANGLES = [0, 58, 122, 180, 238, 302] as const;
 const ROPE_NODES = 8;
@@ -63,12 +64,6 @@ function stepJoint(
   return j.pos;
 }
 
-function clampEllipse(dx: number, dy: number, rx: number, ry: number) {
-  const mag = Math.hypot(dx / rx, dy / ry);
-  if (mag <= 1) return { x: dx, y: dy };
-  return { x: dx / mag, y: dy / mag };
-}
-
 export function AstronautScrollTracker() {
   const { locale } = useLanguage();
   const localeRef = useRef(locale);
@@ -98,6 +93,7 @@ export function AstronautScrollTracker() {
 
   const trackHeightRef = useRef<number>(520);
   const hoveredRef = useRef<boolean>(false);
+  const prefersReducedMotionRef = useRef<boolean>(false);
 
   // Puntero global para brisa ingrávida cercana
   const pointerRef = useRef<{ x: number; y: number; active: boolean }>({
@@ -238,6 +234,13 @@ export function AstronautScrollTracker() {
     syncDesktopVisibility();
     mq.addEventListener("change", syncDesktopVisibility);
 
+    const rmMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncReducedMotion = () => {
+      prefersReducedMotionRef.current = rmMq.matches;
+    };
+    syncReducedMotion();
+    rmMq.addEventListener("change", syncReducedMotion);
+
     const refreshServiciosDocBounds = () => {
       const servEl = document.getElementById("servicios");
       if (servEl) {
@@ -282,6 +285,7 @@ export function AstronautScrollTracker() {
 
     return () => {
       mq.removeEventListener("change", syncDesktopVisibility);
+      rmMq.removeEventListener("change", syncReducedMotion);
       ro?.disconnect();
       docRo.disconnect();
       window.clearTimeout(docResizeTimer);
@@ -306,25 +310,22 @@ export function AstronautScrollTracker() {
       }
 
       if (d.dragging) {
-        const clamped = clampEllipse(
-          d.baseDragX + rawDx,
-          d.baseDragY + rawDy,
-          34,
-          48
-        );
+        const clampedX = rubberband(d.baseDragX + rawDx, 76, 0.55);
+        const clampedY = rubberband(d.baseDragY + rawDy, 96, 0.55);
         const now = performance.now();
         const moveDt = Math.max(0.008, (now - d.lastMoveTime) / 1000);
-        d.releaseVx = clamp((clamped.x - d.offsetX) / moveDt, -520, 520);
-        d.releaseVy = clamp((clamped.y - d.offsetY) / moveDt, -520, 520);
+        d.releaseVx = clamp((clampedX - d.offsetX) / moveDt, -520, 520);
+        d.releaseVy = clamp((clampedY - d.offsetY) / moveDt, -520, 520);
         d.prevOffsetX = d.offsetX;
         d.prevOffsetY = d.offsetY;
-        d.offsetX = clamped.x;
-        d.offsetY = clamped.y;
+        d.offsetX = clampedX;
+        d.offsetY = clampedY;
         d.lastMoveTime = now;
       }
     };
 
     const triggerSpinImpulse = () => {
+      if (prefersReducedMotionRef.current) return;
       const p = physRef.current;
       p.spinTurns -= 1;
       p.rootAngVel -= 420;
@@ -407,6 +408,7 @@ export function AstronautScrollTracker() {
     e: React.PointerEvent<HTMLButtonElement>
   ) => {
     if (e.button !== 0 && e.pointerType === "mouse") return;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
     const d = dragRef.current;
     d.active = true;
     d.dragging = false;
@@ -425,7 +427,7 @@ export function AstronautScrollTracker() {
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     // El clic con puntero ya se dispara al soltar en pointerup (solo manejar Enter/Space)
-    if (e.detail !== 0) return;
+    if (e.detail !== 0 || prefersReducedMotionRef.current) return;
     const p = physRef.current;
     p.spinTurns -= 1;
     p.rootAngVel -= 420;
@@ -441,6 +443,17 @@ export function AstronautScrollTracker() {
     const currentScrollY = window.scrollY;
     const nowSec = performance.now() * 0.001;
     const burstAge = nowSec - starBurstTimeRef.current;
+    const reduced = prefersReducedMotionRef.current;
+
+    const travel = Math.max(trackHeightRef.current - 112, 1);
+    const scrollTargetY = clamp(scrollYProgress.get(), 0, 1) * travel;
+
+    if (reduced && p.initialized) {
+      const settledY = Math.abs(p.bodyY - scrollTargetY) < 0.25 && Math.abs(p.bodyX) < 0.25;
+      if (settledY && Math.abs(currentScrollY - p.prevScrollY) < 0.5 && !drag.active) {
+        return;
+      }
+    }
 
     const isIdle =
       p.initialized &&
@@ -455,7 +468,7 @@ export function AstronautScrollTracker() {
       !pointerRef.current.active;
 
     let effectiveDeltaMs = deltaMs;
-    if (isIdle) {
+    if (isIdle && !reduced) {
       idleAccumMsRef.current += deltaMs;
       if (idleAccumMsRef.current < 30) return;
       effectiveDeltaMs = idleAccumMsRef.current;
@@ -467,9 +480,6 @@ export function AstronautScrollTracker() {
     const dt = clamp(effectiveDeltaMs, 1, 50) / 1000;
     const t = timeMs * 0.001;
     const ease = (rate: number) => 1 - Math.exp(-rate * dt);
-
-    const travel = Math.max(trackHeightRef.current - 112, 1);
-    const scrollTargetY = clamp(scrollYProgress.get(), 0, 1) * travel;
 
     if (!p.initialized) {
       p.initialized = true;
@@ -509,7 +519,7 @@ export function AstronautScrollTracker() {
     let targetBreezeY = 0;
     const ptr = pointerRef.current;
 
-    if (ptr.active && !drag.dragging && !hoveredRef.current) {
+    if (!reduced && ptr.active && !drag.dragging && !hoveredRef.current) {
       const astroCx = trackRectRef.current.left + 12 + p.bodyX + 36;
       const astroCy = trackRectRef.current.top + p.bodyY + 56;
       const dxPtr = astroCx - ptr.x;
@@ -529,9 +539,13 @@ export function AstronautScrollTracker() {
     p.breezeY += (targetBreezeY - p.breezeY) * ease(8);
 
     // 3. Dinámica 2D de cuerpo rígido (Lissajous + resorte 2º orden + arrastre elástico)
-    const lissX = Math.sin(t * 0.92) * 3.0 + Math.cos(t * 1.47) * 1.4;
-    const lissY = Math.cos(t * 1.15) * 4.5 + Math.sin(t * 1.72) * 2.2;
-    const tetherSwingX = clamp(-p.velPx * 0.0045, -7, 7);
+    const lissX = reduced
+      ? 0
+      : Math.sin(t * 0.92) * 3.0 + Math.cos(t * 1.47) * 1.4;
+    const lissY = reduced
+      ? 0
+      : Math.cos(t * 1.15) * 4.5 + Math.sin(t * 1.72) * 2.2;
+    const tetherSwingX = reduced ? 0 : clamp(-p.velPx * 0.0045, -7, 7);
 
     const targetBodyX = drag.dragging
       ? drag.offsetX
@@ -579,7 +593,7 @@ export function AstronautScrollTracker() {
     }
 
     // 4. Dinámica angular del torso (picada/ascenso + latigazo de frenada + giro 360°)
-    const idleTiltTarget = Math.sin(t * 0.9) * 3.5;
+    const idleTiltTarget = reduced ? 0 : Math.sin(t * 0.9) * 3.5;
     const dropTiltTarget = 16 + downStrength * 12;
     const boostTiltTarget = -(15 + upStrength * 9);
     const scrollAccelWhip = clamp(-p.accelPx / 1200, -10, 10);

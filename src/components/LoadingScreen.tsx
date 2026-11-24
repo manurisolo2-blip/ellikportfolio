@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
+import { useHydratedReducedMotion } from "@/lib/fluidPhysics";
 import {
   ELLIK_LOGO_RIBBON_A,
   ELLIK_LOGO_RIBBON_B,
@@ -16,6 +17,7 @@ const PROGRESS_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RADIUS;
 
 export function LoadingScreen() {
   const { locale } = useLanguage();
+  const reducedMotion = useHydratedReducedMotion();
   const [progress, setProgress] = useState<number>(0);
   const [shockwaveActive, setShockwaveActive] = useState<boolean>(false);
   const [curtainsOpen, setCurtainsOpen] = useState<boolean>(false);
@@ -34,6 +36,18 @@ export function LoadingScreen() {
   }, [isDone]);
 
   useEffect(() => {
+    const prefersReduced =
+      reducedMotion ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) {
+      setProgress(100);
+      setCurtainsOpen(true);
+      const t = setTimeout(() => {
+        setIsDone(true);
+      }, 180);
+      return () => clearTimeout(t);
+    }
+
     let rafId = 0;
     let waveTimer: ReturnType<typeof setTimeout> | null = null;
     let curtainTimer: ReturnType<typeof setTimeout> | null = null;
@@ -72,7 +86,7 @@ export function LoadingScreen() {
       if (curtainTimer) clearTimeout(curtainTimer);
       if (doneTimer) clearTimeout(doneTimer);
     };
-  }, []);
+  }, [reducedMotion]);
 
   if (isDone) return null;
 

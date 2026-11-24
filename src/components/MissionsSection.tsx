@@ -10,6 +10,11 @@ import {
 } from "framer-motion";
 import { MISSIONS, MISSIONS_BY_LOCALE } from "@/data/ellikData";
 import { useLanguage } from "@/context/LanguageContext";
+import {
+  APPLE_SPRING_SNAPPY,
+  triggerHaptic,
+  useHydratedReducedMotion,
+} from "@/lib/fluidPhysics";
 import { WarpCarousel, type WarpCard } from "@/components/ui/warp-carousel";
 
 const MISSIONS_SCOPED_CSS = `
@@ -56,7 +61,9 @@ export function MissionsSection() {
   const { locale } = useLanguage();
   const missions = MISSIONS_BY_LOCALE[locale];
   const sectionRef = useRef<HTMLElement>(null);
+  const reducedMotion = useHydratedReducedMotion();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
 
   const safeIndex =
     activeIndex >= 0 && activeIndex < missions.length ? activeIndex : 0;
@@ -135,17 +142,28 @@ export function MissionsSection() {
     });
   }, []);
 
-  const handleIndexChange = useCallback((nextIndex: number) => {
-    const total = MISSIONS.length;
-    const normalized = ((nextIndex % total) + total) % total;
-    setActiveIndex(normalized);
-  }, []);
+  const handleIndexChange = useCallback(
+    (nextIndex: number) => {
+      const total = MISSIONS.length;
+      const normalized = ((nextIndex % total) + total) % total;
+      if (normalized !== safeIndex) {
+        const forwardDist = (normalized - safeIndex + total) % total;
+        setDirection(forwardDist <= total / 2 ? 1 : -1);
+      }
+      setActiveIndex(normalized);
+    },
+    [safeIndex]
+  );
 
   const handlePrev = useCallback(() => {
+    setDirection(-1);
+    triggerHaptic(6);
     handleIndexChange(safeIndex - 1);
   }, [handleIndexChange, safeIndex]);
 
   const handleNext = useCallback(() => {
+    setDirection(1);
+    triggerHaptic(6);
     handleIndexChange(safeIndex + 1);
   }, [handleIndexChange, safeIndex]);
 
@@ -157,10 +175,11 @@ export function MissionsSection() {
         const url = MISSIONS[normalized]?.liveUrl;
         if (url) window.open(url, "_blank", "noopener,noreferrer");
       } else {
-        setActiveIndex(normalized);
+        triggerHaptic(6);
+        handleIndexChange(normalized);
       }
     },
-    [safeIndex]
+    [handleIndexChange, safeIndex]
   );
 
   return (
@@ -209,14 +228,26 @@ export function MissionsSection() {
                 data-missions-counter
                 className="flex items-baseline select-none whitespace-nowrap shrink-0"
               >
-                <span className="relative inline-flex overflow-hidden min-w-[2ch] justify-end">
-                  <AnimatePresence mode="wait" initial={false}>
+                <span className="relative inline-flex overflow-hidden min-w-[2.2ch] justify-end">
+                  <AnimatePresence mode="popLayout" initial={false}>
                     <motion.span
                       key={activeMission.index}
-                      initial={{ opacity: 0, y: 6 }}
+                      initial={
+                        reducedMotion
+                          ? { opacity: 0 }
+                          : { opacity: 0, y: direction * 6 }
+                      }
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }}
-                      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                      exit={
+                        reducedMotion
+                          ? { opacity: 0 }
+                          : { opacity: 0, y: direction * -6 }
+                      }
+                      transition={
+                        reducedMotion
+                          ? { duration: 0.14 }
+                          : { duration: 0.2, ease: [0.16, 1, 0.3, 1] }
+                      }
                       className="font-display font-medium text-xl sm:text-2xl text-[var(--accent-signal)] tabular-nums leading-none"
                     >
                       {activeMission.index}
@@ -237,7 +268,7 @@ export function MissionsSection() {
                     locale === "es" ? "Proyecto anterior" : "Previous project"
                   }
                   onClick={handlePrev}
-                  className="ellik-missions-pill w-9 h-9 rounded-full border border-white/15 bg-white/[0.02] hover:border-white/50 hover:bg-white/[0.08] flex items-center justify-center text-white/80 hover:text-white transition-all cursor-pointer"
+                  className="ellik-missions-pill w-9 h-9 rounded-full border border-white/15 bg-white/[0.02] hover:border-white/50 hover:bg-white/[0.08] flex items-center justify-center text-white/80 hover:text-white transition-all duration-100 active:scale-[0.92] cursor-pointer"
                 >
                   <ArrowLeft size={15} strokeWidth={1.7} aria-hidden="true" />
                 </button>
@@ -249,7 +280,7 @@ export function MissionsSection() {
                     locale === "es" ? "Proyecto siguiente" : "Next project"
                   }
                   onClick={handleNext}
-                  className="ellik-missions-pill w-9 h-9 rounded-full border border-white/15 bg-white/[0.02] hover:border-white/50 hover:bg-white/[0.08] flex items-center justify-center text-white/80 hover:text-white transition-all cursor-pointer"
+                  className="ellik-missions-pill w-9 h-9 rounded-full border border-white/15 bg-white/[0.02] hover:border-white/50 hover:bg-white/[0.08] flex items-center justify-center text-white/80 hover:text-white transition-all duration-100 active:scale-[0.92] cursor-pointer"
                 >
                   <ArrowRight size={15} strokeWidth={1.7} aria-hidden="true" />
                 </button>
@@ -283,14 +314,26 @@ export function MissionsSection() {
           {/* Dock inferior editorial: meta + título + descripción en 3 niveles y CTA directo */}
           <div className="relative z-20 shrink-0 border-t border-white/[0.08] bg-[#050505]/95 px-6 sm:pl-28 sm:pr-10 lg:pl-32 lg:pr-28 xl:pl-36 xl:pr-32 pt-5 md:pt-6 pb-20 lg:pb-6">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 md:gap-6">
-              <div className="min-w-0 flex-1">
-                <AnimatePresence mode="wait" initial={false}>
+              <div className="relative min-w-0 flex-1 overflow-hidden">
+                <AnimatePresence mode="popLayout" initial={false}>
                   <motion.div
                     key={activeMission.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                    initial={
+                      reducedMotion
+                        ? { opacity: 0 }
+                        : { opacity: 0, x: direction * 10 }
+                    }
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={
+                      reducedMotion
+                        ? { opacity: 0 }
+                        : { opacity: 0, x: direction * -10 }
+                    }
+                    transition={
+                      reducedMotion
+                        ? { duration: 0.14 }
+                        : { duration: 0.22, ease: [0.16, 1, 0.3, 1] }
+                    }
                     data-missions-meta={activeMission.id}
                   >
                     <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 mb-2.5">
@@ -324,7 +367,7 @@ export function MissionsSection() {
                 rel="noopener noreferrer"
                 data-missions-cta
                 data-cursor="action"
-                className="group/btn relative inline-flex min-h-[44px] shrink-0 self-start md:self-auto items-center justify-center gap-2.5 whitespace-nowrap overflow-hidden border border-white/30 px-5 py-3 font-sans font-medium text-[11px] tracking-[0.16em] uppercase text-white transition-colors duration-300 hover:border-[var(--accent-signal)]"
+                className="group/btn relative inline-flex min-h-[44px] shrink-0 self-start md:self-auto items-center justify-center gap-2.5 whitespace-nowrap overflow-hidden border border-white/30 px-5 py-3 font-sans font-medium text-[11px] tracking-[0.16em] uppercase text-white transition-[border-color,transform] duration-150 ease-out active:scale-[0.97] hover:border-[var(--accent-signal)]"
               >
                 <span
                   aria-hidden="true"

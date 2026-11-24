@@ -5,13 +5,13 @@ import Image from "next/image";
 import {
   MotionConfig,
   motion,
-  useReducedMotion,
   useScroll,
   useTransform,
   type MotionValue,
 } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useHydratedReducedMotion } from "@/lib/fluidPhysics";
 
 export type DeckItem = {
   id: string;
@@ -134,7 +134,7 @@ function ActionNotch({
           e.stopPropagation();
           onAction();
         }}
-        className="ellik-deck-notch group/cta flex items-center gap-4 py-3 pr-2.5 pl-5 text-[#111318] outline-none sm:gap-5 sm:py-4 sm:pr-3 sm:pl-7 text-left"
+        className="ellik-deck-notch group/cta flex items-center gap-4 py-3 pr-2.5 pl-5 text-[#111318] outline-none sm:gap-5 sm:py-4 sm:pr-3 sm:pl-7 text-left transition-transform duration-100 ease-out active:scale-[0.97]"
         style={{ background: ground }}
       >
         <span className="flex flex-col leading-tight">
@@ -251,7 +251,7 @@ function DeckCard({
             e.stopPropagation();
             onJumpToCard(index);
           }}
-          className="absolute inset-x-0 top-0 z-30 h-[36px] px-5 sm:px-9 lg:px-12 flex items-center justify-between border-b border-white/[0.12] text-left transition-colors hover:bg-white/[0.04] outline-none"
+          className="absolute inset-x-0 top-0 z-30 h-[36px] px-5 sm:px-9 lg:px-12 flex items-center justify-between border-b border-white/[0.12] text-left transition-[background-color,transform] duration-100 hover:bg-white/[0.04] active:scale-[0.99] outline-none"
         >
           <span className="flex items-baseline gap-2 min-w-0 truncate">
             <span className="font-display font-medium text-[13px] sm:text-[14.5px] tracking-[-0.01em] text-[var(--accent-signal)] shrink-0">
@@ -387,7 +387,7 @@ export function ProjectDeck({
   children,
 }: ProjectDeckProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const still = useReducedMotion() ?? false;
+  const still = useHydratedReducedMotion();
   const count = items.length;
 
   const { scrollYProgress } = useScroll({

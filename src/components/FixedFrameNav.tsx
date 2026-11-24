@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { LayoutGroup, motion } from "framer-motion";
 import { Activity, CircleDot, Compass, Layers, Orbit, Send } from "lucide-react";
 import {
   NAV_SECTIONS,
@@ -14,6 +15,7 @@ import {
   type BusinessCategory,
 } from "@/data/ellikData";
 import { useLanguage, type Locale } from "@/context/LanguageContext";
+import { APPLE_SPRING_SNAPPY, triggerHaptic } from "@/lib/fluidPhysics";
 import { MagneticButton } from "./AnimatedHeading";
 import { EllikLogo } from "./EllikLogo";
 import {
@@ -346,42 +348,61 @@ export function FixedFrameNav({ onOpenDrawer }: FixedFrameNavProps) {
         aria-label={
           locale === "es" ? "ELLIK — Volver al inicio" : "ELLIK — Back to top"
         }
-        className="fixed top-4 left-4 sm:left-6 lg:top-8 lg:left-10 z-[48] inline-flex min-h-[44px] items-center text-white mix-blend-difference transition-opacity hover:opacity-80"
+        className="fixed top-4 left-4 sm:left-6 lg:top-8 lg:left-10 z-[48] inline-flex min-h-[44px] items-center text-white mix-blend-difference transition-[opacity,transform] duration-100 ease-out hover:opacity-80 active:scale-[0.96]"
       >
         <EllikLogo />
       </a>
 
       {/* Esquina Superior Derecha: Selector ES | EN + Acción magnética de contacto directo */}
       <div className="fixed top-4 right-4 sm:right-6 lg:top-8 lg:right-10 z-[48] mix-blend-difference text-white flex items-center gap-1.5 sm:gap-2.5">
-        <div
-          role="group"
-          data-lang-switcher
-          aria-label={
-            locale === "es" ? "Selector de idioma" : "Language switcher"
-          }
-          className="inline-flex min-h-[44px] items-center border border-white/35 p-0.5"
-        >
-          {(["es", "en"] as const satisfies readonly Locale[]).map((code) => {
-            const active = locale === code;
-            return (
-              <button
-                key={code}
-                type="button"
-                data-lang-btn={code}
-                data-cursor="action"
-                aria-pressed={active}
-                onClick={() => setLocale(code)}
-                className={`h-[38px] px-2 sm:px-2.5 inline-flex items-center justify-center font-sans text-[10px] sm:text-[11px] tracking-[0.12em] uppercase transition-colors duration-200 cursor-pointer ${
-                  active
-                    ? "bg-white text-black font-semibold"
-                    : "bg-transparent text-white/60 hover:text-white font-medium"
-                }`}
-              >
-                {code.toUpperCase()}
-              </button>
-            );
-          })}
-        </div>
+        <LayoutGroup id="ellik-lang-switcher">
+          <div
+            role="group"
+            data-lang-switcher
+            aria-label={
+              locale === "es" ? "Selector de idioma" : "Language switcher"
+            }
+            className="inline-flex min-h-[44px] items-center border border-white/35 p-0.5"
+          >
+            {(["es", "en"] as const satisfies readonly Locale[]).map((code) => {
+              const active = locale === code;
+              return (
+                <button
+                  key={code}
+                  type="button"
+                  data-lang-btn={code}
+                  data-cursor="action"
+                  aria-pressed={active}
+                  onClick={() => {
+                    if (locale !== code) {
+                      triggerHaptic(6);
+                      setLocale(code);
+                    }
+                  }}
+                  className="relative h-[38px] px-2 sm:px-2.5 inline-flex items-center justify-center font-sans text-[10px] sm:text-[11px] tracking-[0.12em] uppercase transition-transform duration-100 ease-out active:scale-[0.94] cursor-pointer overflow-hidden"
+                >
+                  {active && (
+                    <motion.span
+                      layoutId="ellik-lang-pill"
+                      transition={APPLE_SPRING_SNAPPY}
+                      aria-hidden="true"
+                      className="absolute inset-0 bg-white"
+                    />
+                  )}
+                  <span
+                    className={`relative z-10 transition-colors duration-150 ${
+                      active
+                        ? "text-black font-semibold"
+                        : "text-white/60 hover:text-white font-medium"
+                    }`}
+                  >
+                    {code.toUpperCase()}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </LayoutGroup>
 
         <MagneticButton
           onClick={() => onOpenDrawer()}
